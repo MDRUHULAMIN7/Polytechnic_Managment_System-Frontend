@@ -1,12 +1,12 @@
-import type { AcademicDepartmentPaginationProps } from "@/lib/type/dashboard/admin/academic-department/ui";
+import type { AcademicSemesterPaginationProps } from "@/lib/type/dashboard/admin/academic-semester/ui";
 
-export function AcademicDepartmentPagination({
+export function AcademicSemesterPagination({
   meta,
   page,
   limit,
   onPageChange,
   onLimitChange,
-}: AcademicDepartmentPaginationProps) {
+}: AcademicSemesterPaginationProps) {
   const totalPages = Math.max(meta.totalPage || 1, 1);
   const canPrev = page > 1;
   const canNext = page < totalPages;

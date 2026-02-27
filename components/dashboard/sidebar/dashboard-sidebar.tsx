@@ -5,6 +5,8 @@ import { usePathname, useRouter } from "next/navigation";
 import type { LucideIcon } from "lucide-react";
 import {
   BookUser,
+  CalendarDays,
+  Building2,
   GraduationCap,
   LayoutDashboard,
   LogOut,
@@ -28,6 +30,8 @@ const sidebarItems: Record<DashboardRole, SidebarItem[]> = {
   admin: [
     { href: "/dashboard/admin", label: "Admin Home", icon: ShieldCheck },
     { href: "/dashboard/admin/academic-instructors", label: "Academic Instructors", icon: BookUser },
+    { href: "/dashboard/admin/academic-departments", label: "Academic Departments", icon: Building2 },
+    { href: "/dashboard/admin/academic-semesters", label: "Academic Semesters", icon: CalendarDays },
     { href: "/dashboard/admin/roles", label: "Roles", icon: GraduationCap },
   ],
   superAdmin: [{ href: "/dashboard/admin", label: "Admin Home", icon: ShieldCheck }],

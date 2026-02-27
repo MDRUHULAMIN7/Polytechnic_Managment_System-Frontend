@@ -124,7 +124,7 @@ export function AcademicDepartmentFormModal({
           <select
             value={instructorId}
             onChange={(event) => setInstructorId(event.target.value)}
-            className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-transparent px-3 text-sm text-(--text)"
+            className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-(--surface) px-3 text-sm text-(--text)"
           >
             <option value="">Select instructor</option>
             {instructors.map((instructor) => (

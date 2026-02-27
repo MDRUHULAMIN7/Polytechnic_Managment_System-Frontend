@@ -1,23 +1,10 @@
-import type { AcademicDepartmentDetailsContentProps } from "@/lib/type/dashboard/admin/academic-department/ui";
-import type { AcademicDepartment } from "@/lib/type/dashboard/admin/academic-department";
+import type { AcademicSemesterDetailsContentProps } from "@/lib/type/dashboard/admin/academic-semester/ui";
 import { formatDate } from "@/utils/common/utils";
 
-function resolveInstructorName(department: AcademicDepartment) {
-  if (!department.academicInstructor) {
-    return "--";
-  }
-
-  if (typeof department.academicInstructor === "string") {
-    return department.academicInstructor;
-  }
-
-  return department.academicInstructor.name ?? "--";
-}
-
-export function AcademicDepartmentDetailsContent({
+export function AcademicSemesterDetailsContent({
   details,
   error,
-}: AcademicDepartmentDetailsContentProps) {
+}: AcademicSemesterDetailsContentProps) {
   if (error) {
     return (
       <div className="rounded-2xl border border-red-400/50 bg-red-500/10 px-4 py-3 text-sm text-red-400">
@@ -38,16 +25,28 @@ export function AcademicDepartmentDetailsContent({
     <div className="space-y-4 text-sm">
       <div className="rounded-xl border border-(--line) bg-(--surface-muted) px-4 py-3">
         <p className="text-xs uppercase tracking-[0.18em] text-(--text-dim)">
-          Department
+          Semester
         </p>
-        <p className="mt-2 text-base font-semibold">{details.name}</p>
+        <p className="mt-2 text-base font-semibold">
+          {details.name} ({details.code})
+        </p>
       </div>
 
-      <div className="rounded-xl border border-(--line) px-4 py-3">
-        <p className="text-xs uppercase tracking-[0.18em] text-(--text-dim)">
-          Academic Instructor
-        </p>
-        <p className="mt-2 font-medium">{resolveInstructorName(details)}</p>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="rounded-xl border border-(--line) px-4 py-3">
+          <p className="text-xs uppercase tracking-[0.18em] text-(--text-dim)">
+            Year
+          </p>
+          <p className="mt-2 font-medium">{details.year}</p>
+        </div>
+        <div className="rounded-xl border border-(--line) px-4 py-3">
+          <p className="text-xs uppercase tracking-[0.18em] text-(--text-dim)">
+            Duration
+          </p>
+          <p className="mt-2 font-medium">
+            {details.startMonth} - {details.endMonth}
+          </p>
+        </div>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">

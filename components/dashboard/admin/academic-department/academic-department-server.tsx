@@ -34,7 +34,7 @@ export async function AcademicDepartmentPageServer({
     }),
     getAcademicInstructorsServer({
       page: 1,
-      limit: 100,
+      limit: 1000,
       sort: "name",
     }),
   ]);
