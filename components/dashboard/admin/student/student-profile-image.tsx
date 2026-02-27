@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 
 type StudentProfileImageProps = {
@@ -37,7 +38,9 @@ export function StudentProfileImage({ src, alt, className }: StudentProfileImage
   }, [initialSrc]);
 
   return (
-    <img
+    <Image
+      width={300}
+      height={300}
       src={currentSrc}
       alt={alt ?? "Student profile"}
       className={className}

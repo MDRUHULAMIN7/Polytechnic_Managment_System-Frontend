@@ -33,12 +33,17 @@ const adminItems: SidebarItem[] = [
   { href: "/dashboard/admin/academic-departments", label: "Academic Departments", icon: Building2 },
   { href: "/dashboard/admin/academic-semesters", label: "Academic Semesters", icon: CalendarDays },
   { href: "/dashboard/admin/students", label: "Students", icon: Users },
-  { href: "/dashboard/admin/roles", label: "Roles", icon: GraduationCap },
+  { href: "/dashboard/admin/instructors", label: "Instructors", icon: GraduationCap },
+];
+
+const superAdminItems: SidebarItem[] = [
+  ...adminItems,
+  { href: "/dashboard/admin/admins", label: "Admins", icon: ShieldCheck },
 ];
 
 const sidebarItems: Record<DashboardRole, SidebarItem[]> = {
   admin: adminItems,
-  superAdmin: adminItems,
+  superAdmin: superAdminItems,
   instructor: [{ href: "/dashboard/instructor", label: "Instructor Home", icon: BookUser }],
   student: [{ href: "/dashboard/student", label: "Student Home", icon: GraduationCap }],
 };

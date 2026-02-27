@@ -30,7 +30,7 @@ export default async function StudentDetailsPage({ params }: PageProps) {
   }
 
   return (
-    <section className="mx-auto max-w-4xl space-y-6">
+    <section className="mx-auto space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-(--text-dim)">

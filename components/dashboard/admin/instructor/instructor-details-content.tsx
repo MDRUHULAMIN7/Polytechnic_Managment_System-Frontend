@@ -1,0 +1,138 @@
+import type { InstructorDetailsContentProps } from "@/lib/type/dashboard/admin/instructor/ui";
+import type { AcademicDepartment } from "@/lib/type/dashboard/admin/academic-department";
+import { formatDate } from "@/utils/common/utils";
+import { StudentProfileImage } from "../student/student-profile-image";
+
+function resolveName(name?: { firstName?: string; middleName?: string; lastName?: string }) {
+  if (!name) {
+    return "--";
+  }
+
+  return [name.firstName, name.middleName, name.lastName].filter(Boolean).join(" ");
+}
+
+function resolveDepartmentName(value?: AcademicDepartment | string) {
+  if (!value) {
+    return "--";
+  }
+
+  if (typeof value === "string") {
+    return value;
+  }
+
+  return value.name ?? "--";
+}
+
+export function InstructorDetailsContent({
+  details,
+  error,
+}: InstructorDetailsContentProps) {
+  if (error) {
+    return (
+      <div className="rounded-2xl border border-red-400/50 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+        {error}
+      </div>
+    );
+  }
+
+  if (!details) {
+    return (
+      <div className="rounded-2xl border border-(--line) bg-(--surface) px-4 py-6 text-center text-sm text-(--text-dim)">
+        No details available.
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4 text-sm">
+      <div className="flex flex-col gap-4 rounded-xl border border-(--line) bg-(--surface-muted) px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-xs uppercase tracking-[0.18em] text-(--text-dim)">
+            Instructor
+          </p>
+          <p className="mt-2 text-base font-semibold">{resolveName(details.name)}</p>
+          <p className="mt-1 text-xs text-(--text-dim)">ID: {details.id}</p>
+        </div>
+        <StudentProfileImage
+          src={details.profileImg}
+          alt={resolveName(details.name)}
+          className="h-16 w-16 rounded-full border border-(--line) object-cover"
+        />
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="rounded-xl border border-(--line) px-4 py-3">
+          <p className="text-xs uppercase tracking-[0.18em] text-(--text-dim)">Email</p>
+          <p className="mt-2 font-medium break-words">{details.email}</p>
+        </div>
+        <div className="rounded-xl border border-(--line) px-4 py-3">
+          <p className="text-xs uppercase tracking-[0.18em] text-(--text-dim)">Status</p>
+          <p className="mt-2 font-medium capitalize">{details.user?.status ?? "--"}</p>
+        </div>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-3">
+        <div className="rounded-xl border border-(--line) px-4 py-3">
+          <p className="text-xs uppercase tracking-[0.18em] text-(--text-dim)">
+            Designation
+          </p>
+          <p className="mt-2 font-medium">{details.designation}</p>
+        </div>
+        <div className="rounded-xl border border-(--line) px-4 py-3">
+          <p className="text-xs uppercase tracking-[0.18em] text-(--text-dim)">Gender</p>
+          <p className="mt-2 font-medium capitalize">{details.gender}</p>
+        </div>
+        <div className="rounded-xl border border-(--line) px-4 py-3">
+          <p className="text-xs uppercase tracking-[0.18em] text-(--text-dim)">
+            Blood Group
+          </p>
+          <p className="mt-2 font-medium">{details.bloogGroup ?? "--"}</p>
+        </div>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="rounded-xl border border-(--line) px-4 py-3">
+          <p className="text-xs uppercase tracking-[0.18em] text-(--text-dim)">
+            Date of Birth
+          </p>
+          <p className="mt-2 font-medium">{formatDate(details.dateOfBirth)}</p>
+        </div>
+        <div className="rounded-xl border border-(--line) px-4 py-3">
+          <p className="text-xs uppercase tracking-[0.18em] text-(--text-dim)">
+            Contact
+          </p>
+          <p className="mt-2 font-medium">{details.contactNo}</p>
+          <p className="mt-1 text-xs text-(--text-dim)">
+            Emergency: {details.emergencyContactNo}
+          </p>
+        </div>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="rounded-xl border border-(--line) px-4 py-3">
+          <p className="text-xs uppercase tracking-[0.18em] text-(--text-dim)">
+            Academic Department
+          </p>
+          <p className="mt-2 font-medium">
+            {resolveDepartmentName(details.academicDepartment)}
+          </p>
+        </div>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="rounded-xl border border-(--line) px-4 py-3">
+          <p className="text-xs uppercase tracking-[0.18em] text-(--text-dim)">
+            Present Address
+          </p>
+          <p className="mt-2 font-medium">{details.presentAddress}</p>
+        </div>
+        <div className="rounded-xl border border-(--line) px-4 py-3">
+          <p className="text-xs uppercase tracking-[0.18em] text-(--text-dim)">
+            Permanent Address
+          </p>
+          <p className="mt-2 font-medium">{details.permanentAddress}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
