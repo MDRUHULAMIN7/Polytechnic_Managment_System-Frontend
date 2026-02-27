@@ -11,45 +11,17 @@ import {
   ACADEMIC_DEPARTMENTS_TAG,
   academicDepartmentTag,
 } from "@/lib/api/dashboard/admin/academic-department/tags";
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-const ACCESS_TOKEN_COOKIE = "pms_access_token";
-
-function ensureApiBaseUrl() {
-  if (!API_BASE_URL) {
-    throw new Error("Missing NEXT_PUBLIC_API_BASE_URL in environment.");
-  }
-}
+import {
+  API_BASE_URL,
+  ACCESS_TOKEN_COOKIE,
+  authHeaders,
+  ensureApiBaseUrl,
+  parseJsonResponse,
+} from "@/lib/api/dashboard/api";
 
 async function readAccessToken(): Promise<string | null> {
   const cookieStore = await cookies();
   return cookieStore.get(ACCESS_TOKEN_COOKIE)?.value ?? null;
-}
-
-function authHeaders(token: string | null): HeadersInit {
-  if (!token) {
-    return {};
-  }
-
-  return { Authorization: `Bearer ${token}` };
-}
-
-async function parseJsonResponse<T>(
-  response: Response,
-  fallbackMessage: string
-): Promise<ApiResponse<T>> {
-  const text = await response.text();
-
-  try {
-    return JSON.parse(text) as ApiResponse<T>;
-  } catch {
-    const preview = text.slice(0, 180).replace(/\s+/g, " ").trim();
-    throw new Error(
-      preview
-        ? `${fallbackMessage} Received: ${preview}`
-        : `${fallbackMessage} Invalid JSON response.`
-    );
-  }
 }
 
 async function fetchAcademicDepartmentsCached(
@@ -73,7 +45,7 @@ async function fetchAcademicDepartmentsCached(
     }
   );
 
-  const payload = await parseJsonResponse<AcademicDepartmentListPayload>(
+  const payload = await parseJsonResponse<ApiResponse<AcademicDepartmentListPayload>>(
     response,
     "Failed to load academic departments."
   );
@@ -102,7 +74,7 @@ async function fetchAcademicDepartmentCached(
     },
   });
 
-  const payload = await parseJsonResponse<AcademicDepartment>(
+  const payload = await parseJsonResponse<ApiResponse<AcademicDepartment>>(
     response,
     "Failed to load academic department."
   );
@@ -146,7 +118,7 @@ export async function createAcademicDepartmentServer(
     }
   );
 
-  const payload = await parseJsonResponse<AcademicDepartment>(
+  const payload = await parseJsonResponse<ApiResponse<AcademicDepartment>>(
     response,
     "Failed to create academic department."
   );
@@ -174,7 +146,7 @@ export async function updateAcademicDepartmentServer(
     body: JSON.stringify(input),
   });
 
-  const payload = await parseJsonResponse<AcademicDepartment>(
+  const payload = await parseJsonResponse<ApiResponse<AcademicDepartment>>(
     response,
     "Failed to update academic department."
   );

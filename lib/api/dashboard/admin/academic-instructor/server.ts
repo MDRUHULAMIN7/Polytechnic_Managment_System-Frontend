@@ -11,45 +11,17 @@ import {
   ACADEMIC_INSTRUCTORS_TAG,
   academicInstructorTag,
 } from "@/lib/api/dashboard/admin/academic-instructor/tags";
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-const ACCESS_TOKEN_COOKIE = "pms_access_token";
-
-function ensureApiBaseUrl() {
-  if (!API_BASE_URL) {
-    throw new Error("Missing NEXT_PUBLIC_API_BASE_URL in environment.");
-  }
-}
+import {
+  API_BASE_URL,
+  ACCESS_TOKEN_COOKIE,
+  authHeaders,
+  ensureApiBaseUrl,
+  parseJsonResponse,
+} from "@/lib/api/dashboard/api";
 
 async function readAccessToken(): Promise<string | null> {
   const cookieStore = await cookies();
   return cookieStore.get(ACCESS_TOKEN_COOKIE)?.value ?? null;
-}
-
-function authHeaders(token: string | null): HeadersInit {
-  if (!token) {
-    return {};
-  }
-
-  return { Authorization: `Bearer ${token}` };
-}
-
-async function parseJsonResponse<T>(
-  response: Response,
-  fallbackMessage: string
-): Promise<ApiResponse<T>> {
-  const text = await response.text();
-
-  try {
-    return JSON.parse(text) as ApiResponse<T>;
-  } catch {
-    const preview = text.slice(0, 180).replace(/\s+/g, " ").trim();
-    throw new Error(
-      preview
-        ? `${fallbackMessage} Received: ${preview}`
-        : `${fallbackMessage} Invalid JSON response.`
-    );
-  }
 }
 
 async function fetchAcademicInstructorsCached(
@@ -73,7 +45,7 @@ async function fetchAcademicInstructorsCached(
     }
   );
 
-  const payload = await parseJsonResponse<AcademicInstructorListPayload>(
+  const payload = await parseJsonResponse<ApiResponse<AcademicInstructorListPayload>>(
     response,
     "Failed to load academic instructors."
   );
@@ -102,7 +74,7 @@ async function fetchAcademicInstructorCached(
     },
   });
 
-  const payload = await parseJsonResponse<AcademicInstructor>(
+  const payload = await parseJsonResponse<ApiResponse<AcademicInstructor>>(
     response,
     "Failed to load academic instructor."
   );
@@ -146,7 +118,7 @@ export async function createAcademicInstructorServer(
     }
   );
 
-  const payload = await parseJsonResponse<AcademicInstructor>(
+  const payload = await parseJsonResponse<ApiResponse<AcademicInstructor>>(
     response,
     "Failed to create academic instructor."
   );
@@ -174,7 +146,7 @@ export async function updateAcademicInstructorServer(
     body: JSON.stringify(input),
   });
 
-  const payload = await parseJsonResponse<AcademicInstructor>(
+  const payload = await parseJsonResponse<ApiResponse<AcademicInstructor>>(
     response,
     "Failed to update academic instructor."
   );

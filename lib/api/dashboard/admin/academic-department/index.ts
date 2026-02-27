@@ -6,40 +6,11 @@ import type {
   ApiResponse,
 } from "@/lib/type/dashboard/admin/academic-department";
 import { buildAcademicDepartmentQuery } from "@/utils/dashboard/admin/academic-department/query";
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
-const ACCESS_TOKEN_COOKIE = "pms_access_token";
-
-function readCookie(name: string): string | null {
-  if (typeof document === "undefined") {
-    return null;
-  }
-
-  const cookie = document.cookie
-    .split("; ")
-    .find((item) => item.startsWith(`${name}=`));
-
-  if (!cookie) {
-    return null;
-  }
-
-  return decodeURIComponent(cookie.split("=")[1] ?? "");
-}
-
-function authHeaders(): HeadersInit {
-  const token = readCookie(ACCESS_TOKEN_COOKIE);
-  if (!token) {
-    return {};
-  }
-
-  return { Authorization: `Bearer ${token}` };
-}
-
-function ensureApiBaseUrl() {
-  if (!API_BASE_URL) {
-    throw new Error("Missing NEXT_PUBLIC_API_BASE_URL in environment.");
-  }
-}
+import {
+  API_BASE_URL,
+  authHeadersFromCookie,
+  ensureApiBaseUrl,
+} from "@/lib/api/dashboard/api";
 
 export async function getAcademicDepartments(
   params: AcademicDepartmentListParams
@@ -52,7 +23,7 @@ export async function getAcademicDepartments(
     {
       headers: {
         "Content-Type": "application/json",
-        ...authHeaders(),
+        ...authHeadersFromCookie(),
       },
       credentials: "include",
     }
@@ -76,7 +47,7 @@ export async function getAcademicDepartment(
   const response = await fetch(`${API_BASE_URL}/academic-department/${id}`, {
     headers: {
       "Content-Type": "application/json",
-      ...authHeaders(),
+      ...authHeadersFromCookie(),
     },
     credentials: "include",
   });
@@ -101,7 +72,7 @@ export async function createAcademicDepartment(
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        ...authHeaders(),
+        ...authHeadersFromCookie(),
       },
       credentials: "include",
       body: JSON.stringify(input),
@@ -127,7 +98,7 @@ export async function updateAcademicDepartment(
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
-      ...authHeaders(),
+      ...authHeadersFromCookie(),
     },
     credentials: "include",
     body: JSON.stringify(input),

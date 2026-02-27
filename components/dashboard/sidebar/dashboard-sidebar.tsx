@@ -11,6 +11,7 @@ import {
   LayoutDashboard,
   LogOut,
   ShieldCheck,
+  Users,
   X
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -26,15 +27,18 @@ type SidebarItem = {
   icon: LucideIcon;
 };
 
+const adminItems: SidebarItem[] = [
+  { href: "/dashboard/admin", label: "Admin Home", icon: ShieldCheck },
+  { href: "/dashboard/admin/academic-instructors", label: "Academic Instructors", icon: BookUser },
+  { href: "/dashboard/admin/academic-departments", label: "Academic Departments", icon: Building2 },
+  { href: "/dashboard/admin/academic-semesters", label: "Academic Semesters", icon: CalendarDays },
+  { href: "/dashboard/admin/students", label: "Students", icon: Users },
+  { href: "/dashboard/admin/roles", label: "Roles", icon: GraduationCap },
+];
+
 const sidebarItems: Record<DashboardRole, SidebarItem[]> = {
-  admin: [
-    { href: "/dashboard/admin", label: "Admin Home", icon: ShieldCheck },
-    { href: "/dashboard/admin/academic-instructors", label: "Academic Instructors", icon: BookUser },
-    { href: "/dashboard/admin/academic-departments", label: "Academic Departments", icon: Building2 },
-    { href: "/dashboard/admin/academic-semesters", label: "Academic Semesters", icon: CalendarDays },
-    { href: "/dashboard/admin/roles", label: "Roles", icon: GraduationCap },
-  ],
-  superAdmin: [{ href: "/dashboard/admin", label: "Admin Home", icon: ShieldCheck }],
+  admin: adminItems,
+  superAdmin: adminItems,
   instructor: [{ href: "/dashboard/instructor", label: "Instructor Home", icon: BookUser }],
   student: [{ href: "/dashboard/student", label: "Student Home", icon: GraduationCap }],
 };
