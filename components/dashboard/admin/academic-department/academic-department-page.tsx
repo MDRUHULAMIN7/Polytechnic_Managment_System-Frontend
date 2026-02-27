@@ -1,320 +1,232 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useForm } from "react-hook-form";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { CirclePlus } from "lucide-react";
-import {
-  createAcademicDepartment,
-  getAcademicDepartmentById,
-  getAcademicDepartments,
-  updateAcademicDepartment,
-} from "@/lib/api/academic-department";
-import { getAcademicInstructors } from "@/lib/api/academic-instructor";
-import type { AcademicDepartment } from "@/lib/api/types";
-import {
-  ACADEMIC_DEPARTMENT_DEFAULT_TABLE_STATE,
-  ACADEMIC_DEPARTMENT_ROWS_PER_PAGE,
-  resolveAcademicDepartmentInstructorId,
-  resolveAcademicDepartmentInstructorName,
-} from "@/lib/utils/academic-department/academic-department-utils";
-import {
-  applySearch,
-  applyStartsWithFilter,
-  buildBackendQuery,
-  isSameTableState,
-  parseTableState,
-  paginateRows,
-  sortRows,
-  tableStateToQuery,
-  type TableQueryState,
-} from "@/lib/utils/table/table-utils";
-import type {
-  AcademicDepartmentDialogMode,
-  AcademicDepartmentFormValues,
-} from "@/lib/types/pages/academic.types";
-import { useToastManager } from "@/lib/use-toast-manager";
-import { AcademicDepartmentDetailsContent } from "@/components/dashboard/admin/academic-department/academic-department-details-content";
-import { AcademicDepartmentFilters } from "@/components/dashboard/admin/academic-department/academic-department-filters";
-import { AcademicDepartmentForm } from "@/components/dashboard/admin/academic-department/academic-department-form";
-import { AcademicDepartmentTable } from "@/components/dashboard/admin/academic-department/academic-department-table";
-import { ModalFrame } from "@/components/ui/modal-frame";
-import { ToastRegion } from "@/components/ui/toast-region";
-import { PageHeader } from "@/components/ui/page-header";
+import type { AcademicDepartmentSortOption } from "@/lib/type/dashboard/admin/academic-department";
+import type { AcademicDepartmentPageProps } from "@/lib/type/dashboard/admin/academic-department/ui";
+import { showToast } from "@/utils/common/toast";
+import { AcademicDepartmentFilters } from "./academic-department-filters";
+import { AcademicDepartmentPagination } from "./academic-department-pagination";
+import { AcademicDepartmentTable } from "./academic-department-table";
+import { AcademicDepartmentFormModal } from "./academic-department-form-modal";
 
-export function AcademicDepartmentPage() {
+function useDebouncedValue(value: string, delayMs: number) {
+  const [debounced, setDebounced] = useState(value);
+
+  useEffect(() => {
+    const handle = window.setTimeout(() => setDebounced(value), delayMs);
+    return () => window.clearTimeout(handle);
+  }, [value, delayMs]);
+
+  return debounced;
+}
+
+export function AcademicDepartmentPage({
+  items,
+  meta,
+  searchTerm,
+  page,
+  limit,
+  sort,
+  academicInstructor,
+  instructors,
+  error,
+}: AcademicDepartmentPageProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const queryClient = useQueryClient();
+  const [isPending, startTransition] = useTransition();
+  const [searchInput, setSearchInput] = useState(searchTerm);
+  const [instructorFilter, setInstructorFilter] = useState(academicInstructor);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [editItem, setEditItem] = useState<typeof items[number] | null>(null);
 
-  const [tableState, setTableState] = useState<TableQueryState>(() =>
-    parseTableState(searchParams, ACADEMIC_DEPARTMENT_DEFAULT_TABLE_STATE),
-  );
-  const [dialogMode, setDialogMode] =
-    useState<AcademicDepartmentDialogMode>(null);
-  const [activeRow, setActiveRow] = useState<AcademicDepartment | null>(null);
-  const [detailRow, setDetailRow] = useState<AcademicDepartment | null>(null);
-  const [detailLoading, setDetailLoading] = useState(false);
-  const { toasts, toast, dismissToast } = useToastManager();
-
-  const createForm = useForm<AcademicDepartmentFormValues>({
-    defaultValues: { name: "", academicInstructor: "" },
-  });
-  const updateForm = useForm<AcademicDepartmentFormValues>({
-    defaultValues: { name: "", academicInstructor: "" },
-  });
-
-  // Sync tableState from URL
-  useEffect(() => {
-    const nextState = parseTableState(
-      searchParams,
-      ACADEMIC_DEPARTMENT_DEFAULT_TABLE_STATE,
-    );
-    setTableState((prev) =>
-      isSameTableState(prev, nextState) ? prev : nextState,
-    );
-  }, [searchParams]);
-
-  // Sync URL from tableState
-  useEffect(() => {
-    const nextQuery = tableStateToQuery(
-      tableState,
-      ACADEMIC_DEPARTMENT_DEFAULT_TABLE_STATE,
-    ).toString();
-    const currentQuery = searchParams.toString();
-    if (nextQuery === currentQuery) return;
-    const target = nextQuery ? `${pathname}?${nextQuery}` : pathname;
-    router.replace(target, { scroll: false });
-  }, [pathname, router, searchParams, tableState]);
-
-  // Data query
-  const departmentsQuery = useQuery({
-    queryKey: ["academic-departments", tableState],
-    queryFn: () => getAcademicDepartments(buildBackendQuery(tableState)),
-  });
-
-  const rows: AcademicDepartment[] = Array.isArray(departmentsQuery.data?.data)
-    ? (departmentsQuery.data.data as AcademicDepartment[])
-    : [];
-  const loading = departmentsQuery.isLoading || departmentsQuery.isFetching;
-
-  // Instructors dropdown
-  const instructorsQuery = useQuery({
-    queryKey: ["academic-instructors-dropdown"],
-    queryFn: () => getAcademicInstructors(),
-    staleTime: 5 * 60 * 1000,
-  });
-
-  const instructors = instructorsQuery.data?.data ?? [];
-  const instructorsLoading = instructorsQuery.isLoading;
-
-  // Client-side filter/sort/paginate
-  const processedRows = useMemo(() => {
-    const searched = applySearch(
-      rows,
-      tableState.searchTerm,
-      (row) => `${row.name} ${resolveAcademicDepartmentInstructorName(row)}`,
-    );
-    const filtered = applyStartsWithFilter(
-      searched,
-      tableState.startsWith,
-      (row) => row.name,
-    );
-    return sortRows(
-      filtered,
-      tableState.sort === "-name" ? "desc" : "asc",
-      (row) => row.name,
-    );
-  }, [rows, tableState.searchTerm, tableState.startsWith, tableState.sort]);
-
-  const pagination = useMemo(
-    () =>
-      paginateRows(processedRows, {
-        page: tableState.page,
-        limit: tableState.limit,
-      }),
-    [processedRows, tableState.page, tableState.limit],
-  );
+  const debouncedSearch = useDebouncedValue(searchInput, 400);
 
   useEffect(() => {
-    if (pagination.page !== tableState.page) {
-      setTableState((prev) => ({ ...prev, page: pagination.page }));
+    setSearchInput(searchTerm);
+  }, [searchTerm]);
+
+  useEffect(() => {
+    setInstructorFilter(academicInstructor);
+  }, [academicInstructor]);
+
+  function updateParams(next: {
+    searchTerm?: string | null;
+    page?: number | null;
+    limit?: number | null;
+    sort?: AcademicDepartmentSortOption | null;
+    academicInstructor?: string | null;
+  }) {
+    const params = new URLSearchParams(searchParams.toString());
+
+    if (params.has("startsWith")) {
+      params.delete("startsWith");
     }
-  }, [pagination.page, tableState.page]);
 
-  const openCreate = () => {
-    createForm.reset({ name: "", academicInstructor: "" });
-    setDialogMode("create");
-  };
+    const entries: Array<[string, string | number | null | undefined]> = [
+      ["searchTerm", next.searchTerm],
+      ["page", next.page],
+      ["limit", next.limit],
+      ["sort", next.sort],
+      ["academicInstructor", next.academicInstructor],
+    ];
 
-  const openUpdate = (row: AcademicDepartment) => {
-    setActiveRow(row);
-    updateForm.reset({
-      name: row.name,
-      academicInstructor: resolveAcademicDepartmentInstructorId(row),
+    for (const [key, value] of entries) {
+      if (value === undefined) {
+        continue;
+      }
+
+      if (value === null || value === "") {
+        params.delete(key);
+        continue;
+      }
+
+      params.set(key, String(value));
+    }
+
+    if (next.page !== undefined && (next.page === null || next.page <= 1)) {
+      params.delete("page");
+    }
+
+    if (next.limit !== undefined && (next.limit === null || next.limit === 10)) {
+      params.delete("limit");
+    }
+
+    if (next.sort !== undefined && (next.sort === null || next.sort === "-createdAt")) {
+      params.delete("sort");
+    }
+
+    const queryString = params.toString();
+    const nextUrl = queryString ? `${pathname}?${queryString}` : pathname;
+
+    if (nextUrl !== `${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`) {
+      startTransition(() => {
+        router.push(nextUrl, { scroll: false });
+      });
+    }
+  }
+
+  useEffect(() => {
+    if (debouncedSearch === searchTerm) {
+      return;
+    }
+
+    updateParams({
+      searchTerm: debouncedSearch.trim() ? debouncedSearch : null,
+      page: 1,
     });
-    setDialogMode("update");
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearch, searchTerm]);
 
-  const openDetails = async (row: AcademicDepartment) => {
-    setDialogMode("details");
-    setDetailLoading(true);
-    setDetailRow(null);
-    try {
-      const response = await getAcademicDepartmentById(row._id);
-      setDetailRow(response.data);
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Failed to load details.";
-      toast.error("Details Failed", message);
-      setDialogMode(null);
-    } finally {
-      setDetailLoading(false);
-    }
-  };
-
-  const handleCreate = createForm.handleSubmit(async (values) => {
-    try {
-      const response = await createAcademicDepartment({
-        name: values.name.trim(),
-        academicInstructor: values.academicInstructor,
-      });
-      toast.success("Created", response.message);
-      setDialogMode(null);
-      createForm.reset({ name: "", academicInstructor: "" });
-      await queryClient.invalidateQueries({
-        queryKey: ["academic-departments"],
-      });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Create failed.";
-      toast.error("Create Failed", message);
-    }
-  });
-
-  const handleUpdate = updateForm.handleSubmit(async (values) => {
-    if (!activeRow) return;
-    try {
-      const response = await updateAcademicDepartment(activeRow._id, {
-        name: values.name.trim(),
-        academicInstructor: values.academicInstructor,
-      });
-      toast.success("Updated", response.message);
-      setDialogMode(null);
-      await queryClient.invalidateQueries({
-        queryKey: ["academic-departments"],
-      });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Update failed.";
-      toast.error("Update Failed", message);
-    }
-  });
+  function handleSaved() {
+    startTransition(() => {
+      router.refresh();
+    });
+  }
 
   return (
     <section className="space-y-5">
-      <ToastRegion toasts={toasts} onDismiss={dismissToast} />
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-(--text-dim)">
+            Admin Module
+          </p>
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight">
+            Academic Departments
+          </h1>
+          <p className="mt-2 text-sm text-(--text-dim)">
+            Manage academic departments, filter by instructor, and edit details.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setCreateOpen(true)}
+          className="focus-ring inline-flex h-11 items-center justify-center rounded-xl bg-(--accent) px-5 text-sm font-semibold text-(--accent-ink) transition hover:opacity-90"
+        >
+          Create Department
+        </button>
+      </div>
 
-      <PageHeader
-        title="Academic Department"
-        subtitle="Manage Academic Departments"
-        action={
+      <AcademicDepartmentFilters
+        search={searchInput}
+        sort={sort}
+        academicInstructor={instructorFilter}
+        instructors={instructors}
+        onSearchChange={setSearchInput}
+        onSortChange={(value) =>
+          updateParams({
+            sort: value as AcademicDepartmentSortOption,
+            page: 1,
+          })
+        }
+        onInstructorChange={(value) => {
+          setInstructorFilter(value);
+          updateParams({
+            academicInstructor: value || null,
+            page: 1,
+          });
+        }}
+      />
+
+      {error ? (
+        <div className="rounded-2xl border border-red-400/50 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+          {error}
           <button
             type="button"
-            onClick={openCreate}
-            className="focus-ring inline-flex items-center gap-2 rounded-xl bg-(--primary) px-3.5 py-2 text-sm font-semibold text-(--primary-ink) transition hover:brightness-110"
+            onClick={() => {
+              showToast({
+                variant: "info",
+                title: "Retrying",
+                description: "Fetching academic departments again.",
+              });
+              startTransition(() => {
+                router.refresh();
+              });
+            }}
+            className="ml-3 inline-flex items-center rounded-lg border border-red-400/60 px-2.5 py-1 text-xs font-semibold text-red-300 transition hover:bg-red-500/10"
           >
-            <CirclePlus className="h-4 w-4" aria-hidden />
-            Create
+            Retry
           </button>
+        </div>
+      ) : null}
+
+      <AcademicDepartmentTable
+        items={items}
+        loading={isPending}
+        error={error}
+        onEdit={(item) => setEditItem(item)}
+      />
+
+      <AcademicDepartmentPagination
+        meta={meta}
+        page={page}
+        limit={limit}
+        onPageChange={(nextPage) => updateParams({ page: nextPage })}
+        onLimitChange={(nextLimit) =>
+          updateParams({
+            limit: nextLimit,
+            page: 1,
+          })
         }
       />
 
-      <section className="rounded-2xl border border-(--line) bg-(--surface) p-4 lg:p-5">
-        <AcademicDepartmentFilters
-          tableState={tableState}
-          rowsPerPage={ACADEMIC_DEPARTMENT_ROWS_PER_PAGE}
-          onSearchChange={(value) =>
-            setTableState((prev) => ({ ...prev, searchTerm: value, page: 1 }))
-          }
-          onStartsWithChange={(value) =>
-            setTableState((prev) => ({ ...prev, startsWith: value, page: 1 }))
-          }
-          onSortChange={(value) =>
-            setTableState((prev) => ({ ...prev, sort: value, page: 1 }))
-          }
-          onLimitChange={(value) =>
-            setTableState((prev) => ({ ...prev, limit: value, page: 1 }))
-          }
-        />
+      <AcademicDepartmentFormModal
+        open={createOpen}
+        mode="create"
+        instructors={instructors}
+        onClose={() => setCreateOpen(false)}
+        onSaved={handleSaved}
+      />
 
-        <AcademicDepartmentTable
-          loading={loading}
-          pagination={pagination}
-          onDetails={openDetails}
-          onUpdate={openUpdate}
-          onPrevPage={() =>
-            setTableState((prev) => ({
-              ...prev,
-              page: Math.max(1, prev.page - 1),
-            }))
-          }
-          onNextPage={() =>
-            setTableState((prev) => ({
-              ...prev,
-              page: Math.min(pagination.totalPages, prev.page + 1),
-            }))
-          }
-        />
-      </section>
-
-      <ModalFrame
-        open={dialogMode === "create"}
-        title="Create Academic Department"
-        description="Provide department information and select an academic instructor."
-        onClose={() => setDialogMode(null)}
-      >
-        <AcademicDepartmentForm
-          form={createForm}
-          onSubmit={handleCreate}
-          onCancel={() => setDialogMode(null)}
-          idPrefix="create"
-          submitLabel="Create"
-          submittingLabel="Creating..."
-          instructors={instructors}
-          instructorsLoading={instructorsLoading}
-        />
-      </ModalFrame>
-
-      <ModalFrame
-        open={dialogMode === "update"}
-        title="Update Academic Department"
-        description="Edit department information and save changes."
-        onClose={() => setDialogMode(null)}
-      >
-        <AcademicDepartmentForm
-          form={updateForm}
-          onSubmit={handleUpdate}
-          onCancel={() => setDialogMode(null)}
-          idPrefix="update"
-          submitLabel="Update"
-          submittingLabel="Updating..."
-          instructors={instructors}
-          instructorsLoading={instructorsLoading}
-        />
-      </ModalFrame>
-
-      <ModalFrame
-        open={dialogMode === "details"}
-        title="Academic Department Details"
-        description="Single academic department detail view."
-        onClose={() => setDialogMode(null)}
-      >
-        <AcademicDepartmentDetailsContent
-          detailLoading={detailLoading}
-          detailRow={detailRow}
-        />
-      </ModalFrame>
+      <AcademicDepartmentFormModal
+        open={Boolean(editItem)}
+        mode="edit"
+        department={editItem}
+        instructors={instructors}
+        onClose={() => setEditItem(null)}
+        onSaved={handleSaved}
+      />
     </section>
   );
 }

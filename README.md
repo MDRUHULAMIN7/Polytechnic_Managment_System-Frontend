@@ -1,6 +1,6 @@
-# RMS Frontend
+# PMS Frontend
 
-Frontend for the RMS backend using:
+Frontend for the PMS backend using:
 
 - Next.js 16 (App Router + Turbopack)
 - TypeScript

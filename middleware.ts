@@ -11,7 +11,7 @@ function isPrivilegedRole(role: string | undefined) {
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const role = request.cookies.get("rms_role")?.value;
+  const role = request.cookies.get("pms_role")?.value;
   const privileged = isPrivilegedRole(role);
 
   if (pathname.startsWith("/dashboard")) {

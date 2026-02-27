@@ -1,108 +1,119 @@
 @import "tailwindcss";
 
+
+button{
+  cursor: pointer;
+}
 :root {
-  color-scheme: light;
-
-  --background: #f3f7ff;
+  --bg: #f5f7fb;
   --surface: #ffffff;
-  --surface-2: #ecf2fc;
-  --surface-3: #dfe9f8;
-  --text: #0c1222;
-  --text-dim: #4a556f;
-  --line: #d2dbeb;
-  --primary: #0b5adf;
-  --primary-ink: #eff5ff;
-  --accent: #0f9d8a;
-  --danger: #bf2138;
-  --danger-soft: rgba(191, 33, 56, 0.1);
-  --danger-line: rgba(191, 33, 56, 0.28);
-  --success-text: #0f6f62;
-  --success-soft: rgb(6, 243, 211);
-  --success-line: rgba(15, 157, 138, 0.3);
-  --info-text: #0b4dad;
-  --info-soft: rgba(11, 90, 223, 0.12);
-  --info-line: rgba(11, 90, 223, 0.28);
-  --primary-soft: rgba(11, 90, 223, 0.12);
-  --primary-soft-line: rgba(11, 90, 223, 0.26);
-  --frost: rgba(255, 255, 255, 0.85);
-  --frost-strong: rgba(255, 255, 255, 0.94);
-  --focus-ring: rgba(11, 90, 223, 0.35);
-  --bg-glow-a: rgba(11, 90, 223, 0.14);
-  --bg-glow-b: rgba(15, 157, 138, 0.11);
-  --pulse-a: rgba(11, 90, 223, 0.16);
-  --pulse-b: rgba(15, 157, 138, 0.18);
-  --pulse-c: rgba(53, 84, 185, 0.2);
-  --shadow-color: rgba(12, 18, 34, 0.16);
-  --shadow-soft: 0 16px 42px rgba(12, 18, 34, 0.08);
+  --surface-muted: #eef2ff;
+  --line: #d8dfeb;
+  --text: #0f172a;
+  --text-dim: #52607a;
+  --accent: #155dfc;
+  --accent-ink: #eff6ff;
+  --sidebar-bg: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+  --sidebar-border: rgba(15, 23, 42, 0.08);
+  --sidebar-top-glow: radial-gradient(
+    ellipse 80% 50% at 50% -10%,
+    rgba(21, 93, 252, 0.18),
+    transparent
+  );
+  --sidebar-nav-text: rgba(82, 96, 122, 0.9);
+  --sidebar-nav-text-active: #0f172a;
+  --sidebar-nav-hover-bg: rgba(15, 23, 42, 0.04);
+  --sidebar-nav-hover-border: rgba(15, 23, 42, 0.08);
+  --sidebar-active-bg: linear-gradient(
+    135deg,
+    rgba(21, 93, 252, 0.2) 0%,
+    rgba(96, 165, 250, 0.12) 100%
+  );
+  --sidebar-active-border: rgba(21, 93, 252, 0.28);
+  --sidebar-active-shadow: 0 6px 18px rgba(21, 93, 252, 0.2);
+  --sidebar-icon-bg: rgba(15, 23, 42, 0.05);
+  --sidebar-icon-bg-active: rgba(255, 255, 255, 0.85);
+  --sidebar-dot: var(--accent);
+  --sidebar-label: rgba(15, 23, 42, 0.35);
+  --sidebar-logout-bg: rgba(239, 68, 68, 0.08);
+  --sidebar-logout-border: rgba(239, 68, 68, 0.2);
+  --sidebar-logout-text: rgba(185, 28, 28, 0.75);
+  --sidebar-logout-hover: rgba(239, 68, 68, 0.16);
+  --sidebar-logout-text-hover: #b91c1c;
+  --login-base: linear-gradient(
+    165deg,
+    #fcfdff 0%,
+    #f6f8fc 48%,
+    #f8fafc 100%
+  );
+  --login-blob-a: rgba(37, 99, 235, 0.12);
+  --login-blob-b: rgba(15, 23, 42, 0.05);
+  --login-blob-c: rgba(15, 23, 42, 0.035);
+  --login-grid-line: rgba(15, 23, 42, 0.095);
+  --login-grid-opacity: 0.42;
+  --login-card-line: #ccd8ec;
 }
 
-html[data-theme="dark"] {
-  color-scheme: dark;
-
-  --background: #060d1a;
-  --surface: #101a2b;
-  --surface-2: #0c1526;
-  --surface-3: #1a2840;
-  --text: #e8eef9;
-  --text-dim: #a3b3ce;
-  --line: #263750;
-  --primary: #78adff;
-  --primary-ink: #08152d;
-  --accent: #3ec6af;
-  --danger: #ff8098;
-  --danger-soft: rgba(255, 128, 152, 0.14);
-  --danger-line: rgba(255, 128, 152, 0.35);
-  --success-text: #66dbc7;
-  --success-soft: rgba(62, 198, 175, 0.16);
-  --success-line: rgba(62, 198, 175, 0.35);
-  --info-text: #8ec0ff;
-  --info-soft: rgba(120, 173, 255, 0.18);
-  --info-line: rgba(120, 173, 255, 0.35);
-  --primary-soft: rgba(120, 173, 255, 0.18);
-  --primary-soft-line: rgba(120, 173, 255, 0.36);
-  --frost: rgba(10, 20, 35, 0.84);
-  --frost-strong: rgba(10, 20, 35, 0.94);
-  --focus-ring: rgba(120, 173, 255, 0.44);
-  --bg-glow-a: rgba(120, 173, 255, 0.2);
-  --bg-glow-b: rgba(62, 198, 175, 0.14);
-  --pulse-a: rgba(120, 173, 255, 0.28);
-  --pulse-b: rgba(62, 198, 175, 0.24);
-  --pulse-c: rgba(132, 158, 255, 0.26);
-  --shadow-color: rgba(2, 6, 14, 0.55);
-  --shadow-soft: 0 16px 42px rgba(0, 0, 0, 0.42);
+[data-theme="dark"] {
+  --bg: #0b1220;
+  --surface: #0f172a;
+  --surface-muted: #172036;
+  --line: #263147;
+  --text: #e2e8f0;
+  --text-dim: #94a3b8;
+  --accent: #60a5fa;
+  --accent-ink: #0b1220;
+  --sidebar-bg: #0b1424;
+  --sidebar-border: rgba(148, 163, 184, 0.22);
+  --sidebar-top-glow: radial-gradient(
+    ellipse 80% 55% at 50% -8%,
+    rgba(125, 211, 252, 0.36),
+    transparent
+  );
+  --sidebar-nav-text: rgba(226, 232, 240, 0.82);
+  --sidebar-nav-text-active: #ffffff;
+  --sidebar-nav-hover-bg: rgba(125, 211, 252, 0.12);
+  --sidebar-nav-hover-border: rgba(125, 211, 252, 0.28);
+  --sidebar-active-bg: linear-gradient(
+    135deg,
+    rgba(125, 211, 252, 0.34) 0%,
+    rgba(56, 189, 248, 0.2) 100%
+  );
+  --sidebar-active-border: rgba(125, 211, 252, 0.45);
+  --sidebar-active-shadow:
+    0 14px 32px rgba(14, 116, 144, 0.35),
+    0 0 0 1px rgba(15, 23, 42, 0.4) inset;
+  --sidebar-icon-bg: rgba(148, 163, 184, 0.1);
+  --sidebar-icon-bg-active: rgba(226, 232, 240, 0.18);
+  --sidebar-dot: #bae6fd;
+  --sidebar-label: rgba(226, 232, 240, 0.45);
+  --sidebar-logout-bg: rgba(244, 63, 94, 0.12);
+  --sidebar-logout-border: rgba(244, 63, 94, 0.3);
+  --sidebar-logout-text: rgba(254, 205, 211, 0.82);
+  --sidebar-logout-hover: rgba(244, 63, 94, 0.18);
+  --sidebar-logout-text-hover: #fecdd3;
+  --login-base: linear-gradient(165deg, #0b1220 0%, #101b31 50%, #0b1220 100%);
+  --login-blob-a: rgba(96, 165, 250, 0.32);
+  --login-blob-b: rgba(96, 165, 250, 0.22);
+  --login-blob-c: rgba(96, 165, 250, 0.14);
+  --login-grid-line: rgba(148, 163, 184, 0.14);
+  --login-grid-opacity: 0.36;
+  --login-card-line: var(--line);
 }
 
-*,
-*::before,
-*::after {
+* {
   box-sizing: border-box;
 }
 
 html,
 body {
-  max-width: 100vw;
-  overflow-x: hidden;
+  min-height: 100%;
 }
 
 body {
-  margin: 0;
+  background: var(--bg);
   color: var(--text);
-  background:
-    radial-gradient(circle at 8% 12%, var(--bg-glow-a), transparent 32%),
-    radial-gradient(circle at 92% 4%, var(--bg-glow-b), transparent 28%),
-    var(--background);
   font-family: var(--font-body), sans-serif;
-  text-rendering: optimizeLegibility;
-  transition: background-color 220ms ease, color 220ms ease;
-}
-
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-family: var(--font-heading), sans-serif;
 }
 
 a {
@@ -110,35 +121,31 @@ a {
   text-decoration: none;
 }
 
-button {
-  font: inherit;
-}
-
-input,
-textarea,
-select {
-  color: var(--text);
-  background-color: var(--surface);
-}
-
-select option {
-  color: var(--text);
-  background-color: var(--surface);
-}
-
-input::placeholder,
-textarea::placeholder {
-  color: var(--text-dim);
-}
-
 .focus-ring:focus-visible {
-  outline: 3px solid var(--focus-ring);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
-.glass-card {
-  background: color-mix(in oklab, var(--surface) 90%, #fff 10%);
-  border: 1px solid var(--line);
-  box-shadow: var(--shadow-soft);
-  backdrop-filter: blur(8px);
+[data-theme="light"] .theme-icon-dark {
+  display: none;
+}
+
+[data-theme="dark"] .theme-icon-light {
+  display: none;
+}
+
+.login-card {
+  border: 1px solid var(--login-card-line);
+  background: var(--surface);
+}
+
+:root .login-card {
+  box-shadow:
+    0 24px 48px rgba(15, 23, 42, 0.1),
+    0 10px 24px rgba(15, 23, 42, 0.07),
+    0 0 0 1px rgba(255, 255, 255, 0.85) inset;
+}
+
+[data-theme="dark"] .login-card {
+  box-shadow: 0 18px 42px rgba(2, 8, 23, 0.5);
 }

@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
 import { Space_Grotesk, Source_Sans_3 } from "next/font/google";
-import { isTheme, THEME_STORAGE_KEY, type Theme } from "@/lib/theme";
-import { QueryProvider } from "@/components/ui/query-provider";
+import { ToastRegion } from "@/components/common/toast-region";
+
 import "./globals.css";
 
 const headingFont = Space_Grotesk({
@@ -21,11 +20,17 @@ export const metadata: Metadata = {
   metadataBase: new URL("http://localhost:3000"),
   title: {
     default: "Polytechnic Management",
-    template: "%s | RMS"
+    template: "%s | PMS"
   },
   description:
     "Polytechnic Management digitizes academic and administrative operations with role-safe workflows for institutional management.",
-  keywords: ["Polytechnic Management", "education management", "admin dashboard", "academic operations", "semester management"],
+  keywords: [
+    "Polytechnic Management",
+    "education management",
+    "admin dashboard",
+    "academic operations",
+    "semester management"
+  ],
   openGraph: {
     title: "Polytechnic Management",
     description:
@@ -41,7 +46,7 @@ export const metadata: Metadata = {
 const themeInitScript = `
 (() => {
   try {
-    const key = "${THEME_STORAGE_KEY}";
+    const key = "pms_theme";
     const stored = localStorage.getItem(key);
     const fromCookie = document.cookie
       .split("; ")
@@ -57,21 +62,20 @@ const themeInitScript = `
 })();
 `;
 
-function readServerTheme(value: string | undefined): Theme {
-  return isTheme(value) ? value : "light";
-}
-
-export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const cookieStore = await cookies();
-  const serverTheme = readServerTheme(cookieStore.get(THEME_STORAGE_KEY)?.value);
-
+export default function RootLayout({
+  children
+}: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" data-theme={serverTheme} style={{ colorScheme: serverTheme }} suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
-      <body suppressHydrationWarning className={`${headingFont.variable} ${bodyFont.variable}`}>
-        <QueryProvider>{children}</QueryProvider>
+      <body
+        suppressHydrationWarning
+        className={`${headingFont.variable} ${bodyFont.variable} antialiased`}
+      >
+        {children}
+        <ToastRegion />
       </body>
     </html>
   );

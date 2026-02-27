@@ -1,27 +1,21 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { DashboardOverview } from "@/components/dashboard/dashboard-overview";
-import type { PrivilegedRole } from "@/lib/constants";
 
-function readRole(value: string | undefined): PrivilegedRole | null {
-  if (
-    value === "admin" ||
-    value === "superAdmin" ||
-    value === "instructor" ||
-    value === "student"
-  ) {
-    return value;
-  }
-  return null;
-}
-
-export default async function DashboardPage() {
+export default async function DashboardHomePage() {
   const cookieStore = await cookies();
-  const role = readRole(cookieStore.get("rms_role")?.value);
+  const role = cookieStore.get("pms_role")?.value;
 
-  if (!role) {
-    redirect("/login");
+  if (role === "student") {
+    redirect("/dashboard/student");
   }
 
-  return <DashboardOverview role={role} />;
+  if (role === "instructor") {
+    redirect("/dashboard/instructor");
+  }
+
+  if (role === "admin" || role === "superAdmin") {
+    redirect("/dashboard/admin");
+  }
+
+  redirect("/login");
 }

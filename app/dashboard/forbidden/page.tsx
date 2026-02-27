@@ -2,17 +2,17 @@ import Link from "next/link";
 
 export default function ForbiddenPage() {
   return (
-    <section className="mx-auto mt-10 max-w-xl rounded-2xl border border-(--line) bg-(--surface) p-8 text-center">
-      <h1 className="text-3xl font-semibold tracking-tight">Access Restricted</h1>
-      <p className="mt-3 text-sm leading-6 text-(--text-dim)">
-        This page is not available for your current role. Use an authorized account or return to your dashboard.
-      </p>
-      <Link
-        href="/dashboard"
-        className="focus-ring mt-6 inline-flex rounded-xl bg-(--primary) px-4 py-2.5 text-sm font-semibold text-(--primary-ink)"
-      >
-        Back to Dashboard
-      </Link>
+    <section className="mx-auto flex min-h-[70vh] max-w-2xl items-center justify-center">
+      <div className="w-full rounded-2xl border border-(--line) bg-(--surface) p-8 text-center">
+        <h1 className="text-2xl font-semibold">You are not authorized!</h1>
+
+        <Link
+          href="/dashboard"
+          className="focus-ring mt-6 inline-flex rounded-lg bg-(--accent) px-4 py-2.5 text-sm font-semibold text-(--accent-ink)"
+        >
+          Retry
+        </Link>
+      </div>
     </section>
   );
 }

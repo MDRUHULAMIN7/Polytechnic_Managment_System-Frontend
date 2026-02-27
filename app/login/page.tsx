@@ -1,37 +1,38 @@
 import type { Metadata } from "next";
-import { LoginForm } from "@/components/login/login-form";
-import { ThemeToggle } from "@/components/theme/theme-toggle";
+import { LoginForm } from "@/components/common/login-form";
 
 export const metadata: Metadata = {
   title: "Login",
-  description:
-    "Login for admin, super admin, instructor, and student to access RMS dashboard.",
+  description: "Login to access role-based dashboard modules."
 };
 
 export default function LoginPage() {
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-6xl items-center px-6 py-12">
-      <div className="grid w-full items-center gap-8 lg:grid-cols-[1.1fr_0.9fr]">
-        <section className="hidden lg:block">
-          <div className="mb-6">
-            <ThemeToggle />
-          </div>
-          <p className="text-sm font-semibold uppercase tracking-[0.14em] text-(--primary)">RMS Secure Access</p>
-          <h1 className="mt-3 text-4xl font-semibold tracking-tight">
-            Centralized login for academic and administrative operation control.
-          </h1>
-          <p className="mt-4 max-w-xl text-base leading-7 text-(--text-dim)">
-            This phase enables admin, super admin, instructor, and student
-            authentication with role-specific dashboard permissions.
-          </p>
-        </section>
+    <main
+      className="relative isolate flex min-h-screen items-center justify-center overflow-hidden bg-[var(--bg)] px-4 py-12"
+      style={{ backgroundImage: "var(--login-base)" }}
+    >
+      <div className="pointer-events-none absolute inset-0">
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(45% 35% at 10% 15%, var(--login-blob-a) 0%, transparent 100%), radial-gradient(40% 38% at 88% 10%, var(--login-blob-b) 0%, transparent 100%), radial-gradient(50% 42% at 50% 100%, var(--login-blob-c) 0%, transparent 100%)"
+          }}
+        />
+        <div
+          className="absolute inset-0"
+          style={{
+            opacity: "var(--login-grid-opacity)",
+            backgroundImage:
+              "linear-gradient(var(--login-grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--login-grid-line) 1px, transparent 1px)",
+            backgroundSize: "34px 34px"
+          }}
+        />
+      </div>
 
-        <div className="space-y-4">
-          <div className="flex justify-end lg:hidden">
-            <ThemeToggle />
-          </div>
-          <LoginForm />
-        </div>
+      <div className="relative z-10 w-full max-w-md">
+        <LoginForm />
       </div>
     </main>
   );
