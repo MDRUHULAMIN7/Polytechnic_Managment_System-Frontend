@@ -1,10 +1,10 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { SubjectPageServer } from "@/components/dashboard/admin/subject/subject-server";
-import { SubjectPageSkeleton } from "@/components/dashboard/admin/subject/subject-skeleton";
 import type { SubjectSortOption } from "@/lib/type/dashboard/admin/subject";
 import { PageProps } from "@/lib/type/dashboard/admin/type";
 import { parseNumberParam, readParam } from "@/utils/dashboard/admin/utils";
+import { TableSkeleton } from "@/components/dashboard/TableSkeleton";
 export const metadata: Metadata = {
   title: "Subjects",
 };
@@ -26,7 +26,7 @@ export default async function SubjectsPage({ searchParams }: PageProps) {
   const sort = parseSortParam(readParam(resolvedSearchParams, "sort"));
 
   return (
-    <Suspense fallback={<SubjectPageSkeleton />}>
+    <Suspense fallback={<TableSkeleton />}>
       <SubjectPageServer searchTerm={searchTerm} page={page} limit={limit} sort={sort} />
     </Suspense>
   );

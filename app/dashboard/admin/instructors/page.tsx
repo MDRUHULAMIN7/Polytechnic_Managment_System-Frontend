@@ -1,10 +1,10 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { InstructorPageServer } from "@/components/dashboard/admin/instructor/instructor-server";
-import { InstructorPageSkeleton } from "@/components/dashboard/admin/instructor/instructor-skeleton";
 import type { InstructorSortOption } from "@/lib/type/dashboard/admin/instructor";
 import { PageProps } from "@/lib/type/dashboard/admin/type";
 import { parseNumberParam, readParam } from "@/utils/dashboard/admin/utils";
+import { TableSkeleton } from "@/components/dashboard/TableSkeleton";
 export const metadata: Metadata = {
   title: "Instructors",
 };
@@ -29,7 +29,7 @@ export default async function InstructorsPage({ searchParams }: PageProps) {
   const academicDepartment = readParam(resolvedSearchParams, "academicDepartment");
 
   return (
-    <Suspense fallback={<InstructorPageSkeleton />}>
+    <Suspense fallback={<TableSkeleton />}>
       <InstructorPageServer
         searchTerm={searchTerm}
         page={page}

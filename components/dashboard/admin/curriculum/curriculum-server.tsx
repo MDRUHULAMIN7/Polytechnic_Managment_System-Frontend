@@ -1,11 +1,13 @@
 import { getAcademicDepartmentsServer } from "@/lib/api/dashboard/admin/academic-department/server";
 import { getSemesterRegistrationsServer } from "@/lib/api/dashboard/admin/semester-registration/server";
 import { getSubjectsServer } from "@/lib/api/dashboard/admin/subject/server";
+import { getOfferedSubjectsServer } from "@/lib/api/dashboard/admin/offered-subject/server";
 import { getCurriculumsServer } from "@/lib/api/dashboard/admin/curriculum/server";
 import type { PaginationMeta } from "@/lib/type/dashboard/admin/curriculum";
 import type { AcademicDepartment } from "@/lib/type/dashboard/admin/academic-department";
 import type { SemesterRegistration } from "@/lib/type/dashboard/admin/semester-registration";
 import type { Subject } from "@/lib/type/dashboard/admin/subject";
+import type { OfferedSubject } from "@/lib/type/dashboard/admin/offered-subject";
 import type { CurriculumServerProps } from "@/lib/type/dashboard/admin/curriculum/ui";
 import { CurriculumPage } from "./curriculum-page";
 
@@ -28,13 +30,21 @@ export async function CurriculumPageServer({
   let academicDepartments: AcademicDepartment[] = [];
   let semesterRegistrations: SemesterRegistration[] = [];
   let subjects: Subject[] = [];
+  let offeredSubjects: OfferedSubject[] = [];
 
-  const [curriculumsResult, departmentsResult, registrationsResult, subjectsResult] =
+  const [
+    curriculumsResult,
+    departmentsResult,
+    registrationsResult,
+    subjectsResult,
+    offeredSubjectsResult,
+  ] =
     await Promise.allSettled([
       getCurriculumsServer({ searchTerm, page, limit, sort }),
       getAcademicDepartmentsServer({ page: 1, limit: 1000, sort: "name" }),
       getSemesterRegistrationsServer({ page: 1, limit: 1000, sort: "-createdAt" }),
       getSubjectsServer({ page: 1, limit: 1000 }),
+      getOfferedSubjectsServer({ page: 1, limit: 1000, sort: "-createdAt" }),
     ]);
 
   if (curriculumsResult.status === "fulfilled") {
@@ -56,6 +66,9 @@ export async function CurriculumPageServer({
   if (subjectsResult.status === "fulfilled") {
     subjects = subjectsResult.value.result ?? [];
   }
+  if (offeredSubjectsResult.status === "fulfilled") {
+    offeredSubjects = offeredSubjectsResult.value.result ?? [];
+  }
 
   return (
     <CurriculumPage
@@ -68,6 +81,7 @@ export async function CurriculumPageServer({
       academicDepartments={academicDepartments}
       semesterRegistrations={semesterRegistrations}
       subjects={subjects}
+      offeredSubjects={offeredSubjects}
       error={error}
     />
   );

@@ -64,7 +64,15 @@ const sidebarItems: Record<DashboardRole, SidebarItem[]> = {
   admin: adminItems,
   superAdmin: superAdminItems,
   instructor: instructorItems,
-  student: [{ href: "/dashboard/student", label: "Student Home", icon: GraduationCap }],
+  student: [
+    { href: "/dashboard/student", label: "Student Home", icon: GraduationCap },
+    { href: "/dashboard/student/academic-semesters", label: "Academic Semesters", icon: CalendarDays },
+    { href: "/dashboard/student/subjects", label: "Subjects", icon: BookOpen },
+    { href: "/dashboard/student/semester-registrations", label: "Semester Registrations", icon: ClipboardList },
+    { href: "/dashboard/student/enrolled-subjects", label: "Enrolled Subjects", icon: BookOpen },
+    { href: "/dashboard/student/curriculums", label: "Curriculums", icon: Layers },
+    { href: "/dashboard/student/semester-enrollments", label: "Semester Enrollments", icon: ClipboardCheck },
+  ],
 };
 
 function rootPath(role: DashboardRole | undefined): string {

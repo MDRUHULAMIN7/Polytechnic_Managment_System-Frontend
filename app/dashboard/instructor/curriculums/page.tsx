@@ -1,10 +1,10 @@
 ﻿import { Suspense } from "react";
 import type { Metadata } from "next";
 import { CurriculumPageServer } from "@/components/dashboard/instructor/curriculum/curriculum-server";
-import { CurriculumPageSkeleton } from "@/components/dashboard/admin/curriculum/curriculum-skeleton";
 import type { CurriculumSortOption } from "@/lib/type/dashboard/admin/curriculum";
 import { parseNumberParam, readParam } from "@/utils/dashboard/admin/utils";
 import { PageProps } from "@/lib/type/dashboard/admin/type";
+import { TableSkeleton } from "@/components/dashboard/TableSkeleton";
 
 export const metadata: Metadata = {
   title: "Curriculums",
@@ -25,7 +25,7 @@ export default async function CurriculumsPage({ searchParams }: PageProps) {
   const sort = parseSortParam(readParam(resolvedSearchParams, "sort"));
 
   return (
-    <Suspense fallback={<CurriculumPageSkeleton />}>
+    <Suspense fallback={<TableSkeleton />}>
       <CurriculumPageServer
         searchTerm={searchTerm}
         page={page}

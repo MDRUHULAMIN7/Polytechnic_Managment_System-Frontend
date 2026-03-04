@@ -1,10 +1,11 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { AcademicDepartmentPageServer } from "@/components/dashboard/admin/academic-department/academic-department-server";
-import { AcademicDepartmentPageSkeleton } from "@/components/dashboard/admin/academic-department/academic-department-skeleton";
+
 import type { AcademicDepartmentSortOption } from "@/lib/type/dashboard/admin/academic-department";
 import { parseNumberParam, readParam } from "@/utils/dashboard/admin/utils";
 import { SearchParamBag } from "@/lib/type/dashboard/admin/type";
+import { TableSkeleton } from "@/components/dashboard/TableSkeleton";
 
 export const metadata: Metadata = {
   title: "Academic Departments",
@@ -40,7 +41,7 @@ export default async function AcademicDepartmentsPage({
   );
 
   return (
-    <Suspense fallback={<AcademicDepartmentPageSkeleton />}>
+    <Suspense fallback={<TableSkeleton />}>
       <AcademicDepartmentPageServer
         searchTerm={searchTerm}
         page={page}

@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { SemesterRegistrationPageServer } from "@/components/dashboard/admin/semester-registration/semester-registration-server";
-import { SemesterRegistrationPageSkeleton } from "@/components/dashboard/admin/semester-registration/semester-registration-skeleton";
 import type {
   SemesterRegistrationShift,
   SemesterRegistrationSortOption,
@@ -13,6 +12,7 @@ import {
 } from "@/lib/type/dashboard/admin/semester-registration/constants";
 import { parseNumberParam, readParam } from "@/utils/dashboard/admin/utils";
 import { PageProps } from "@/lib/type/dashboard/admin/type";
+import { TableSkeleton } from "@/components/dashboard/TableSkeleton";
 
 export const metadata: Metadata = {
   title: "Semester Registrations",
@@ -59,7 +59,7 @@ export default async function SemesterRegistrationsPage({
   const shift = parseShiftParam(readParam(resolvedSearchParams, "shift"));
 
   return (
-    <Suspense fallback={<SemesterRegistrationPageSkeleton />}>
+    <Suspense fallback={<TableSkeleton />}>
       <SemesterRegistrationPageServer
         searchTerm={searchTerm}
         page={page}

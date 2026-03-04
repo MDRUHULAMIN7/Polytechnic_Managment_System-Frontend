@@ -8,6 +8,7 @@ import type {
 import type { AcademicDepartment } from "@/lib/type/dashboard/admin/academic-department";
 import type { SemesterRegistration } from "@/lib/type/dashboard/admin/semester-registration";
 import type { Subject } from "@/lib/type/dashboard/admin/subject";
+import type { OfferedSubject } from "@/lib/type/dashboard/admin/offered-subject";
 
 export type CurriculumFiltersProps = {
   search: string;
@@ -46,6 +47,7 @@ export type CurriculumPageProps = {
   academicDepartments: AcademicDepartment[];
   semesterRegistrations: SemesterRegistration[];
   subjects: Subject[];
+  offeredSubjects: OfferedSubject[];
   error?: string | null;
 };
 
@@ -65,6 +67,7 @@ export type CurriculumFormModalProps = {
   academicDepartments: AcademicDepartment[];
   semesterRegistrations: SemesterRegistration[];
   subjects: Subject[];
+  offeredSubjects: OfferedSubject[];
   onClose: () => void;
   onSaved: () => void;
 };

@@ -1,10 +1,10 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { StudentPageServer } from "@/components/dashboard/admin/student/student-server";
-import { StudentPageSkeleton } from "@/components/dashboard/admin/student/student-skeleton";
 import type { StudentSortOption } from "@/lib/type/dashboard/admin/student";
 import { PageProps } from "@/lib/type/dashboard/admin/type";
 import { parseNumberParam, readParam } from "@/utils/dashboard/admin/utils";
+import { TableSkeleton } from "@/components/dashboard/TableSkeleton";
 export const metadata: Metadata = {
   title: "Students",
 };
@@ -33,7 +33,7 @@ export default async function StudentsPage({ searchParams }: PageProps) {
   const admissionSemester = readParam(resolvedSearchParams, "admissionSemester");
 
   return (
-    <Suspense fallback={<StudentPageSkeleton />}>
+    <Suspense fallback={<TableSkeleton />}>
       <StudentPageServer
         searchTerm={searchTerm}
         page={page}

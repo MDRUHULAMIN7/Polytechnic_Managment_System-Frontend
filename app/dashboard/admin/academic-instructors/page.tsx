@@ -1,10 +1,10 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { AcademicInstructorPageServer } from "@/components/dashboard/admin/academic-instructor/academic-instructor-server";
-import { AcademicInstructorPageSkeleton } from "@/components/dashboard/admin/academic-instructor/academic-instructor-skeleton";
 import type { AcademicInstructorSortOption } from "@/lib/type/dashboard/admin/academic-instructor";
 import { PageProps } from "@/lib/type/dashboard/admin/type";
 import { parseNumberParam, readParam } from "@/utils/dashboard/admin/utils";
+import { TableSkeleton } from "@/components/dashboard/TableSkeleton";
 
 export const metadata: Metadata = {
   title: "Academic Instructors",
@@ -33,7 +33,7 @@ export default async function AcademicInstructorsPage({
   const sort = parseSortParam(readParam(resolvedSearchParams, "sort"));
 
   return (
-    <Suspense fallback={<AcademicInstructorPageSkeleton />}>
+    <Suspense fallback={<TableSkeleton />}>
       <AcademicInstructorPageServer
         searchTerm={searchTerm}
         page={page}

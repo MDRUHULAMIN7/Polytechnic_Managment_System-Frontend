@@ -26,6 +26,15 @@ export type SemesterEnrollment = {
 
 export type SemesterEnrollmentSortOption = "-createdAt" | "createdAt";
 
+export type SemesterEnrollmentInput = {
+  curriculum: string;
+};
+
+export type SemesterEnrollmentCreateResult = {
+  semesterEnrollment: SemesterEnrollment;
+  enrolledSubjects: unknown[];
+};
+
 export type PaginationMeta = {
   page: number;
   limit: number;

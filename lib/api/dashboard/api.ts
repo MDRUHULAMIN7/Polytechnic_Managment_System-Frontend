@@ -46,6 +46,19 @@ export async function parseJsonResponse<T>(
   response: Response,
   fallbackMessage: string
 ): Promise<T> {
+  if (response.status === 401 || response.status === 403) {
+    if (typeof window === "undefined") {
+      const { redirect } = await import("next/navigation");
+      redirect("/dashboard/forbidden");
+    }
+
+    if (typeof window !== "undefined") {
+      window.location.assign("/dashboard/forbidden");
+    }
+
+    throw new Error("You are not authorized!");
+  }
+
   const text = await response.text();
 
   try {

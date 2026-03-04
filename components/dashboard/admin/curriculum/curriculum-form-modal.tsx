@@ -30,6 +30,49 @@ function renderSemesterLabel(value: unknown) {
   return "--";
 }
 
+function formatShortDate(value?: string) {
+  if (!value) {
+    return "--";
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "--";
+  }
+
+  return date.toLocaleDateString();
+}
+
+function renderRegistrationOption(item: {
+  academicSemester?: unknown;
+  status?: string;
+  shift?: string;
+  startDate?: string;
+  endDate?: string;
+  totalCredit?: number;
+}) {
+  const semesterLabel = renderSemesterLabel(item.academicSemester);
+  const startDate = formatShortDate(item.startDate);
+  const endDate = formatShortDate(item.endDate);
+  const totalCredit =
+    typeof item.totalCredit === "number" ? `${item.totalCredit} credits` : "--";
+  return `${semesterLabel} | ${item.status ?? "--"} | ${item.shift ?? "--"} | ${startDate} -> ${endDate} | ${totalCredit}`;
+}
+
+function resolveId(value: unknown) {
+  if (!value) {
+    return null;
+  }
+  if (typeof value === "string") {
+    return value;
+  }
+  if (typeof value === "object" && "_id" in value) {
+    const id = (value as { _id?: string })._id;
+    return id ?? null;
+  }
+  return null;
+}
+
 function subjectLabel(subject: { title: string; prefix?: string; code?: number }) {
   const code = subject.code ? `${subject.prefix ?? ""}${subject.code}` : subject.prefix;
   return code ? `${subject.title} (${code})` : subject.title;
@@ -41,6 +84,7 @@ export function CurriculumFormModal({
   academicDepartments,
   semesterRegistrations,
   subjects,
+  offeredSubjects,
   onClose,
   onSaved,
 }: CurriculumFormModalProps) {
@@ -80,7 +124,16 @@ export function CurriculumFormModal({
     key: T,
     value: CurriculumFormState[T]
   ) {
-    setForm((prev) => ({ ...prev, [key]: value }));
+    setForm((prev) => {
+      const next = { ...prev, [key]: value };
+      if (key === "academicDepartment" && value !== prev.academicDepartment) {
+        next.subjects = [];
+      }
+      if (key === "semisterRegistration" && value !== prev.semisterRegistration) {
+        next.subjects = [];
+      }
+      return next;
+    });
   }
 
   const selectedRegistration = useMemo(
@@ -96,17 +149,86 @@ export function CurriculumFormModal({
     [selectedRegistration]
   );
 
+  const registrationSummary = useMemo(() => {
+    if (!selectedRegistration) {
+      return null;
+    }
+
+    const dateRange = `${formatShortDate(selectedRegistration.startDate)} -> ${formatShortDate(
+      selectedRegistration.endDate
+    )}`;
+    const totalCredit =
+      typeof selectedRegistration.totalCredit === "number"
+        ? `${selectedRegistration.totalCredit} credits`
+        : "--";
+
+    return {
+      status: selectedRegistration.status ?? "--",
+      shift: selectedRegistration.shift ?? "--",
+      dateRange,
+      totalCredit,
+    };
+  }, [selectedRegistration]);
+
+  const availableRegistrations = useMemo(() => {
+    if (isEdit) {
+      return semesterRegistrations;
+    }
+    return semesterRegistrations.filter(
+      (item) => item.status === "UPCOMING" || item.status === "ONGOING"
+    );
+  }, [semesterRegistrations, isEdit]);
+
+  const canShowSubjects = Boolean(
+    form.academicDepartment && form.semisterRegistration
+  );
+
   const regulationNumber = Number(form.regulation);
   const regulationFilter = Number.isFinite(regulationNumber)
     ? regulationNumber
     : null;
 
+  const offeredSubjectIds = useMemo(() => {
+    if (!canShowSubjects) {
+      return null;
+    }
+
+    const ids = new Set<string>();
+    for (const item of offeredSubjects) {
+      const departmentId = resolveId(item.academicDepartment);
+      if (departmentId !== form.academicDepartment) {
+        continue;
+      }
+
+      const registrationId = resolveId(item.semesterRegistration);
+      if (registrationId !== form.semisterRegistration) {
+        continue;
+      }
+
+      const subjectId = resolveId(item.subject);
+      if (subjectId) {
+        ids.add(subjectId);
+      }
+    }
+
+    return ids;
+  }, [offeredSubjects, form.academicDepartment, form.semisterRegistration, canShowSubjects]);
+
   const availableSubjects = useMemo(() => {
-    const filtered = regulationFilter
+    if (!canShowSubjects) {
+      return [];
+    }
+
+    let filtered = regulationFilter
       ? subjects.filter((item) => item.regulation === regulationFilter)
       : subjects;
+
+    if (offeredSubjectIds) {
+      filtered = filtered.filter((item) => offeredSubjectIds.has(item._id));
+    }
+
     return filtered.filter((item) => !existingSubjectIds.includes(item._id));
-  }, [subjects, existingSubjectIds, regulationFilter]);
+  }, [subjects, existingSubjectIds, regulationFilter, offeredSubjectIds, canShowSubjects]);
 
   function toggleSubject(id: string, checked: boolean) {
     updateField(
@@ -234,11 +356,17 @@ export function CurriculumFormModal({
             <select
               value={form.academicDepartment}
               onChange={(event) => updateField("academicDepartment", event.target.value)}
-              className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-transparent px-3 text-sm"
+              className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-(--surface) px-3 text-sm text-(--text)"
             >
-              <option value="">Select department</option>
+              <option value="" className="bg-(--surface) text-(--text)">
+                Select department
+              </option>
               {academicDepartments.map((item) => (
-                <option key={item._id} value={item._id}>
+                <option
+                  key={item._id}
+                  value={item._id}
+                  className="bg-(--surface) text-(--text)"
+                >
                   {item.name}
                 </option>
               ))}
@@ -254,18 +382,53 @@ export function CurriculumFormModal({
               onChange={(event) =>
                 updateField("semisterRegistration", event.target.value)
               }
-              className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-transparent px-3 text-sm"
+              className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-(--surface) px-3 text-sm text-(--text)"
             >
-              <option value="">Select registration</option>
-              {semesterRegistrations.map((item) => (
-                <option key={item._id} value={item._id}>
-                  {item.status} - {item.shift}
+              <option value="" className="bg-(--surface) text-(--text)">
+                Select registration
+              </option>
+              {availableRegistrations.map((item) => (
+                <option
+                  key={item._id}
+                  value={item._id}
+                  className="bg-(--surface) text-(--text)"
+                >
+                  {renderRegistrationOption(item)}
                 </option>
               ))}
             </select>
-            <p className="mt-2 text-xs text-(--text-dim)">
-              Academic Semester: <span className="font-medium">{semesterLabel}</span>
-            </p>
+            {selectedRegistration ? (
+              <div className="mt-2 space-y-1 text-xs text-(--text-dim)">
+                <p>
+                  Academic Semester:{" "}
+                  <span className="font-medium">{semesterLabel}</span>
+                </p>
+                <p>
+                  Status / Shift:{" "}
+                  <span className="font-medium">
+                    {registrationSummary?.status} / {registrationSummary?.shift}
+                  </span>
+                </p>
+                <p>
+                  Dates:{" "}
+                  <span className="font-medium">
+                    {registrationSummary?.dateRange}
+                  </span>
+                </p>
+                <p>
+                  Total Credit:{" "}
+                  <span className="font-medium">
+                    {registrationSummary?.totalCredit}
+                  </span>
+                </p>
+              </div>
+            ) : (
+              <p className="mt-2 text-xs text-(--text-dim)">
+                {isEdit
+                  ? "Select a semester registration to see details."
+                  : "Only UPCOMING or ONGOING semester registrations are available for new curriculums."}
+              </p>
+            )}
           </div>
 
           <div>
@@ -323,8 +486,18 @@ export function CurriculumFormModal({
             {isEdit ? "Add Subjects" : "Subjects"}
           </p>
           <div className="max-h-56 space-y-2 overflow-y-auto rounded-xl border border-(--line) bg-(--surface) p-3 text-sm">
-            {availableSubjects.length === 0 ? (
-              <p className="text-(--text-dim)">No subjects available.</p>
+            {!form.academicDepartment ? (
+              <p className="text-(--text-dim)">
+                Select an academic department to view offered subjects.
+              </p>
+            ) : !form.semisterRegistration ? (
+              <p className="text-(--text-dim)">
+                Select a semester registration to load offered subjects.
+              </p>
+            ) : availableSubjects.length === 0 ? (
+              <p className="text-(--text-dim)">
+                No offered subjects available for the selected department and registration.
+              </p>
             ) : (
               availableSubjects.map((item) => {
                 const checked = form.subjects.includes(item._id);
@@ -347,7 +520,7 @@ export function CurriculumFormModal({
               })
             )}
           </div>
-          {regulationFilter ? (
+          {regulationFilter && canShowSubjects ? (
             <p className="text-xs text-(--text-dim)">
               Showing subjects for regulation {regulationFilter}.
             </p>
@@ -374,3 +547,4 @@ export function CurriculumFormModal({
     </Modal>
   );
 }
+

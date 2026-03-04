@@ -2,6 +2,8 @@ import { cookies } from "next/headers";
 import type {
   ApiResponse,
   SemesterEnrollment,
+  SemesterEnrollmentCreateResult,
+  SemesterEnrollmentInput,
   SemesterEnrollmentListParams,
   SemesterEnrollmentListPayload,
 } from "@/lib/type/dashboard/admin/semester-enrollment";
@@ -94,4 +96,34 @@ export async function getSemesterEnrollmentServer(
 ): Promise<SemesterEnrollment> {
   const token = await readAccessToken();
   return fetchSemesterEnrollmentCached(id, token);
+}
+
+export async function createSemesterEnrollmentServer(
+  input: SemesterEnrollmentInput
+): Promise<SemesterEnrollmentCreateResult> {
+  ensureApiBaseUrl();
+
+  const token = await readAccessToken();
+  const response = await fetch(
+    `${API_BASE_URL}/semester-enrollments/create-semester-enrollment`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...authHeaders(token),
+      },
+      body: JSON.stringify(input),
+    }
+  );
+
+  const payload = await parseJsonResponse<ApiResponse<SemesterEnrollmentCreateResult>>(
+    response,
+    "Failed to create semester enrollment."
+  );
+
+  if (!response.ok || !payload.success || !payload.data) {
+    throw new Error(payload.message || "Failed to create semester enrollment.");
+  }
+
+  return payload.data;
 }

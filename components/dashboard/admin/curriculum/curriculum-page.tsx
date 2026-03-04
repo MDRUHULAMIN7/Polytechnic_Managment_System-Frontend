@@ -24,6 +24,7 @@ export function CurriculumPage({
   academicDepartments,
   semesterRegistrations,
   subjects,
+  offeredSubjects,
   error,
 }: CurriculumPageProps) {
   const router = useRouter();
@@ -197,6 +198,7 @@ export function CurriculumPage({
         academicDepartments={academicDepartments}
         semesterRegistrations={semesterRegistrations}
         subjects={subjects}
+        offeredSubjects={offeredSubjects}
         onClose={() => setCreateOpen(false)}
         onSaved={handleSaved}
       />
@@ -207,6 +209,7 @@ export function CurriculumPage({
         academicDepartments={academicDepartments}
         semesterRegistrations={semesterRegistrations}
         subjects={subjects}
+        offeredSubjects={offeredSubjects}
         onClose={() => setEditItem(null)}
         onSaved={handleSaved}
       />

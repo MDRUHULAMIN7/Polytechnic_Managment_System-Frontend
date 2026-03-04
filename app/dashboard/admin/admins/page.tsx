@@ -1,10 +1,10 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { AdminPageServer } from "@/components/dashboard/admin/admin/admin-server";
-import { AdminPageSkeleton } from "@/components/dashboard/admin/admin/admin-skeleton";
 import type { AdminSortOption } from "@/lib/type/dashboard/admin/admin";
 import { PageProps } from "@/lib/type/dashboard/admin/type";
 import { parseNumberParam, readParam } from "@/utils/dashboard/admin/utils";
+import { TableSkeleton } from "@/components/dashboard/TableSkeleton";
 
 export const metadata: Metadata = {
   title: "Admins",
@@ -27,7 +27,7 @@ export default async function AdminsPage({ searchParams }: PageProps) {
   const sort = parseSortParam(readParam(resolvedSearchParams, "sort"));
 
   return (
-    <Suspense fallback={<AdminPageSkeleton />}>
+    <Suspense fallback={<TableSkeleton />}>
       <AdminPageServer searchTerm={searchTerm} page={page} limit={limit} sort={sort} />
     </Suspense>
   );

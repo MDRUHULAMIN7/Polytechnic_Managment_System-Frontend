@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import type { SemesterEnrollment, SemesterEnrollmentSortOption, PaginationMeta, SemesterEnrollmentStatus } from "./index";
+import type { Curriculum } from "@/lib/type/dashboard/admin/curriculum";
 
 export type SemesterEnrollmentFiltersProps = {
   search: string;
@@ -62,4 +63,19 @@ export type SemesterEnrollmentServerProps = {
   limit: number;
   sort: SemesterEnrollmentSortOption;
   status: SemesterEnrollmentStatus | "";
+};
+
+export type SemesterEnrollmentFormState = {
+  curriculum: string;
+};
+
+export type SemesterEnrollmentFormModalProps = {
+  open: boolean;
+  curriculums: Curriculum[];
+  onClose: () => void;
+  onSaved: () => void;
+};
+
+export type SemesterEnrollmentStudentPageProps = SemesterEnrollmentPageProps & {
+  curriculums: Curriculum[];
 };

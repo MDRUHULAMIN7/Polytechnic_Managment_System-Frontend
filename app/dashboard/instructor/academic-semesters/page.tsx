@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { AcademicSemesterPageServer } from "@/components/dashboard/instructor/academic-semester/academic-semester-server";
-import { AcademicSemesterPageSkeleton } from "@/components/dashboard/admin/academic-semester/academic-semester-skeleton";
+
 import type {
   AcademicSemesterName,
   AcademicSemesterSortOption,
@@ -9,6 +9,7 @@ import type {
 import { ACADEMIC_SEMESTER_NAMES } from "@/lib/type/dashboard/admin/academic-semester/constants";
 import { parseNumberParam, readParam } from "@/utils/dashboard/admin/utils";
 import { PageProps } from "@/lib/type/dashboard/admin/type";
+import { TableSkeleton } from "@/components/dashboard/TableSkeleton";
 
 export const metadata: Metadata = {
   title: "Academic Semesters",
@@ -45,7 +46,7 @@ export default async function AcademicSemestersPage({
   const name = parseNameParam(readParam(resolvedSearchParams, "name"));
 
   return (
-    <Suspense fallback={<AcademicSemesterPageSkeleton />}>
+    <Suspense fallback={<TableSkeleton />}>
       <AcademicSemesterPageServer
         searchTerm={searchTerm}
         page={page}

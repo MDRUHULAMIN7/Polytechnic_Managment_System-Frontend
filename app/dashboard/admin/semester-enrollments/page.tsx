@@ -1,11 +1,11 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { SemesterEnrollmentPageServer } from "@/components/dashboard/admin/semester-enrollment/semester-enrollment-server";
-import { SemesterEnrollmentPageSkeleton } from "@/components/dashboard/admin/semester-enrollment/semester-enrollment-skeleton";
 import type { SemesterEnrollmentSortOption, SemesterEnrollmentStatus } from "@/lib/type/dashboard/admin/semester-enrollment";
 import { SEMESTER_ENROLLMENT_STATUSES } from "@/lib/type/dashboard/admin/semester-enrollment/constants";
 import { parseNumberParam, readParam } from "@/utils/dashboard/admin/utils";
 import { PageProps } from "@/lib/type/dashboard/admin/type";
+import { TableSkeleton } from "@/components/dashboard/TableSkeleton";
 
 export const metadata: Metadata = {
   title: "Semester Enrollments",
@@ -34,7 +34,7 @@ export default async function SemesterEnrollmentsPage({ searchParams }: PageProp
   const status = parseStatusParam(readParam(resolvedSearchParams, "status"));
 
   return (
-    <Suspense fallback={<SemesterEnrollmentPageSkeleton />}>
+    <Suspense fallback={<TableSkeleton />}>
       <SemesterEnrollmentPageServer
         searchTerm={searchTerm}
         page={page}
