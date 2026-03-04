@@ -4,7 +4,7 @@ import { getInstructorsServer } from "@/lib/api/dashboard/admin/instructor/serve
 import { getSemesterRegistrationsServer } from "@/lib/api/dashboard/admin/semester-registration/server";
 import { getSubjectsServer } from "@/lib/api/dashboard/admin/subject/server";
 import { getOfferedSubjectsServer } from "@/lib/api/dashboard/admin/offered-subject/server";
-import type { PaginationMeta } from "@/lib/type/dashboard/admin/offered-subject";
+import type { OfferedSubject, PaginationMeta } from "@/lib/type/dashboard/admin/offered-subject";
 import type { AcademicDepartment } from "@/lib/type/dashboard/admin/academic-department";
 import type { AcademicInstructor } from "@/lib/type/dashboard/admin/academic-instructor";
 import type { Instructor } from "@/lib/type/dashboard/admin/instructor";
@@ -27,7 +27,7 @@ export async function OfferedSubjectPageServer({
   };
 
   let error: string | null = null;
-  let items = [];
+  let items: OfferedSubject[] = [];
   let meta = fallbackMeta;
   let subjects: Subject[] = [];
   let instructors: Instructor[] = [];

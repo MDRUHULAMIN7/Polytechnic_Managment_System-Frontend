@@ -49,7 +49,7 @@ export type SemesterRegistrationPageProps = {
   sort: SemesterRegistrationSortOption;
   status: SemesterRegistrationStatus | "";
   shift: SemesterRegistrationShift | "";
-  semesters: AcademicSemester[];
+  semesters?: AcademicSemester[];
   error?: string | null;
 };
 

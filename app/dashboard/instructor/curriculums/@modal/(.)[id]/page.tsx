@@ -1,4 +1,5 @@
-﻿import { getCurriculumServer } from "@/lib/api/dashboard/admin/curriculum/server";
+import { Suspense } from "react";
+import { getCurriculumServer } from "@/lib/api/dashboard/admin/curriculum/server";
 import { CurriculumDetailsContent } from "@/components/dashboard/admin/curriculum/curriculum-details-content";
 import { CurriculumDetailsModalShell } from "@/components/dashboard/admin/curriculum/curriculum-details-modal-shell";
 
@@ -6,11 +7,11 @@ type PageProps = {
   params: { id: string } | Promise<{ id: string }>;
 };
 
-export default async function CurriculumModalPage({ params }: PageProps) {
-  const resolvedParams = await Promise.resolve(params);
-  const rawId = resolvedParams?.id ?? "";
-  const curriculumId = decodeURIComponent(rawId);
+type ContentProps = {
+  curriculumId: string;
+};
 
+async function CurriculumModalContent({ curriculumId }: ContentProps) {
   let details = null;
   let error: string | null = null;
 
@@ -24,9 +25,21 @@ export default async function CurriculumModalPage({ params }: PageProps) {
     }
   }
 
+  return <CurriculumDetailsContent details={details} error={error} />;
+}
+
+export default async function CurriculumModalPage({ params }: PageProps) {
+  const resolvedParams = await Promise.resolve(params);
+  const rawId = resolvedParams?.id ?? "";
+  const curriculumId = decodeURIComponent(rawId);
+
   return (
     <CurriculumDetailsModalShell>
-      <CurriculumDetailsContent details={details} error={error} />
+      <Suspense
+        fallback={<p className="text-sm text-(--text-dim)">Loading curriculum...</p>}
+      >
+        <CurriculumModalContent curriculumId={curriculumId} />
+      </Suspense>
     </CurriculumDetailsModalShell>
   );
 }

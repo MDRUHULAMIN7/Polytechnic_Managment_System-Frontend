@@ -29,7 +29,6 @@ async function fetchOfferedSubjectsCached(
   params: OfferedSubjectListParams,
   token: string | null
 ): Promise<OfferedSubjectListPayload> {
-  "use cache";
   ensureApiBaseUrl();
 
   const query = buildOfferedSubjectQuery(params);
@@ -59,7 +58,6 @@ async function fetchOfferedSubjectCached(
   id: string,
   token: string | null
 ): Promise<OfferedSubject> {
-  "use cache";
   ensureApiBaseUrl();
 
   const response = await fetch(`${API_BASE_URL}/offered-subject/${id}`, {
@@ -178,3 +176,4 @@ export async function deleteOfferedSubjectServer(id: string): Promise<OfferedSub
 
   return payload.data ?? ({} as OfferedSubject);
 }
+

@@ -26,7 +26,6 @@ async function fetchSemesterEnrollmentsCached(
   params: SemesterEnrollmentListParams,
   token: string | null
 ): Promise<SemesterEnrollmentListPayload> {
-  "use cache";
   ensureApiBaseUrl();
 
   const query = buildSemesterEnrollmentQuery(params);
@@ -59,7 +58,6 @@ async function fetchSemesterEnrollmentCached(
   id: string,
   token: string | null
 ): Promise<SemesterEnrollment> {
-  "use cache";
   ensureApiBaseUrl();
 
   const response = await fetch(`${API_BASE_URL}/semester-enrollments/${id}`, {
@@ -127,3 +125,4 @@ export async function createSemesterEnrollmentServer(
 
   return payload.data;
 }
+

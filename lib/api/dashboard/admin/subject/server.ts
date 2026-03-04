@@ -30,7 +30,6 @@ async function fetchSubjectsCached(
   params: SubjectListParams,
   token: string | null
 ): Promise<SubjectListPayload> {
-  "use cache";
   ensureApiBaseUrl();
 
   const query = buildSubjectQuery(params);
@@ -57,7 +56,6 @@ async function fetchSubjectsCached(
 }
 
 async function fetchSubjectCached(id: string, token: string | null): Promise<Subject> {
-  "use cache";
   ensureApiBaseUrl();
 
   const response = await fetch(`${API_BASE_URL}/subjects/${id}`, {
@@ -271,3 +269,4 @@ export async function getSubjectInstructorsServer(
 }
 
 export { SUBJECTS_TAG, subjectInstructorTag, subjectTag };
+

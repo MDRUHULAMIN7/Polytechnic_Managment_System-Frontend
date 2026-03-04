@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { getAdminsServer } from "@/lib/api/dashboard/admin/admin/server";
-import type { PaginationMeta } from "@/lib/type/dashboard/admin/admin";
+import type { Admin, PaginationMeta } from "@/lib/type/dashboard/admin/admin";
 import type { AdminServerProps } from "@/lib/type/dashboard/admin/admin/ui";
 import { AdminPage } from "./admin-page";
 
@@ -23,7 +23,7 @@ export async function AdminPageServer({
   };
 
   let error: string | null = null;
-  let items = [];
+  let items: Admin[] = [];
   let meta = fallbackMeta;
 
   try {

@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { getSubjectServer, getSubjectInstructorsServer } from "@/lib/api/dashboard/admin/subject/server";
 import { SubjectDetailsContent } from "@/components/dashboard/admin/subject/subject-details-content";
 import { SubjectInstructorsPanel } from "@/components/dashboard/instructor/subject/subject-instructors-panel";
+import type { Instructor } from "@/lib/type/dashboard/admin/instructor";
 
 export const metadata: Metadata = {
   title: "Subject Details",
@@ -20,7 +21,7 @@ export default async function SubjectDetailsPage({ params }: PageProps) {
   let error: string | null = null;
   let details = null;
   let instructorsError: string | null = null;
-  let instructors = [];
+  let instructors: Instructor[] = [];
 
   if (!subjectId || subjectId === "undefined" || subjectId === "null") {
     error = "Invalid subject id.";

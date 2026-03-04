@@ -14,7 +14,7 @@ const initialState: SemesterEnrollmentFormState = {
   curriculum: "",
 };
 
-function renderSemester(value: Curriculum["academicSemester"]) {
+function renderSemester(value?: Curriculum["academicSemester"]) {
   if (!value) return "--";
   if (typeof value === "string") return value;
   return `${value.name ?? ""} ${value.year ?? ""}`.trim() || "--";
@@ -33,7 +33,7 @@ function formatShortDate(value?: string) {
   return date.toLocaleDateString();
 }
 
-function renderRegistration(value: Curriculum["semisterRegistration"]) {
+function renderRegistration(value?: Curriculum["semisterRegistration"]) {
   if (!value) return "--";
   if (typeof value === "string") return value;
   const dateRange = `${formatShortDate(value.startDate)} -> ${formatShortDate(

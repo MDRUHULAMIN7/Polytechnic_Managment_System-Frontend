@@ -208,7 +208,9 @@ export function SemesterRegistrationFormModal({
             </label>
             <select
               value={form.status}
-              onChange={(event) => updateField("status", event.target.value)}
+              onChange={(event) =>
+                updateField("status", event.target.value as SemesterRegistrationStatus | "")
+              }
               className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-(--surface) px-3 text-sm text-(--text)"
             >
               <option value="" className="bg-(--surface) text-(--text)">
@@ -228,7 +230,9 @@ export function SemesterRegistrationFormModal({
             </label>
             <select
               value={form.shift}
-              onChange={(event) => updateField("shift", event.target.value)}
+              onChange={(event) =>
+                updateField("shift", event.target.value as SemesterRegistrationShift | "")
+              }
               className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-(--surface) px-3 text-sm text-(--text)"
             >
               <option value="" className="bg-(--surface) text-(--text)">

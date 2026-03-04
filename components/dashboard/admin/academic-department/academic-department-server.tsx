@@ -1,6 +1,6 @@
 import { getAcademicDepartmentsServer } from "@/lib/api/dashboard/admin/academic-department/server";
 import { getAcademicInstructorsServer } from "@/lib/api/dashboard/admin/academic-instructor/server";
-import type { PaginationMeta } from "@/lib/type/dashboard/admin/academic-department";
+import type { AcademicDepartment, PaginationMeta } from "@/lib/type/dashboard/admin/academic-department";
 import type { AcademicInstructor } from "@/lib/type/dashboard/admin/academic-instructor";
 import type { AcademicDepartmentServerProps } from "@/lib/type/dashboard/admin/academic-department/ui";
 import { AcademicDepartmentPage } from "./academic-department-page";
@@ -20,7 +20,7 @@ export async function AcademicDepartmentPageServer({
   };
 
   let error: string | null = null;
-  let items = [];
+  let items: AcademicDepartment[] = [];
   let meta = fallbackMeta;
   let instructors: AcademicInstructor[] = [];
 

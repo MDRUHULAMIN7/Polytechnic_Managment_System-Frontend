@@ -27,7 +27,6 @@ async function fetchAdminsCached(
   params: AdminListParams,
   token: string | null
 ): Promise<AdminListPayload> {
-  "use cache";
   ensureApiBaseUrl();
 
   const query = buildAdminQuery(params);
@@ -54,7 +53,6 @@ async function fetchAdminsCached(
 }
 
 async function fetchAdminCached(id: string, token: string | null): Promise<Admin> {
-  "use cache";
   ensureApiBaseUrl();
 
   const response = await fetch(`${API_BASE_URL}/admins/${id}`, {
@@ -186,3 +184,4 @@ export async function changeAdminStatusServer(
 }
 
 export { ADMINS_TAG, adminTag, userTag };
+

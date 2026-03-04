@@ -1,6 +1,6 @@
 import { getAcademicSemestersServer } from "@/lib/api/dashboard/admin/academic-semester/server";
 import { getSemesterRegistrationsServer } from "@/lib/api/dashboard/admin/semester-registration/server";
-import type { PaginationMeta } from "@/lib/type/dashboard/admin/semester-registration";
+import type { PaginationMeta, SemesterRegistration } from "@/lib/type/dashboard/admin/semester-registration";
 import type { AcademicSemester } from "@/lib/type/dashboard/admin/academic-semester";
 import type { SemesterRegistrationServerProps } from "@/lib/type/dashboard/admin/semester-registration/ui";
 import { SemesterRegistrationPage } from "./semester-registration-page";
@@ -21,7 +21,7 @@ export async function SemesterRegistrationPageServer({
   };
 
   let error: string | null = null;
-  let items = [];
+  let items: SemesterRegistration[] = [];
   let meta = fallbackMeta;
   let semesters: AcademicSemester[] = [];
 

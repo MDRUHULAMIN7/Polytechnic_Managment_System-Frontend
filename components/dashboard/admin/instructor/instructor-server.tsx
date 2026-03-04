@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { getAcademicDepartmentsServer } from "@/lib/api/dashboard/admin/academic-department/server";
 import { getInstructorsServer } from "@/lib/api/dashboard/admin/instructor/server";
-import type { PaginationMeta } from "@/lib/type/dashboard/admin/instructor";
+import type { Instructor, PaginationMeta } from "@/lib/type/dashboard/admin/instructor";
 import type { AcademicDepartment } from "@/lib/type/dashboard/admin/academic-department";
 import type { InstructorServerProps } from "@/lib/type/dashboard/admin/instructor/ui";
 import { InstructorPage } from "./instructor-page";
@@ -26,7 +26,7 @@ export async function InstructorPageServer({
   };
 
   let error: string | null = null;
-  let items = [];
+  let items: Instructor[] = [];
   let meta = fallbackMeta;
   let departments: AcademicDepartment[] = [];
 

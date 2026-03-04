@@ -2,6 +2,7 @@ import { getSubjectServer, getSubjectInstructorsServer } from "@/lib/api/dashboa
 import { SubjectDetailsContent } from "@/components/dashboard/admin/subject/subject-details-content";
 import { SubjectDetailsModalShell } from "@/components/dashboard/admin/subject/subject-details-modal-shell";
 import { SubjectInstructorsPanel } from "@/components/dashboard/instructor/subject/subject-instructors-panel";
+import type { Instructor } from "@/lib/type/dashboard/admin/instructor";
 
 type PageProps = {
   params: { id: string } | Promise<{ id: string }>;
@@ -15,7 +16,7 @@ export default async function SubjectModalPage({ params }: PageProps) {
   let error: string | null = null;
   let details = null;
   let instructorsError: string | null = null;
-  let instructors = [];
+  let instructors: Instructor[] = [];
 
   if (!subjectId || subjectId === "undefined" || subjectId === "null") {
     error = "Invalid subject id.";

@@ -28,7 +28,6 @@ async function fetchAcademicInstructorsCached(
   params: AcademicInstructorListParams,
   token: string | null
 ): Promise<AcademicInstructorListPayload> {
-  "use cache";
   ensureApiBaseUrl();
 
   const query = buildAcademicInstructorQuery(params);
@@ -61,7 +60,6 @@ async function fetchAcademicInstructorCached(
   id: string,
   token: string | null
 ): Promise<AcademicInstructor> {
-  "use cache";
   ensureApiBaseUrl();
 
   const response = await fetch(`${API_BASE_URL}/academic-instructor/${id}`, {
@@ -157,3 +155,4 @@ export async function updateAcademicInstructorServer(
 
   return payload.data;
 }
+

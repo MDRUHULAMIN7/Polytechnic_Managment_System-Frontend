@@ -3,7 +3,7 @@ import { getSemesterRegistrationsServer } from "@/lib/api/dashboard/admin/semest
 import { getSubjectsServer } from "@/lib/api/dashboard/admin/subject/server";
 import { getOfferedSubjectsServer } from "@/lib/api/dashboard/admin/offered-subject/server";
 import { getCurriculumsServer } from "@/lib/api/dashboard/admin/curriculum/server";
-import type { PaginationMeta } from "@/lib/type/dashboard/admin/curriculum";
+import type { Curriculum, PaginationMeta } from "@/lib/type/dashboard/admin/curriculum";
 import type { AcademicDepartment } from "@/lib/type/dashboard/admin/academic-department";
 import type { SemesterRegistration } from "@/lib/type/dashboard/admin/semester-registration";
 import type { Subject } from "@/lib/type/dashboard/admin/subject";
@@ -25,7 +25,7 @@ export async function CurriculumPageServer({
   };
 
   let error: string | null = null;
-  let items = [];
+  let items: Curriculum[] = [];
   let meta = fallbackMeta;
   let academicDepartments: AcademicDepartment[] = [];
   let semesterRegistrations: SemesterRegistration[] = [];

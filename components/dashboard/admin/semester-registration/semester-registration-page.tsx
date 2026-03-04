@@ -217,7 +217,7 @@ export function SemesterRegistrationPage({
 
       <SemesterRegistrationFormModal
         open={createOpen}
-        semesters={semesters}
+        semesters={semesters ?? []}
         onClose={() => setCreateOpen(false)}
         onSaved={handleSaved}
       />
@@ -225,7 +225,7 @@ export function SemesterRegistrationPage({
       <SemesterRegistrationFormModal
         open={Boolean(editItem)}
         registration={editItem}
-        semesters={semesters}
+        semesters={semesters ?? []}
         onClose={() => setEditItem(null)}
         onSaved={handleSaved}
       />

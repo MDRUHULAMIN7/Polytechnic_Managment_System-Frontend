@@ -27,7 +27,6 @@ async function fetchStudentsCached(
   params: StudentListParams,
   token: string | null
 ): Promise<StudentListPayload> {
-  "use cache";
   ensureApiBaseUrl();
 
   const query = buildStudentQuery(params);
@@ -57,7 +56,6 @@ async function fetchStudentCached(
   id: string,
   token: string | null
 ): Promise<Student> {
-  "use cache";
   ensureApiBaseUrl();
 
   const response = await fetch(`${API_BASE_URL}/students/${id}`, {
@@ -199,3 +197,4 @@ export async function changeStudentStatusServer(
 }
 
 export { STUDENTS_TAG, studentTag, userTag };
+

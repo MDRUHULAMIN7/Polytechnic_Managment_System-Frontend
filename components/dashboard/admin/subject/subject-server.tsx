@@ -1,5 +1,5 @@
 import { getSubjectsServer } from "@/lib/api/dashboard/admin/subject/server";
-import type { PaginationMeta } from "@/lib/type/dashboard/admin/subject";
+import type { PaginationMeta, Subject } from "@/lib/type/dashboard/admin/subject";
 import type { SubjectServerProps } from "@/lib/type/dashboard/admin/subject/ui";
 import { SubjectPage } from "./subject-page";
 
@@ -19,7 +19,7 @@ export async function SubjectPageServer({
   };
 
   let error: string | null = null;
-  let items = [];
+  let items: Subject[] = [];
   let meta = fallbackMeta;
 
   try {

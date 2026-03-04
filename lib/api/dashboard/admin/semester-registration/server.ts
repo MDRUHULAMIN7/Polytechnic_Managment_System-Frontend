@@ -28,7 +28,6 @@ async function fetchSemesterRegistrationsCached(
   params: SemesterRegistrationListParams,
   token: string | null
 ): Promise<SemesterRegistrationListPayload> {
-  "use cache";
   ensureApiBaseUrl();
 
   const query = buildSemesterRegistrationQuery(params);
@@ -61,7 +60,6 @@ async function fetchSemesterRegistrationCached(
   id: string,
   token: string | null
 ): Promise<SemesterRegistration> {
-  "use cache";
   ensureApiBaseUrl();
 
   const response = await fetch(`${API_BASE_URL}/semester-registrations/${id}`, {
@@ -183,3 +181,4 @@ export async function deleteSemesterRegistrationServer(
 
   return payload.data ?? ({} as SemesterRegistration);
 }
+

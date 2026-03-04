@@ -3,9 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
-  experimental: {
-    cacheComponents: true,
-  },
+  cacheComponents: false,
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "res.cloudinary.com" },
@@ -22,3 +20,4 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+

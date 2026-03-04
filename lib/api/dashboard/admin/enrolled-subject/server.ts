@@ -20,7 +20,6 @@ async function readAccessToken(): Promise<string | null> {
 async function fetchMyEnrolledSubjectsCached(
   token: string | null
 ): Promise<EnrolledSubject[]> {
-  "use cache";
   ensureApiBaseUrl();
 
   const response = await fetch(
@@ -52,3 +51,4 @@ export async function getMyEnrolledSubjectsServer(): Promise<EnrolledSubject[]> 
   const token = await readAccessToken();
   return fetchMyEnrolledSubjectsCached(token);
 }
+

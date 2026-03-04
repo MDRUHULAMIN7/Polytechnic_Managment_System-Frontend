@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { getAcademicDepartmentsServer } from "@/lib/api/dashboard/admin/academic-department/server";
 import { getAcademicSemestersServer } from "@/lib/api/dashboard/admin/academic-semester/server";
 import { getStudentsServer } from "@/lib/api/dashboard/admin/student/server";
-import type { PaginationMeta } from "@/lib/type/dashboard/admin/student";
+import type { PaginationMeta, Student } from "@/lib/type/dashboard/admin/student";
 import type { AcademicDepartment } from "@/lib/type/dashboard/admin/academic-department";
 import type { AcademicSemester } from "@/lib/type/dashboard/admin/academic-semester";
 import type { StudentServerProps } from "@/lib/type/dashboard/admin/student/ui";
@@ -29,7 +29,7 @@ export async function StudentPageServer({
   };
 
   let error: string | null = null;
-  let items = [];
+  let items: Student[] = [];
   let meta = fallbackMeta;
   let departments: AcademicDepartment[] = [];
   let semesters: AcademicSemester[] = [];

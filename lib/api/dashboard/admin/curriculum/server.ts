@@ -29,7 +29,6 @@ async function fetchCurriculumsCached(
   params: CurriculumListParams,
   token: string | null
 ): Promise<CurriculumListPayload> {
-  "use cache";
   ensureApiBaseUrl();
 
   const query = buildCurriculumQuery(params);
@@ -59,7 +58,6 @@ async function fetchCurriculumCached(
   id: string,
   token: string | null
 ): Promise<Curriculum> {
-  "use cache";
   ensureApiBaseUrl();
 
   const response = await fetch(`${API_BASE_URL}/curriculums/${id}`, {
@@ -174,3 +172,4 @@ export async function deleteCurriculumServer(id: string): Promise<Curriculum> {
 
   return payload.data ?? ({} as Curriculum);
 }
+

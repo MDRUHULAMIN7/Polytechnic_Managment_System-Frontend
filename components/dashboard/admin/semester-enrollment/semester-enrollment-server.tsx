@@ -1,5 +1,5 @@
 import { getSemesterEnrollmentsServer } from "@/lib/api/dashboard/admin/semester-enrollment/server";
-import type { PaginationMeta } from "@/lib/type/dashboard/admin/semester-enrollment";
+import type { PaginationMeta, SemesterEnrollment } from "@/lib/type/dashboard/admin/semester-enrollment";
 import type { SemesterEnrollmentServerProps } from "@/lib/type/dashboard/admin/semester-enrollment/ui";
 import { SemesterEnrollmentPage } from "./semester-enrollment-page";
 
@@ -18,7 +18,7 @@ export async function SemesterEnrollmentPageServer({
   };
 
   let error: string | null = null;
-  let items = [];
+  let items: SemesterEnrollment[] = [];
   let meta = fallbackMeta;
 
   try {

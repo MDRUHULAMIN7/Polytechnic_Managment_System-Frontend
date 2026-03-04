@@ -1,5 +1,5 @@
 import { getAcademicSemestersServer } from "@/lib/api/dashboard/admin/academic-semester/server";
-import type { PaginationMeta } from "@/lib/type/dashboard/admin/academic-semester";
+import type { AcademicSemester, PaginationMeta } from "@/lib/type/dashboard/admin/academic-semester";
 import type { AcademicSemesterServerProps } from "@/lib/type/dashboard/admin/academic-semester/ui";
 import { AcademicSemesterPage } from "./academic-semester-page";
 
@@ -18,7 +18,7 @@ export async function AcademicSemesterPageServer({
   };
 
   let error: string | null = null;
-  let items = [];
+  let items: AcademicSemester[] = [];
   let meta = fallbackMeta;
 
   try {
