@@ -27,7 +27,10 @@ export type AcademicSemesterTableProps = {
   items: AcademicSemester[];
   loading: boolean;
   error?: string | null;
-  onEdit: (item: AcademicSemester) => void;
+  onEdit?: (item: AcademicSemester) => void;
+  basePath?: string;
+  showEdit?: boolean;
+  actionsLabel?: string;
 };
 
 export type AcademicSemesterPageProps = {

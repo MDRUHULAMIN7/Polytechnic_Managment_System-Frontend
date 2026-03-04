@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import type {
   ApiResponse,
+  SemesterEnrollment,
   SemesterEnrollmentListParams,
   SemesterEnrollmentListPayload,
 } from "@/lib/type/dashboard/admin/semester-enrollment";
@@ -52,9 +53,45 @@ async function fetchSemesterEnrollmentsCached(
   return payload.data;
 }
 
+async function fetchSemesterEnrollmentCached(
+  id: string,
+  token: string | null
+): Promise<SemesterEnrollment> {
+  "use cache";
+  ensureApiBaseUrl();
+
+  const response = await fetch(`${API_BASE_URL}/semester-enrollments/${id}`, {
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeaders(token),
+    },
+    next: {
+      tags: [SEMESTER_ENROLLMENTS_TAG],
+    },
+  });
+
+  const payload = await parseJsonResponse<ApiResponse<SemesterEnrollment>>(
+    response,
+    "Failed to load semester enrollment."
+  );
+
+  if (!response.ok || !payload.success || !payload.data) {
+    throw new Error(payload.message || "Failed to load semester enrollment.");
+  }
+
+  return payload.data;
+}
+
 export async function getSemesterEnrollmentsServer(
   params: SemesterEnrollmentListParams
 ): Promise<SemesterEnrollmentListPayload> {
   const token = await readAccessToken();
   return fetchSemesterEnrollmentsCached(params, token);
+}
+
+export async function getSemesterEnrollmentServer(
+  id: string
+): Promise<SemesterEnrollment> {
+  const token = await readAccessToken();
+  return fetchSemesterEnrollmentCached(id, token);
 }

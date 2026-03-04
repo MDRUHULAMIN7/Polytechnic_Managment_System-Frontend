@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import type {
   PaginationMeta,
   Subject,
-  SubjectInput,
   SubjectSortOption,
 } from "./index";
 import type { Instructor } from "@/lib/type/dashboard/admin/instructor";
@@ -26,9 +25,14 @@ export type SubjectTableProps = {
   items: Subject[];
   loading: boolean;
   error?: string | null;
-  onEdit: (subject: Subject) => void;
-  onDelete: (subject: Subject) => void;
-  onAssign: (subject: Subject) => void;
+  onEdit?: (subject: Subject) => void;
+  onDelete?: (subject: Subject) => void;
+  onAssign?: (subject: Subject) => void;
+  basePath?: string;
+  showEdit?: boolean;
+  showAssign?: boolean;
+  showDelete?: boolean;
+  actionsLabel?: string;
 };
 
 export type SubjectPageProps = {

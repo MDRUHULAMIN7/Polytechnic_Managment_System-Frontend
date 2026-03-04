@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { SemesterEnrollment } from "@/lib/type/dashboard/admin/semester-enrollment";
 import type { SemesterEnrollmentTableProps } from "@/lib/type/dashboard/admin/semester-enrollment/ui";
 import { resolveName } from "@/utils/dashboard/admin/utils";
@@ -47,7 +48,13 @@ export function SemesterEnrollmentTable({
   items,
   loading,
   error,
+  basePath = "/dashboard/admin/semester-enrollments",
+  showView = false,
+  viewLabel = "View",
+  actionsLabel = "Actions",
 }: SemesterEnrollmentTableProps) {
+  const columnCount = showView ? 8 : 7;
+
   return (
     <div className="rounded-2xl border border-(--line) bg-(--surface)">
       <div className="overflow-x-auto">
@@ -61,6 +68,9 @@ export function SemesterEnrollmentTable({
               <th className="px-5 py-4 font-semibold">Status</th>
               <th className="px-5 py-4 font-semibold">Fees</th>
               <th className="px-5 py-4 font-semibold">Paid</th>
+              {showView ? (
+                <th className="px-5 py-4 font-semibold text-right">{actionsLabel}</th>
+              ) : null}
             </tr>
           </thead>
           <tbody>
@@ -88,13 +98,18 @@ export function SemesterEnrollmentTable({
                     <td className="px-5 py-4">
                       <div className="h-4 w-12 animate-pulse rounded bg-(--surface-muted)" />
                     </td>
+                    {showView ? (
+                      <td className="px-5 py-4 text-right">
+                        <div className="ml-auto h-9 w-20 animate-pulse rounded-lg bg-(--surface-muted)" />
+                      </td>
+                    ) : null}
                   </tr>
                 ))
               : null}
 
             {!loading && items.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-5 py-8 text-center text-(--text-dim)">
+                <td colSpan={columnCount} className="px-5 py-8 text-center text-(--text-dim)">
                   {error ? "Failed to load semester enrollments." : "No enrollments found."}
                 </td>
               </tr>
@@ -120,6 +135,23 @@ export function SemesterEnrollmentTable({
                   <td className="px-5 py-4 text-(--text-dim)">
                     {item.isPaid ? "Yes" : "No"}
                   </td>
+                  {showView ? (
+                    <td className="px-5 py-4 text-right">
+                      {item._id ? (
+                        <Link
+                          href={`${basePath}/${item._id}`}
+                          scroll={false}
+                          className="focus-ring inline-flex h-9 min-w-20 items-center justify-center rounded-lg border border-(--line) px-3 text-xs font-semibold text-(--text-dim) transition hover:bg-(--surface-muted)"
+                        >
+                          {viewLabel}
+                        </Link>
+                      ) : (
+                        <span className="inline-flex h-9 min-w-20 items-center justify-center rounded-lg border border-(--line) px-3 text-xs font-semibold text-(--text-dim) opacity-60">
+                          {viewLabel}
+                        </span>
+                      )}
+                    </td>
+                  ) : null}
                 </tr>
               ))}
           </tbody>

@@ -32,8 +32,12 @@ export type SemesterRegistrationTableProps = {
   items: SemesterRegistration[];
   loading: boolean;
   error?: string | null;
-  onEdit: (item: SemesterRegistration) => void;
-  onDelete: (item: SemesterRegistration) => void;
+  onEdit?: (item: SemesterRegistration) => void;
+  onDelete?: (item: SemesterRegistration) => void;
+  basePath?: string;
+  showEdit?: boolean;
+  showDelete?: boolean;
+  actionsLabel?: string;
 };
 
 export type SemesterRegistrationPageProps = {

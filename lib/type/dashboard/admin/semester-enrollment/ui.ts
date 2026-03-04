@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { SemesterEnrollment, SemesterEnrollmentSortOption, PaginationMeta, SemesterEnrollmentStatus } from "./index";
 
 export type SemesterEnrollmentFiltersProps = {
@@ -21,6 +22,10 @@ export type SemesterEnrollmentTableProps = {
   items: SemesterEnrollment[];
   loading: boolean;
   error?: string | null;
+  basePath?: string;
+  showView?: boolean;
+  viewLabel?: string;
+  actionsLabel?: string;
 };
 
 export type SemesterEnrollmentPageProps = {
@@ -32,6 +37,23 @@ export type SemesterEnrollmentPageProps = {
   sort: SemesterEnrollmentSortOption;
   status: SemesterEnrollmentStatus | "";
   error?: string | null;
+};
+
+export type SemesterEnrollmentDetailsContentProps = {
+  details: SemesterEnrollment | null;
+  error?: string | null;
+};
+
+export type SemesterEnrollmentDetailsModalShellProps = {
+  children: ReactNode;
+};
+
+export type SemesterEnrollmentModalProps = {
+  open: boolean;
+  title: string;
+  description?: string;
+  children: ReactNode;
+  onClose: () => void;
 };
 
 export type SemesterEnrollmentServerProps = {

@@ -15,6 +15,11 @@ export function SubjectTable({
   onEdit,
   onDelete,
   onAssign,
+  basePath = "/dashboard/admin/subjects",
+  showEdit = true,
+  showAssign = true,
+  showDelete = true,
+  actionsLabel = "Actions",
 }: SubjectTableProps) {
   return (
     <div className="rounded-2xl border border-(--line) bg-(--surface)">
@@ -26,7 +31,7 @@ export function SubjectTable({
               <th className="px-5 py-4 font-semibold">Code</th>
               <th className="px-5 py-4 font-semibold">Credits</th>
               <th className="px-5 py-4 font-semibold">Regulation</th>
-              <th className="px-5 py-4 font-semibold text-right">Actions</th>
+              <th className="px-5 py-4 font-semibold text-right">{actionsLabel}</th>
             </tr>
           </thead>
           <tbody>
@@ -74,33 +79,39 @@ export function SubjectTable({
                   <td className="px-5 py-4 text-right">
                     <div className="inline-flex flex-wrap items-center justify-end gap-2">
                       <Link
-                        href={`/dashboard/admin/subjects/${item._id}`}
+                        href={`${basePath}/${item._id}`}
                         scroll={false}
                         className="focus-ring inline-flex h-9 min-w-20 items-center justify-center rounded-lg border border-(--line) px-3 text-xs font-semibold text-(--text-dim) transition hover:bg-(--surface-muted)"
                       >
                         View
                       </Link>
-                      <button
-                        type="button"
-                        onClick={() => onEdit(item)}
-                        className="focus-ring inline-flex h-9 min-w-20 items-center justify-center rounded-lg border border-(--line) px-3 text-xs font-semibold text-(--text-dim) transition hover:bg-(--surface-muted)"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => onAssign(item)}
-                        className="focus-ring inline-flex h-9 min-w-20 items-center justify-center rounded-lg border border-(--line) px-3 text-xs font-semibold text-(--text-dim) transition hover:bg-(--surface-muted)"
-                      >
-                        Assign
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => onDelete(item)}
-                        className="focus-ring inline-flex h-9 min-w-20 items-center justify-center rounded-lg border border-red-500/50 px-3 text-xs font-semibold text-red-300 transition hover:bg-red-500/10"
-                      >
-                        Delete
-                      </button>
+                      {showEdit && onEdit ? (
+                        <button
+                          type="button"
+                          onClick={() => onEdit(item)}
+                          className="focus-ring inline-flex h-9 min-w-20 items-center justify-center rounded-lg border border-(--line) px-3 text-xs font-semibold text-(--text-dim) transition hover:bg-(--surface-muted)"
+                        >
+                          Edit
+                        </button>
+                      ) : null}
+                      {showAssign && onAssign ? (
+                        <button
+                          type="button"
+                          onClick={() => onAssign(item)}
+                          className="focus-ring inline-flex h-9 min-w-20 items-center justify-center rounded-lg border border-(--line) px-3 text-xs font-semibold text-(--text-dim) transition hover:bg-(--surface-muted)"
+                        >
+                          Assign
+                        </button>
+                      ) : null}
+                      {showDelete && onDelete ? (
+                        <button
+                          type="button"
+                          onClick={() => onDelete(item)}
+                          className="focus-ring inline-flex h-9 min-w-20 items-center justify-center rounded-lg border border-red-500/50 px-3 text-xs font-semibold text-red-300 transition hover:bg-red-500/10"
+                        >
+                          Delete
+                        </button>
+                      ) : null}
                     </div>
                   </td>
                 </tr>

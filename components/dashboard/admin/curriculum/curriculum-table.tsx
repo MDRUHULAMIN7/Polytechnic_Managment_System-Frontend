@@ -36,6 +36,10 @@ export function CurriculumTable({
   error,
   onEdit,
   onDelete,
+  basePath = "/dashboard/admin/curriculums",
+  showEdit = true,
+  showDelete = true,
+  actionsLabel = "Actions",
 }: CurriculumTableProps) {
   return (
     <div className="rounded-2xl border border-(--line) bg-(--surface)">
@@ -49,7 +53,7 @@ export function CurriculumTable({
               <th className="px-5 py-4 font-semibold">Semester</th>
               <th className="px-5 py-4 font-semibold">Total Credit</th>
               <th className="px-5 py-4 font-semibold">Subjects</th>
-              <th className="px-5 py-4 font-semibold text-right">Actions</th>
+              <th className="px-5 py-4 font-semibold text-right">{actionsLabel}</th>
             </tr>
           </thead>
           <tbody>
@@ -109,26 +113,30 @@ export function CurriculumTable({
                   <td className="px-5 py-4 text-right">
                     <div className="inline-flex flex-wrap items-center justify-end gap-2">
                       <Link
-                        href={`/dashboard/admin/curriculums/${item._id}`}
+                        href={`${basePath}/${item._id}`}
                         scroll={false}
                         className="focus-ring inline-flex h-9 min-w-20 items-center justify-center rounded-lg border border-(--line) px-3 text-xs font-semibold text-(--text-dim) transition hover:bg-(--surface-muted)"
                       >
                         View
                       </Link>
-                      <button
-                        type="button"
-                        onClick={() => onEdit(item)}
-                        className="focus-ring inline-flex h-9 min-w-20 items-center justify-center rounded-lg border border-(--line) px-3 text-xs font-semibold text-(--text-dim) transition hover:bg-(--surface-muted)"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => onDelete(item)}
-                        className="focus-ring inline-flex h-9 min-w-20 items-center justify-center rounded-lg border border-red-500/50 px-3 text-xs font-semibold text-red-300 transition hover:bg-red-500/10"
-                      >
-                        Delete
-                      </button>
+                      {showEdit && onEdit ? (
+                        <button
+                          type="button"
+                          onClick={() => onEdit(item)}
+                          className="focus-ring inline-flex h-9 min-w-20 items-center justify-center rounded-lg border border-(--line) px-3 text-xs font-semibold text-(--text-dim) transition hover:bg-(--surface-muted)"
+                        >
+                          Edit
+                        </button>
+                      ) : null}
+                      {showDelete && onDelete ? (
+                        <button
+                          type="button"
+                          onClick={() => onDelete(item)}
+                          className="focus-ring inline-flex h-9 min-w-20 items-center justify-center rounded-lg border border-red-500/50 px-3 text-xs font-semibold text-red-300 transition hover:bg-red-500/10"
+                        >
+                          Delete
+                        </button>
+                      ) : null}
                     </div>
                   </td>
                 </tr>

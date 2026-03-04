@@ -18,6 +18,9 @@ export function AcademicSemesterTable({
   loading,
   error,
   onEdit,
+  basePath = "/dashboard/admin/academic-semesters",
+  showEdit = true,
+  actionsLabel = "Actions",
 }: AcademicSemesterTableProps) {
   return (
     <div className="rounded-2xl border border-(--line) bg-(--surface)">
@@ -29,7 +32,7 @@ export function AcademicSemesterTable({
               <th className="px-5 py-4 font-semibold">Code</th>
               <th className="px-5 py-4 font-semibold">Year</th>
               <th className="px-5 py-4 font-semibold">Duration</th>
-              <th className="px-5 py-4 font-semibold text-right">Actions</th>
+              <th className="px-5 py-4 font-semibold text-right">{actionsLabel}</th>
             </tr>
           </thead>
           <tbody>
@@ -81,7 +84,7 @@ export function AcademicSemesterTable({
                     <div className="inline-flex items-center gap-2">
                       {item._id ? (
                         <Link
-                          href={`/dashboard/admin/academic-semesters/${item._id}`}
+                          href={`${basePath}/${item._id}`}
                           scroll={false}
                           className="focus-ring inline-flex h-9 min-w-23 items-center justify-center rounded-lg border border-(--line) px-4 text-xs font-semibold text-(--text-dim) transition hover:bg-(--surface-muted)"
                         >
@@ -92,13 +95,15 @@ export function AcademicSemesterTable({
                           View
                         </span>
                       )}
-                      <button
-                        type="button"
-                        onClick={() => onEdit(item)}
-                        className="focus-ring inline-flex h-9 min-w-23 items-center justify-center rounded-lg bg-(--accent) px-4 text-xs font-semibold text-(--accent-ink) transition hover:opacity-90"
-                      >
-                        Edit
-                      </button>
+                      {showEdit && onEdit ? (
+                        <button
+                          type="button"
+                          onClick={() => onEdit(item)}
+                          className="focus-ring inline-flex h-9 min-w-23 items-center justify-center rounded-lg bg-(--accent) px-4 text-xs font-semibold text-(--accent-ink) transition hover:opacity-90"
+                        >
+                          Edit
+                        </button>
+                      ) : null}
                     </div>
                   </td>
                 </tr>

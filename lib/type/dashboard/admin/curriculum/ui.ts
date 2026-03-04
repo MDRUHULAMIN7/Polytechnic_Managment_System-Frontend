@@ -28,8 +28,12 @@ export type CurriculumTableProps = {
   items: Curriculum[];
   loading: boolean;
   error?: string | null;
-  onEdit: (item: Curriculum) => void;
-  onDelete: (item: Curriculum) => void;
+  onEdit?: (item: Curriculum) => void;
+  onDelete?: (item: Curriculum) => void;
+  basePath?: string;
+  showEdit?: boolean;
+  showDelete?: boolean;
+  actionsLabel?: string;
 };
 
 export type CurriculumPageProps = {
@@ -42,6 +46,16 @@ export type CurriculumPageProps = {
   academicDepartments: AcademicDepartment[];
   semesterRegistrations: SemesterRegistration[];
   subjects: Subject[];
+  error?: string | null;
+};
+
+export type CurriculumListPageProps = {
+  items: Curriculum[];
+  meta: PaginationMeta;
+  searchTerm: string;
+  page: number;
+  limit: number;
+  sort: CurriculumSortOption;
   error?: string | null;
 };
 

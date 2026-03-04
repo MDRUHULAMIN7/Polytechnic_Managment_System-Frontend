@@ -31,8 +31,12 @@ export type OfferedSubjectTableProps = {
   items: OfferedSubject[];
   loading: boolean;
   error?: string | null;
-  onEdit: (item: OfferedSubject) => void;
-  onDelete: (item: OfferedSubject) => void;
+  onEdit?: (item: OfferedSubject) => void;
+  onDelete?: (item: OfferedSubject) => void;
+  basePath?: string;
+  showEdit?: boolean;
+  showDelete?: boolean;
+  actionsLabel?: string;
 };
 
 export type OfferedSubjectPageProps = {
@@ -47,6 +51,16 @@ export type OfferedSubjectPageProps = {
   academicDepartments: AcademicDepartment[];
   academicInstructors: AcademicInstructor[];
   semesterRegistrations: SemesterRegistration[];
+  error?: string | null;
+};
+
+export type OfferedSubjectListPageProps = {
+  items: OfferedSubject[];
+  meta: PaginationMeta;
+  searchTerm: string;
+  page: number;
+  limit: number;
+  sort: OfferedSubjectSortOption;
   error?: string | null;
 };
 
