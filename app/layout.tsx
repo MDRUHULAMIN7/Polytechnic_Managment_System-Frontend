@@ -16,8 +16,17 @@ const bodyFont = Source_Sans_3({
   display: "swap"
 });
 
+const metadataBase = (() => {
+  const envUrl = process.env.NEXT_PUBLIC_SITE_URL ?? process.env.VERCEL_URL;
+  if (!envUrl) {
+    return new URL("http://localhost:3000");
+  }
+  const normalized = envUrl.startsWith("http") ? envUrl : `https://${envUrl}`;
+  return new URL(normalized);
+})();
+
 export const metadata: Metadata = {
-  metadataBase: new URL("http://localhost:3000"),
+  metadataBase,
   title: {
     default: "Polytechnic Management",
     template: "%s | PMS"

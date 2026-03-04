@@ -5,22 +5,13 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { AdminSortOption, AdminStatus } from "@/lib/type/dashboard/admin/admin";
 import type { AdminPageProps } from "@/lib/type/dashboard/admin/admin/ui";
 import { showToast } from "@/utils/common/toast";
+import { useDebouncedValue } from "@/utils/common/use-debounced-value";
+import { updateListSearchParams } from "@/utils/dashboard/admin/search-params";
 import { AdminFilters } from "./admin-filters";
 import { AdminPagination } from "./admin-pagination";
 import { AdminTable } from "./admin-table";
 import { AdminFormModal } from "./admin-form-modal";
 import { changeAdminStatusAction } from "@/actions/dashboard/admin/admin";
-
-function useDebouncedValue(value: string, delayMs: number) {
-  const [debounced, setDebounced] = useState(value);
-
-  useEffect(() => {
-    const handle = window.setTimeout(() => setDebounced(value), delayMs);
-    return () => window.clearTimeout(handle);
-  }, [value, delayMs]);
-
-  return debounced;
-}
 
 export function AdminPage({
   items,
@@ -52,48 +43,19 @@ export function AdminPage({
     limit?: number | null;
     sort?: AdminSortOption | null;
   }) {
-    const params = new URLSearchParams(searchParams.toString());
-
-    const entries: Array<[string, string | number | null | undefined]> = [
-      ["searchTerm", next.searchTerm],
-      ["page", next.page],
-      ["limit", next.limit],
-      ["sort", next.sort],
-    ];
-
-    for (const [key, value] of entries) {
-      if (value === undefined) {
-        continue;
-      }
-
-      if (value === null || value === "") {
-        params.delete(key);
-        continue;
-      }
-
-      params.set(key, String(value));
-    }
-
-    if (next.page !== undefined && (next.page === null || next.page <= 1)) {
-      params.delete("page");
-    }
-
-    if (next.limit !== undefined && (next.limit === null || next.limit === 10)) {
-      params.delete("limit");
-    }
-
-    if (next.sort !== undefined && (next.sort === null || next.sort === "-createdAt")) {
-      params.delete("sort");
-    }
-
-    const queryString = params.toString();
-    const nextUrl = queryString ? `${pathname}?${queryString}` : pathname;
-
-    if (nextUrl !== `${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`) {
-      startTransition(() => {
-        router.push(nextUrl, { scroll: false });
-      });
-    }
+    updateListSearchParams({
+      pathname,
+      searchParams,
+      router,
+      startTransition,
+      entries: [
+        ["searchTerm", next.searchTerm],
+        ["page", next.page],
+        ["limit", next.limit],
+        ["sort", next.sort],
+      ],
+      defaults: { page: 1, limit: 10, sort: "-createdAt" },
+    });
   }
 
   useEffect(() => {

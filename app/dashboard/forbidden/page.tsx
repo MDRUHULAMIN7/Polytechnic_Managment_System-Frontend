@@ -1,16 +1,41 @@
+"use client";
+
+import { useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { removeCookie } from "@/utils/common/cookie";
+
+const ACCESS_TOKEN_COOKIE = "pms_access_token";
+const ROLE_COOKIE = "pms_role";
 
 export default function ForbiddenPage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    removeCookie(ACCESS_TOKEN_COOKIE);
+    removeCookie(ROLE_COOKIE);
+
+    const handle = window.setTimeout(() => {
+      router.replace("/login");
+      router.refresh();
+    }, 150);
+
+    return () => window.clearTimeout(handle);
+  }, [router]);
+
   return (
     <section className="mx-auto flex min-h-[70vh] max-w-2xl items-center justify-center">
       <div className="w-full rounded-2xl border border-(--line) bg-(--surface) p-8 text-center">
         <h1 className="text-2xl font-semibold">You are not authorized!</h1>
+        <p className="mt-2 text-sm text-(--text-dim)">
+          You have been signed out for security. Redirecting to login...
+        </p>
 
         <Link
-          href="/dashboard"
+          href="/login"
           className="focus-ring mt-6 inline-flex rounded-lg bg-(--accent) px-4 py-2.5 text-sm font-semibold text-(--accent-ink)"
         >
-          Retry
+          Go to Login
         </Link>
       </div>
     </section>

@@ -7,54 +7,14 @@ import type {
   AcademicSemesterSortOption,
 } from "@/lib/type/dashboard/admin/academic-semester";
 import { ACADEMIC_SEMESTER_NAMES } from "@/lib/type/dashboard/admin/academic-semester/constants";
-
+import { parseNumberParam, readParam } from "@/utils/dashboard/admin/utils";
+import { PageProps } from "@/lib/type/dashboard/admin/type";
 export const metadata: Metadata = {
   title: "Academic Semesters",
 };
 
-type SearchParamBag =
-  | Record<string, string | string[] | undefined>
-  | URLSearchParams
-  | undefined;
 
-type MaybePromise<T> = T | Promise<T>;
 
-type PageProps = {
-  searchParams?: MaybePromise<SearchParamBag>;
-};
-
-function readParam(searchParams: SearchParamBag, key: string) {
-  if (!searchParams) {
-    return "";
-  }
-
-  if (typeof (searchParams as URLSearchParams).get === "function") {
-    return (searchParams as URLSearchParams).get(key) ?? "";
-  }
-
-  const value = (searchParams as Record<string, string | string[] | undefined>)[
-    key
-  ];
-
-  if (Array.isArray(value)) {
-    return value[0] ?? "";
-  }
-
-  return value ?? "";
-}
-
-function parseNumberParam(value: string, fallback: number) {
-  if (!value) {
-    return fallback;
-  }
-
-  const parsed = Number(value);
-  if (!Number.isFinite(parsed) || parsed <= 0) {
-    return fallback;
-  }
-
-  return Math.floor(parsed);
-}
 
 function parseSortParam(value: string): AcademicSemesterSortOption {
   if (value === "createdAt" || value === "name" || value === "-name") {

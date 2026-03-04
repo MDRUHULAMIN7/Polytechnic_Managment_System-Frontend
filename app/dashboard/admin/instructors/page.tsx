@@ -3,54 +3,14 @@ import type { Metadata } from "next";
 import { InstructorPageServer } from "@/components/dashboard/admin/instructor/instructor-server";
 import { InstructorPageSkeleton } from "@/components/dashboard/admin/instructor/instructor-skeleton";
 import type { InstructorSortOption } from "@/lib/type/dashboard/admin/instructor";
-
+import { PageProps } from "@/lib/type/dashboard/admin/type";
+import { parseNumberParam, readParam } from "@/utils/dashboard/admin/utils";
 export const metadata: Metadata = {
   title: "Instructors",
 };
 
-type SearchParamBag =
-  | Record<string, string | string[] | undefined>
-  | URLSearchParams
-  | undefined;
 
-type MaybePromise<T> = T | Promise<T>;
 
-type PageProps = {
-  searchParams?: MaybePromise<SearchParamBag>;
-};
-
-function readParam(searchParams: SearchParamBag, key: string) {
-  if (!searchParams) {
-    return "";
-  }
-
-  if (typeof (searchParams as URLSearchParams).get === "function") {
-    return (searchParams as URLSearchParams).get(key) ?? "";
-  }
-
-  const value = (searchParams as Record<string, string | string[] | undefined>)[
-    key
-  ];
-
-  if (Array.isArray(value)) {
-    return value[0] ?? "";
-  }
-
-  return value ?? "";
-}
-
-function parseNumberParam(value: string, fallback: number) {
-  if (!value) {
-    return fallback;
-  }
-
-  const parsed = Number(value);
-  if (!Number.isFinite(parsed) || parsed <= 0) {
-    return fallback;
-  }
-
-  return Math.floor(parsed);
-}
 
 function parseSortParam(value: string): InstructorSortOption {
   if (value === "createdAt") {
