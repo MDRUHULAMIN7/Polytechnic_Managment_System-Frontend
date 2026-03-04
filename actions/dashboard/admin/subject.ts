@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidateTag } from "next/cache";
-import type { SubjectInput } from "@/lib/type/dashboard/admin/subject";
+import type { SubjectInput, SubjectSortOption } from "@/lib/type/dashboard/admin/subject";
 import {
   SUBJECTS_TAG,
   subjectInstructorTag,
@@ -80,7 +80,7 @@ export async function getSubjectsAction(params: {
   page?: number;
   limit?: number;
   searchTerm?: string;
-  sort?: string;
+  sort?: SubjectSortOption;
   fields?: string;
 }) {
   return getSubjectsServer({
