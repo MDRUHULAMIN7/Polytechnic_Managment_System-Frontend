@@ -131,7 +131,7 @@ export async function createInstructorServer(
   const payloadResult = await parseJsonResponse<
     ApiResponse<Instructor | Instructor[]>
   >(response, "Failed to create instructor.");
-  console.log(payloadResult);
+  
   if (!response.ok || !payloadResult.success || !payloadResult.data) {
     const errorSources = (
       payloadResult as { errorSources?: Array<{ message?: string }> }
@@ -140,6 +140,7 @@ export async function createInstructorServer(
       ?.map((source) => source.message)
       .filter((message): message is string => Boolean(message))
       .join(", ");
+      console.log(errorMessage);
     throw new Error(
       errorMessage || payloadResult.message || "Failed to create instructor.",
     );
