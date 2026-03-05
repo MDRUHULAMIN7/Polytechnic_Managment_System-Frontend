@@ -107,6 +107,7 @@ export async function createOfferedSubjectServer(
   const response = await fetch(
     `${API_BASE_URL}/offered-subject/create-offered-Subject`,
     {
+      
       method: "POST",
       headers: {
         "Content-Type": "application/json",
