@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createInstructorAction } from "@/actions/dashboard/admin/instructor";
+import { createInstructor } from "@/lib/api/dashboard/admin/instructor";
 import type {
   InstructorBloodGroup,
   InstructorCreatePayload,
@@ -180,7 +180,7 @@ export function InstructorFormModal({
         instructorData,
       };
 
-      await createInstructorAction(payload, file);
+      await createInstructor(payload, file);
       showToast({
         variant: "success",
         title: "Instructor created",
