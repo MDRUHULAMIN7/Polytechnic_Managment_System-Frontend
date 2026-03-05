@@ -1,12 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import {
-  createSubjectAction,
-  getSubjectAction,
-  getSubjectsAction,
-  updateSubjectAction,
-} from "@/actions/dashboard/admin/subject";
+import { getSubjectAction, getSubjectsAction, updateSubjectAction } from "@/actions/dashboard/admin/subject";
+import { createSubject } from "@/lib/api/dashboard/admin/subject";
 import type { Subject, SubjectInput } from "@/lib/type/dashboard/admin/subject";
 import type { SubjectFormModalProps, SubjectFormState } from "@/lib/type/dashboard/admin/subject/ui";
 import { showToast } from "@/utils/common/toast";
@@ -192,7 +188,7 @@ export function SubjectFormModal({ open, subject, onClose, onSaved }: SubjectFor
       if (isEdit && subject?._id) {
         await updateSubjectAction(subject._id, payload);
       } else {
-        await createSubjectAction(payload);
+        await createSubject(payload);
       }
       showToast({
         variant: "success",

@@ -1,10 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  createAcademicSemesterAction,
-  updateAcademicSemesterAction,
-} from "@/actions/dashboard/admin/academic-semester";
+import { updateAcademicSemesterAction } from "@/actions/dashboard/admin/academic-semester";
+import { createAcademicSemester } from "@/lib/api/dashboard/admin/academic-semester";
 import type {
   AcademicSemesterCode,
   AcademicSemesterInput,
@@ -86,7 +84,7 @@ export function AcademicSemesterFormModal({
       };
 
       if (mode === "create") {
-        await createAcademicSemesterAction(payload);
+        await createAcademicSemester(payload);
         showToast({
           variant: "success",
           title: "Academic semester created",

@@ -14,10 +14,8 @@ import {
   SEMESTER_REGISTRATION_SHIFTS,
   SEMESTER_REGISTRATION_STATUSES,
 } from "@/lib/type/dashboard/admin/semester-registration/constants";
-import {
-  createSemesterRegistrationAction,
-  updateSemesterRegistrationAction,
-} from "@/actions/dashboard/admin/semester-registration";
+import { updateSemesterRegistrationAction } from "@/actions/dashboard/admin/semester-registration";
+import { createSemesterRegistration } from "@/lib/api/dashboard/admin/semester-registration";
 import { showToast } from "@/utils/common/toast";
 import { Modal } from "./modal";
 
@@ -140,7 +138,7 @@ export function SemesterRegistrationFormModal({
       if (isEdit && registration?._id) {
         await updateSemesterRegistrationAction(registration._id, payload);
       } else {
-        await createSemesterRegistrationAction(payload);
+        await createSemesterRegistration(payload);
       }
       showToast({
         variant: "success",

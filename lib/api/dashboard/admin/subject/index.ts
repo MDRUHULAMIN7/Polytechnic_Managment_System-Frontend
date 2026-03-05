@@ -186,3 +186,30 @@ export async function getSubjectInstructors(
 
   return payload.data;
 }
+
+export async function createSubject(input: SubjectInput): Promise<Subject> {
+  ensureApiBaseUrl();
+
+  const response = await fetch(`${API_BASE_URL}/subjects/create-subject`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeadersFromCookie(),
+    },
+    credentials: "include",
+    body: JSON.stringify(input),
+  });
+
+  const payload = (await response.json()) as ApiResponse<Subject>;
+
+  if (!response.ok || !payload.success || !payload.data) {
+    const errorSources = (payload as { errorSources?: Array<{ message?: string }> }).errorSources;
+    const errorMessage = errorSources
+      ?.map((source) => source.message)
+      .filter((message): message is string => Boolean(message))
+      .join(", ");
+    throw new Error(errorMessage || payload.message || "Failed to create subject.");
+  }
+
+  return payload.data;
+}

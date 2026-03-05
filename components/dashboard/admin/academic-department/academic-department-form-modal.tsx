@@ -1,10 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  createAcademicDepartmentAction,
-  updateAcademicDepartmentAction,
-} from "@/actions/dashboard/admin/academic-department";
+import { updateAcademicDepartmentAction } from "@/actions/dashboard/admin/academic-department";
+import { createAcademicDepartment } from "@/lib/api/dashboard/admin/academic-department";
 import type { AcademicDepartmentInput } from "@/lib/type/dashboard/admin/academic-department";
 import type { AcademicDepartmentFormModalProps } from "@/lib/type/dashboard/admin/academic-department/ui";
 import { showToast } from "@/utils/common/toast";
@@ -62,7 +60,7 @@ export function AcademicDepartmentFormModal({
       };
 
       if (mode === "create") {
-        await createAcademicDepartmentAction(payload);
+        await createAcademicDepartment(payload);
         showToast({
           variant: "success",
           title: "Academic department created",

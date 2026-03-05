@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createAdminAction } from "@/actions/dashboard/admin/admin";
+import { createAdmin } from "@/lib/api/dashboard/admin/admin";
 import type {
   AdminBloodGroup,
   AdminCreatePayload,
@@ -162,7 +162,7 @@ export function AdminFormModal({ open, onClose, onSaved }: AdminFormModalProps) 
         adminData,
       };
 
-      await createAdminAction(payload);
+      await createAdmin(payload);
       showToast({
         variant: "success",
         title: "Admin created",

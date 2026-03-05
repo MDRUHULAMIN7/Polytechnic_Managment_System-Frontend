@@ -12,10 +12,8 @@ import type {
 } from "@/lib/type/dashboard/admin/offered-subject/ui";
 import { OFFERED_SUBJECT_DAYS } from "@/lib/type/dashboard/admin/offered-subject/constants";
 import { isObjectId, resolveName } from "@/utils/dashboard/admin/utils";
-import {
-  createOfferedSubjectAction,
-  updateOfferedSubjectAction,
-} from "@/actions/dashboard/admin/offered-subject";
+import { updateOfferedSubjectAction } from "@/actions/dashboard/admin/offered-subject";
+import { createOfferedSubject } from "@/lib/api/dashboard/admin/offered-subject";
 import { showToast } from "@/utils/common/toast";
 import { Modal } from "./modal";
 import { useInstructorBusySlots } from "@/hooks/dashboard/admin/offered-subject/use-instructor-busy-slots";
@@ -332,7 +330,7 @@ export function OfferedSubjectFormModal({
           endTime: form.endTime,
         };
 
-        await createOfferedSubjectAction(payload);
+        await createOfferedSubject(payload);
       }
 
       showToast({
