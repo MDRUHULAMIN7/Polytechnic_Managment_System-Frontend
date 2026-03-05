@@ -132,7 +132,13 @@ export async function createStudentServer(
       ?.map((source) => source.message)
       .filter((message): message is string => Boolean(message))
       .join(", ");
-      console.log(errorMessage)
+    console.error("[createStudentServer] Failed", {
+      status: response.status,
+      statusText: response.statusText,
+      message: payloadResult.message,
+      errorMessage,
+      errorSources,
+    });
     throw new Error(errorMessage || payloadResult.message || "Failed to create student.");
   }
 
