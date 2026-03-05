@@ -13,7 +13,10 @@ import type {
 import { OFFERED_SUBJECT_DAYS } from "@/lib/type/dashboard/admin/offered-subject/constants";
 import { isObjectId, resolveName } from "@/utils/dashboard/admin/utils";
 import { updateOfferedSubjectAction } from "@/actions/dashboard/admin/offered-subject";
-import { createOfferedSubject } from "@/lib/api/dashboard/admin/offered-subject";
+import {
+  createOfferedSubject,
+  getOfferedSubjects,
+} from "@/lib/api/dashboard/admin/offered-subject";
 import { showToast } from "@/utils/common/toast";
 import { Modal } from "./modal";
 import { useInstructorBusySlots } from "@/hooks/dashboard/admin/offered-subject/use-instructor-busy-slots";
@@ -32,8 +35,6 @@ const initialState: OfferedSubjectFormState = {
   startTime: "",
   endTime: "",
 };
-
-
 
 export function OfferedSubjectFormModal({
   open,
@@ -82,12 +83,15 @@ export function OfferedSubjectFormModal({
     subjectId: form.subject,
     instructorId: form.instructor,
   });
-  const { slots: busySlots, loading: busyLoading, error: busyError } =
-    useInstructorBusySlots({
-      open,
-      instructorId: form.instructor,
-      semesterRegistrationId: form.semesterRegistration,
-    });
+  const {
+    slots: busySlots,
+    loading: busyLoading,
+    error: busyError,
+  } = useInstructorBusySlots({
+    open,
+    instructorId: form.instructor,
+    semesterRegistrationId: form.semesterRegistration,
+  });
 
   useEffect(() => {
     if (!open) {
@@ -98,25 +102,27 @@ export function OfferedSubjectFormModal({
       semesterRegistration:
         typeof offeredSubject?.semesterRegistration === "string"
           ? offeredSubject.semesterRegistration
-          : offeredSubject?.semesterRegistration?._id ?? "",
+          : (offeredSubject?.semesterRegistration?._id ?? ""),
       academicInstructor:
         typeof offeredSubject?.academicInstructor === "string"
           ? offeredSubject.academicInstructor
-          : offeredSubject?.academicInstructor?._id ?? "",
+          : (offeredSubject?.academicInstructor?._id ?? ""),
       academicDepartment:
         typeof offeredSubject?.academicDepartment === "string"
           ? offeredSubject.academicDepartment
-          : offeredSubject?.academicDepartment?._id ?? "",
+          : (offeredSubject?.academicDepartment?._id ?? ""),
       subject:
         typeof offeredSubject?.subject === "string"
           ? offeredSubject.subject
-          : offeredSubject?.subject?._id ?? "",
+          : (offeredSubject?.subject?._id ?? ""),
       instructor:
         typeof offeredSubject?.instructor === "string"
           ? offeredSubject.instructor
-          : offeredSubject?.instructor?._id ?? "",
+          : (offeredSubject?.instructor?._id ?? ""),
       section:
-        offeredSubject?.section !== undefined ? String(offeredSubject.section) : "",
+        offeredSubject?.section !== undefined
+          ? String(offeredSubject.section)
+          : "",
       maxCapacity:
         offeredSubject?.maxCapacity !== undefined
           ? String(offeredSubject.maxCapacity)
@@ -129,7 +135,7 @@ export function OfferedSubjectFormModal({
 
   function updateField<T extends keyof OfferedSubjectFormState>(
     key: T,
-    value: OfferedSubjectFormState[T]
+    value: OfferedSubjectFormState[T],
   ) {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
@@ -175,13 +181,12 @@ export function OfferedSubjectFormModal({
     instructorQuery,
   ]);
 
-
   const selectedRegistration = useMemo(
     () =>
       semesterRegistrations.find(
-        (item) => item._id === form.semesterRegistration
+        (item) => item._id === form.semesterRegistration,
       ),
-    [semesterRegistrations, form.semesterRegistration]
+    [semesterRegistrations, form.semesterRegistration],
   );
 
   const semesterLabel = useMemo(() => {
@@ -195,19 +200,95 @@ export function OfferedSubjectFormModal({
     return `${semester.name ?? ""} ${semester.year ?? ""}`.trim() || "--";
   }, [selectedRegistration]);
 
+  function renderRegistrationOption(
+    registration: (typeof semesterRegistrations)[number],
+  ) {
+    const sem = registration.academicSemester;
+    let semLabel = "";
+    if (typeof sem === "string") {
+      semLabel = sem;
+    } else {
+      semLabel = `${sem?.name ?? ""} ${sem?.year ?? ""}`.trim();
+    }
+    const statusShift = `${registration.status} | ${registration.shift}`;
+    return [semLabel || "--", statusShift].filter(Boolean).join(" | ");
+  }
+
+  const [offeredSummaryLoading, setOfferedSummaryLoading] = useState(false);
+  const [offeredSummaryError, setOfferedSummaryError] = useState<string | null>(
+    null,
+  );
+  const [offeredLabels, setOfferedLabels] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!open) return;
+    if (!form.semesterRegistration) {
+      setOfferedLabels([]);
+      setOfferedSummaryError(null);
+      setOfferedSummaryLoading(false);
+      return;
+    }
+    let active = true;
+    setOfferedSummaryLoading(true);
+    setOfferedSummaryError(null);
+    getOfferedSubjects({
+      page: 1,
+      limit: 1000,
+      semesterRegistration: form.semesterRegistration,
+      fields: "subject,section",
+    })
+      .then((payload) => {
+        if (!active) return;
+        const labels: string[] = [];
+        for (const item of payload.result ?? []) {
+          const subj = item.subject;
+          const sec = Number(item.section);
+          const base =
+            typeof subj === "string"
+              ? subj
+              : subj && typeof subj.title === "string"
+                ? subj.title
+                : "Subject";
+          labels.push(sec && sec > 0 ? `${base} (Sec ${sec})` : base);
+        }
+        setOfferedLabels(labels);
+      })
+      .catch((err) => {
+        if (!active) return;
+        setOfferedSummaryError(
+          err instanceof Error
+            ? err.message
+            : "Unable to load offered subjects.",
+        );
+        setOfferedLabels([]);
+      })
+      .finally(() => {
+        if (!active) return;
+        setOfferedSummaryLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [open, form.semesterRegistration]);
+
   function toggleDay(day: OfferedSubjectDay, checked: boolean) {
     updateField(
       "days",
       checked
         ? Array.from(new Set([...form.days, day]))
-        : form.days.filter((item) => item !== day)
+        : form.days.filter((item) => item !== day),
     );
   }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (!form.instructor || !form.maxCapacity || !form.startTime || !form.endTime) {
+    if (
+      !form.instructor ||
+      !form.maxCapacity ||
+      !form.startTime ||
+      !form.endTime
+    ) {
       showToast({
         variant: "error",
         title: "Missing fields",
@@ -345,13 +426,13 @@ export function OfferedSubjectFormModal({
     } catch (error) {
       showToast({
         variant: "error",
-        title: isEdit ? "Update failed" : "Create failed",
-        description:
+        title:
           error instanceof Error
             ? error.message
             : isEdit
               ? "Unable to update offered subject."
               : "Unable to create offered subject.",
+        description: isEdit ? "Update failed." : "Create failed.",
       });
     } finally {
       setSubmitting(false);
@@ -378,14 +459,18 @@ export function OfferedSubjectFormModal({
             <input
               type="search"
               value={academicInstructorQuery}
-              onChange={(event) => setAcademicInstructorQuery(event.target.value)}
+              onChange={(event) =>
+                setAcademicInstructorQuery(event.target.value)
+              }
               disabled={isEdit}
               placeholder="Search academic instructor"
               className="focus-ring mt-2 h-10 w-full rounded-xl border border-(--line) bg-(--surface) px-3 text-sm text-(--text) disabled:opacity-70"
             />
             <select
               value={form.academicInstructor}
-              onChange={(event) => updateField("academicInstructor", event.target.value)}
+              onChange={(event) =>
+                updateField("academicInstructor", event.target.value)
+              }
               disabled={isEdit}
               className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-(--surface) px-3 text-sm text-(--text) disabled:opacity-70"
             >
@@ -403,9 +488,13 @@ export function OfferedSubjectFormModal({
               ))}
             </select>
             {academicInstructorLoading ? (
-              <p className="mt-2 text-xs text-(--text-dim)">Loading instructors...</p>
+              <p className="mt-2 text-xs text-(--text-dim)">
+                Loading instructors...
+              </p>
             ) : academicInstructorError ? (
-              <p className="mt-2 text-xs text-red-400">{academicInstructorError}</p>
+              <p className="mt-2 text-xs text-red-400">
+                {academicInstructorError}
+              </p>
             ) : (
               <p className="mt-2 text-xs text-(--text-dim)">
                 Showing up to 50 results. Type to search.
@@ -427,7 +516,9 @@ export function OfferedSubjectFormModal({
             />
             <select
               value={form.academicDepartment}
-              onChange={(event) => updateField("academicDepartment", event.target.value)}
+              onChange={(event) =>
+                updateField("academicDepartment", event.target.value)
+              }
               disabled={isEdit || !form.academicInstructor}
               className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-(--surface) px-3 text-sm text-(--text) disabled:opacity-70"
             >
@@ -449,7 +540,9 @@ export function OfferedSubjectFormModal({
                 Select academic instructor to load departments.
               </p>
             ) : departmentLoading ? (
-              <p className="mt-2 text-xs text-(--text-dim)">Loading departments...</p>
+              <p className="mt-2 text-xs text-(--text-dim)">
+                Loading departments...
+              </p>
             ) : departmentError ? (
               <p className="mt-2 text-xs text-red-400">{departmentError}</p>
             ) : (
@@ -473,7 +566,9 @@ export function OfferedSubjectFormModal({
             />
             <select
               value={form.instructor}
-              onChange={(event) => updateField("instructor", event.target.value)}
+              onChange={(event) =>
+                updateField("instructor", event.target.value)
+              }
               disabled={isEdit || !form.academicInstructor}
               className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-(--surface) px-3 text-sm text-(--text) disabled:opacity-70"
             >
@@ -495,7 +590,9 @@ export function OfferedSubjectFormModal({
                 Select academic instructor to load instructors.
               </p>
             ) : instructorLoading ? (
-              <p className="mt-2 text-xs text-(--text-dim)">Loading instructors...</p>
+              <p className="mt-2 text-xs text-(--text-dim)">
+                Loading instructors...
+              </p>
             ) : instructorError ? (
               <p className="mt-2 text-xs text-red-400">{instructorError}</p>
             ) : (
@@ -511,7 +608,9 @@ export function OfferedSubjectFormModal({
             </label>
             <select
               value={form.semesterRegistration}
-              onChange={(event) => updateField("semesterRegistration", event.target.value)}
+              onChange={(event) =>
+                updateField("semesterRegistration", event.target.value)
+              }
               disabled={isEdit}
               className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-(--surface) px-3 text-sm text-(--text) disabled:opacity-70"
             >
@@ -524,13 +623,32 @@ export function OfferedSubjectFormModal({
                   value={registration._id}
                   className="bg-(--surface) text-(--text)"
                 >
-                  {registration.status} - {registration.shift}
+                  {renderRegistrationOption(registration)}
                 </option>
               ))}
             </select>
             <p className="mt-2 text-xs text-(--text-dim)">
-              Academic Semester: <span className="font-medium">{semesterLabel}</span>
+              Academic Semester:{" "}
+              <span className="font-medium">{semesterLabel}</span>
             </p>
+            <div className="mt-2 text-xs">
+              {offeredSummaryLoading ? (
+                <p className="text-(--text-dim)">Loading offered subjects...</p>
+              ) : offeredSummaryError ? (
+                <p className="text-red-400">{offeredSummaryError}</p>
+              ) : offeredLabels.length > 0 ? (
+                <p className="text-(--text-dim)">
+                  Offered subjects ({offeredLabels.length}):{" "}
+                  <span className="text-(--text)">
+                    {offeredLabels.join(", ")}
+                  </span>
+                </p>
+              ) : (
+                <p className="text-(--text-dim)">
+                  No subjects offered yet in this registration.
+                </p>
+              )}
+            </div>
           </div>
 
           <div>
@@ -565,7 +683,9 @@ export function OfferedSubjectFormModal({
               ))}
             </select>
             {subjectLoading ? (
-              <p className="mt-2 text-xs text-(--text-dim)">Loading subjects...</p>
+              <p className="mt-2 text-xs text-(--text-dim)">
+                Loading subjects...
+              </p>
             ) : subjectError ? (
               <p className="mt-2 text-xs text-red-400">{subjectError}</p>
             ) : (
@@ -594,7 +714,9 @@ export function OfferedSubjectFormModal({
             </label>
             <input
               value={form.maxCapacity}
-              onChange={(event) => updateField("maxCapacity", event.target.value)}
+              onChange={(event) =>
+                updateField("maxCapacity", event.target.value)
+              }
               className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-transparent px-3 text-sm"
               inputMode="numeric"
             />
@@ -615,14 +737,19 @@ export function OfferedSubjectFormModal({
             <p className="mt-2 text-red-400">{busyError}</p>
           ) : busySlots.length === 0 ? (
             <p className="mt-2 text-(--text-dim)">
-              No busy slots found for this instructor in the selected registration.
+              No busy slots found for this instructor in the selected
+              registration.
             </p>
           ) : (
             <div className="mt-2 space-y-2">
               {busySlots.map((slot) => {
                 const subjectTitle =
-                  typeof slot.subject === "string" ? slot.subject : slot.subject?.title;
-                const daysLabel = slot.days?.length ? slot.days.join(", ") : "--";
+                  typeof slot.subject === "string"
+                    ? slot.subject
+                    : slot.subject?.title;
+                const daysLabel = slot.days?.length
+                  ? slot.days.join(", ")
+                  : "--";
                 const timeLabel =
                   slot.startTime && slot.endTime
                     ? `${slot.startTime} - ${slot.endTime}`
@@ -633,7 +760,9 @@ export function OfferedSubjectFormModal({
                     className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-(--line) px-3 py-2"
                   >
                     <div className="flex-1">
-                      <p className="font-medium">{subjectTitle ?? "Assigned Subject"}</p>
+                      <p className="font-medium">
+                        {subjectTitle ?? "Assigned Subject"}
+                      </p>
                       <p className="text-xs text-(--text-dim)">{daysLabel}</p>
                     </div>
                     <span className="text-xs font-semibold text-(--text)">

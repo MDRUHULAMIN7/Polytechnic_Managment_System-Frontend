@@ -9,6 +9,7 @@ import {
   authHeadersFromCookie,
   ensureApiBaseUrl,
 } from "@/lib/api/dashboard/api";
+import type { SemesterEnrollment, SemesterEnrollmentInput } from "@/lib/type/dashboard/admin/semester-enrollment";
 
 export async function getSemesterEnrollments(
   params: SemesterEnrollmentListParams
@@ -31,6 +32,35 @@ export async function getSemesterEnrollments(
 
   if (!response.ok || !payload.success || !payload.data) {
     throw new Error(payload.message || "Failed to load semester enrollments.");
+  }
+
+  return payload.data;
+}
+
+export async function createSemesterEnrollment(
+  input: SemesterEnrollmentInput
+): Promise<SemesterEnrollment> {
+  ensureApiBaseUrl();
+
+  const response = await fetch(`${API_BASE_URL}/semester-enrollment/create-semester-enrollment`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeadersFromCookie(),
+    },
+    credentials: "include",
+    body: JSON.stringify(input),
+  });
+
+  const payload = (await response.json()) as ApiResponse<SemesterEnrollment>;
+
+  if (!response.ok || !payload.success || !payload.data) {
+    const errorSources = (payload as { errorSources?: Array<{ message?: string }> }).errorSources;
+    const errorMessage = errorSources
+      ?.map((source) => source.message)
+      .filter((message): message is string => Boolean(message))
+      .join(", ");
+    throw new Error(errorMessage || payload.message || "Failed to create semester enrollment.");
   }
 
   return payload.data;

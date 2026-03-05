@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import type { Curriculum } from "@/lib/type/dashboard/admin/curriculum";
@@ -6,7 +6,7 @@ import type {
   SemesterEnrollmentFormModalProps,
   SemesterEnrollmentFormState,
 } from "@/lib/type/dashboard/admin/semester-enrollment/ui";
-import { createSemesterEnrollmentAction } from "@/actions/dashboard/student/semester-enrollment";
+import { createSemesterEnrollment } from "@/lib/api/dashboard/admin/semester-enrollment";
 import { showToast } from "@/utils/common/toast";
 import { Modal } from "@/components/dashboard/admin/semester-enrollment/modal";
 
@@ -83,7 +83,7 @@ export function SemesterEnrollmentFormModal({
 
     setSubmitting(true);
     try {
-      await createSemesterEnrollmentAction({ curriculum: form.curriculum });
+      await createSemesterEnrollment({ curriculum: form.curriculum });
       showToast({
         variant: "success",
         title: "Enrollment submitted",
