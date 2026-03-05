@@ -81,17 +81,16 @@ export function StudentPage({
     setSearchInput("");
     setDepartmentFilter("");
     setSemesterFilter("");
-    updateParams({
-      searchTerm: null,
-      academicDepartment: null,
-      admissionSemester: null,
-      page: 1,
-      limit: null,
-      sort: null,
+    startTransition(() => {
+      router.replace(pathname, { scroll: false });
     });
   }
 
   useEffect(() => {
+    if (createOpen) {
+      return;
+    }
+
     if (debouncedSearch === searchTerm) {
       return;
     }
@@ -101,7 +100,7 @@ export function StudentPage({
       page: 1,
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedSearch, searchTerm]);
+  }, [debouncedSearch, searchTerm, createOpen]);
 
   async function handleStatusChange(student: StudentPageProps["items"][number], status: StudentStatus) {
     if (!canChangeStatus) {

@@ -221,7 +221,16 @@ export function StudentFormModal({
         studentData,
       };
 
-      await createStudentAction(payload, file);
+      const result = await createStudentAction(payload, file);
+      if (!result.success) {
+        showToast({
+          variant: "error",
+          title: "Action failed",
+          description: result.message,
+        });
+        return;
+      }
+
       showToast({
         variant: "success",
         title: "Student created",

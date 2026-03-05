@@ -14,15 +14,23 @@ export async function createStudentAction(
   payload: StudentCreatePayload,
   file?: File | null
 ) {
-  const result = await createStudentServer(payload, file);
-  revalidateTag(STUDENTS_TAG, { expire: 0 });
-  if (result?.id) {
-    revalidateTag(studentTag(result.id), { expire: 0 });
+  try {
+    const result = await createStudentServer(payload, file);
+    revalidateTag(STUDENTS_TAG, { expire: 0 });
+    if (result?.id) {
+      revalidateTag(studentTag(result.id), { expire: 0 });
+    }
+    if (result?.user?._id) {
+      revalidateTag(userTag(result.user._id), { expire: 0 });
+    }
+    return { success: true as const, data: result };
+  } catch (error) {
+    console.error("[createStudentAction] Failed", error);
+    return {
+      success: false as const,
+      message: error instanceof Error ? error.message : "Unable to create student.",
+    };
   }
-  if (result?.user?._id) {
-    revalidateTag(userTag(result.user._id), { expire: 0 });
-  }
-  return result;
 }
 
 export async function changeStudentStatusAction(
