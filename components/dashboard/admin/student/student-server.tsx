@@ -46,12 +46,12 @@ export async function StudentPageServer({
     }),
     getAcademicDepartmentsServer({
       page: 1,
-      limit: 1000,
+      limit: 10,
       sort: "name",
     }),
     getAcademicSemestersServer({
       page: 1,
-      limit: 1000,
+      limit: 10,
       sort: "name",
     }),
   ]);

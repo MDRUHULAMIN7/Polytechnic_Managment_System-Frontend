@@ -77,6 +77,7 @@ export function StudentFormModal({
 }: StudentFormModalProps) {
   const [form, setForm] = useState<FormState>(initialState);
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -84,6 +85,7 @@ export function StudentFormModal({
     if (open) {
       setForm(initialState);
       setPassword("");
+      setShowPassword(false);
       setFile(null);
     }
   }, [open]);
@@ -228,6 +230,7 @@ export function StudentFormModal({
       onSaved();
       onClose();
     } catch (error) {
+      console.log(error)
       showToast({
         variant: "error",
         title: "Action failed",
@@ -352,13 +355,23 @@ export function StudentFormModal({
               <label className="text-xs font-semibold uppercase tracking-[0.16em] text-(--text-dim)">
                 Password
               </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                placeholder="Optional"
-                className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-transparent px-3 text-sm"
-              />
+              <div className="relative mt-2">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  placeholder="Optional"
+                  className="focus-ring h-11 w-full rounded-xl border border-(--line) bg-transparent px-3 pr-12 text-sm"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((value) => !value)}
+                  className="focus-ring absolute right-2 top-1/2 -translate-y-1/2 rounded-lg px-2 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-(--text-dim) transition hover:text-(--text)"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? "Hide" : "Show"}
+                </button>
+              </div>
             </div>
           </div>
 
@@ -454,12 +467,23 @@ export function StudentFormModal({
             <label className="text-xs font-semibold uppercase tracking-[0.16em] text-(--text-dim)">
               Profile Image
             </label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(event) => setFile(event.target.files?.[0] ?? null)}
-              className="mt-2 block w-full text-sm text-(--text-dim)"
-            />
+            <label className="mt-2 flex cursor-pointer items-center justify-between gap-3 rounded-2xl border border-dashed border-(--line) bg-(--surface) px-4 py-3 text-sm text-(--text) transition hover:border-(--accent) hover:bg-(--surface-muted)">
+              <div className="space-y-1">
+                <p className="text-sm font-semibold">Upload image</p>
+                <p className="text-xs text-(--text-dim)">
+                  {file ? `Selected: ${file.name}` : "PNG, JPG up to 5MB"}
+                </p>
+              </div>
+              <span className="rounded-full bg-(--accent) px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-(--accent-ink)">
+                Browse
+              </span>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(event) => setFile(event.target.files?.[0] ?? null)}
+                className="sr-only"
+              />
+            </label>
           </div>
         </div>
 

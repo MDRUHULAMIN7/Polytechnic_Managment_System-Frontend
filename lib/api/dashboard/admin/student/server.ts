@@ -124,9 +124,16 @@ export async function createStudentServer(
     response,
     "Failed to create student."
   );
-
   if (!response.ok || !payloadResult.success || !payloadResult.data) {
-    throw new Error(payloadResult.message || "Failed to create student.");
+    const errorSources = (
+      payloadResult as { errorSources?: Array<{ message?: string }> }
+    ).errorSources;
+    const errorMessage = errorSources
+      ?.map((source) => source.message)
+      .filter((message): message is string => Boolean(message))
+      .join(", ");
+      console.log(errorMessage)
+    throw new Error(errorMessage || payloadResult.message || "Failed to create student.");
   }
 
   const created = Array.isArray(payloadResult.data)
@@ -197,4 +204,3 @@ export async function changeStudentStatusServer(
 }
 
 export { STUDENTS_TAG, studentTag, userTag };
-

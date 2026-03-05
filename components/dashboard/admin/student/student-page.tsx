@@ -77,6 +77,20 @@ export function StudentPage({
     });
   }
 
+  function resetListFilters() {
+    setSearchInput("");
+    setDepartmentFilter("");
+    setSemesterFilter("");
+    updateParams({
+      searchTerm: null,
+      academicDepartment: null,
+      admissionSemester: null,
+      page: 1,
+      limit: null,
+      sort: null,
+    });
+  }
+
   useEffect(() => {
     if (debouncedSearch === searchTerm) {
       return;
@@ -151,7 +165,10 @@ export function StudentPage({
         </div>
         <button
           type="button"
-          onClick={() => setCreateOpen(true)}
+          onClick={() => {
+            resetListFilters();
+            setCreateOpen(true);
+          }}
           className="focus-ring inline-flex h-11 items-center justify-center rounded-xl bg-(--accent) px-5 text-sm font-semibold text-(--accent-ink) transition hover:opacity-90"
         >
           Create Student
