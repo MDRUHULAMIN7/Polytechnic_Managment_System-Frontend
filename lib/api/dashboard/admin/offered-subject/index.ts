@@ -84,12 +84,14 @@ export async function createOfferedSubject(
   );
 
   if (!response.ok || !payload.success || !payload.data) {
-    const errorMessage =
-      (payload as { errorSources?: Array<{ message?: string }> }).errorSources?.[0]
-        ?.message ||
-      payload.message ||
-      "Failed to create offered subject.";
-    throw new Error(errorMessage);
+    const errorSources = (
+      payload as { errorSources?: Array<{ message?: string }> }
+    ).errorSources;
+    const errorMessage = errorSources
+      ?.map((source) => source.message)
+      .filter((message): message is string => Boolean(message))
+      .join(", ");
+    throw new Error(errorMessage || payload.message || "Failed to create offered subject.");
   }
 
   return payload.data;

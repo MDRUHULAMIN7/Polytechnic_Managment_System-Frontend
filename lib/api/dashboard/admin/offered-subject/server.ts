@@ -27,25 +27,27 @@ async function readAccessToken(): Promise<string | null> {
 
 async function fetchOfferedSubjectsCached(
   params: OfferedSubjectListParams,
-  token: string | null
+  token: string | null,
 ): Promise<OfferedSubjectListPayload> {
   ensureApiBaseUrl();
 
   const query = buildOfferedSubjectQuery(params);
-  const response = await fetch(`${API_BASE_URL}/offered-subject?${query.toString()}`, {
-    headers: {
-      "Content-Type": "application/json",
-      ...authHeaders(token),
+  const response = await fetch(
+    `${API_BASE_URL}/offered-subject?${query.toString()}`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        ...authHeaders(token),
+      },
+      next: {
+        tags: [OFFERED_SUBJECTS_TAG],
+      },
     },
-    next: {
-      tags: [OFFERED_SUBJECTS_TAG],
-    },
-  });
-
-  const payload = await parseJsonResponse<ApiResponse<OfferedSubjectListPayload>>(
-    response,
-    "Failed to load offered subjects."
   );
+
+  const payload = await parseJsonResponse<
+    ApiResponse<OfferedSubjectListPayload>
+  >(response, "Failed to load offered subjects.");
 
   if (!response.ok || !payload.success || !payload.data) {
     throw new Error(payload.message || "Failed to load offered subjects.");
@@ -56,7 +58,7 @@ async function fetchOfferedSubjectsCached(
 
 async function fetchOfferedSubjectCached(
   id: string,
-  token: string | null
+  token: string | null,
 ): Promise<OfferedSubject> {
   ensureApiBaseUrl();
 
@@ -72,7 +74,7 @@ async function fetchOfferedSubjectCached(
 
   const payload = await parseJsonResponse<ApiResponse<OfferedSubject>>(
     response,
-    "Failed to load offered subject."
+    "Failed to load offered subject.",
   );
 
   if (!response.ok || !payload.success || !payload.data) {
@@ -83,43 +85,52 @@ async function fetchOfferedSubjectCached(
 }
 
 export async function getOfferedSubjectsServer(
-  params: OfferedSubjectListParams
+  params: OfferedSubjectListParams,
 ): Promise<OfferedSubjectListPayload> {
   const token = await readAccessToken();
   return fetchOfferedSubjectsCached(params, token);
 }
 
-export async function getOfferedSubjectServer(id: string): Promise<OfferedSubject> {
+export async function getOfferedSubjectServer(
+  id: string,
+): Promise<OfferedSubject> {
   const token = await readAccessToken();
   return fetchOfferedSubjectCached(id, token);
 }
 
 export async function createOfferedSubjectServer(
-  input: OfferedSubjectInput
+  input: OfferedSubjectInput,
 ): Promise<OfferedSubject> {
   ensureApiBaseUrl();
 
   const token = await readAccessToken();
-  const response = await fetch(`${API_BASE_URL}/offered-subject/create-offered-Subject`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...authHeaders(token),
+  const response = await fetch(
+    `${API_BASE_URL}/offered-subject/create-offered-Subject`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...authHeaders(token),
+      },
+      body: JSON.stringify(input),
     },
-    body: JSON.stringify(input),
-  });
+  );
 
   const payload = await parseJsonResponse<ApiResponse<OfferedSubject>>(
     response,
-    "Failed to create offered subject."
+    "Failed to create offered subject.",
   );
   if (!response.ok || !payload.success || !payload.data) {
-    const errorMessage =
-      (payload as { errorSources?: Array<{ message?: string }> }).errorSources?.[0]
-        ?.message ||
-      payload.message ||
-      "Failed to create offered subject.";
-    throw new Error(errorMessage);
+    const errorSources = (
+      payload as { errorSources?: Array<{ message?: string }> }
+    ).errorSources;
+    const errorMessage = errorSources
+      ?.map((source) => source.message)
+      .filter((message): message is string => Boolean(message))
+      .join(", ");
+    throw new Error(
+      errorMessage || payload.message || "Failed to create offered subject.",
+    );
   }
 
   return payload.data;
@@ -127,7 +138,7 @@ export async function createOfferedSubjectServer(
 
 export async function updateOfferedSubjectServer(
   id: string,
-  input: OfferedSubjectUpdateInput
+  input: OfferedSubjectUpdateInput,
 ): Promise<OfferedSubject> {
   ensureApiBaseUrl();
 
@@ -143,7 +154,7 @@ export async function updateOfferedSubjectServer(
 
   const payload = await parseJsonResponse<ApiResponse<OfferedSubject>>(
     response,
-    "Failed to update offered subject."
+    "Failed to update offered subject.",
   );
 
   if (!response.ok || !payload.success || !payload.data) {
@@ -153,7 +164,9 @@ export async function updateOfferedSubjectServer(
   return payload.data;
 }
 
-export async function deleteOfferedSubjectServer(id: string): Promise<OfferedSubject> {
+export async function deleteOfferedSubjectServer(
+  id: string,
+): Promise<OfferedSubject> {
   ensureApiBaseUrl();
 
   const token = await readAccessToken();
@@ -167,7 +180,7 @@ export async function deleteOfferedSubjectServer(id: string): Promise<OfferedSub
 
   const payload = await parseJsonResponse<ApiResponse<OfferedSubject>>(
     response,
-    "Failed to delete offered subject."
+    "Failed to delete offered subject.",
   );
 
   if (!response.ok || !payload.success) {
@@ -176,4 +189,3 @@ export async function deleteOfferedSubjectServer(id: string): Promise<OfferedSub
 
   return payload.data ?? ({} as OfferedSubject);
 }
-
