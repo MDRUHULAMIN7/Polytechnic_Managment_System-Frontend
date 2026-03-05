@@ -15,7 +15,7 @@ import {
 } from "@/lib/api/dashboard/api";
 
 export async function getInstructors(
-  params: InstructorListParams
+  params: InstructorListParams,
 ): Promise<InstructorListPayload> {
   ensureApiBaseUrl();
 
@@ -28,7 +28,7 @@ export async function getInstructors(
         ...authHeadersFromCookie(),
       },
       credentials: "include",
-    }
+    },
   );
 
   const payload = (await response.json()) as ApiResponse<InstructorListPayload>;
@@ -62,7 +62,7 @@ export async function getInstructor(id: string): Promise<Instructor> {
 
 export async function createInstructor(
   payload: InstructorCreatePayload,
-  file?: File | null
+  file?: File | null,
 ): Promise<Instructor> {
   ensureApiBaseUrl();
 
@@ -72,7 +72,7 @@ export async function createInstructor(
     JSON.stringify({
       password: payload.password,
       instructor: payload.instructorData,
-    })
+    }),
   );
 
   if (file) {
@@ -93,7 +93,16 @@ export async function createInstructor(
   >;
 
   if (!response.ok || !payloadResult.success || !payloadResult.data) {
-    throw new Error(payloadResult.message || "Failed to create instructor.");
+    const errorSources = (
+      payloadResult as { errorSources?: Array<{ message?: string }> }
+    ).errorSources;
+    const errorMessage = errorSources
+      ?.map((source) => source.message)
+      .filter((message): message is string => Boolean(message))
+      .join(", ");
+    throw new Error(
+      errorMessage || payloadResult.message || "Failed to create instructor.",
+    );
   }
 
   const created = Array.isArray(payloadResult.data)
@@ -109,7 +118,7 @@ export async function createInstructor(
 
 export async function updateInstructor(
   id: string,
-  input: Partial<InstructorInput>
+  input: Partial<InstructorInput>,
 ): Promise<Instructor> {
   ensureApiBaseUrl();
 
@@ -134,19 +143,22 @@ export async function updateInstructor(
 
 export async function changeInstructorStatus(
   userId: string,
-  status: InstructorStatus
+  status: InstructorStatus,
 ): Promise<Instructor> {
   ensureApiBaseUrl();
 
-  const response = await fetch(`${API_BASE_URL}/users/change-status/${userId}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...authHeadersFromCookie(),
+  const response = await fetch(
+    `${API_BASE_URL}/users/change-status/${userId}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...authHeadersFromCookie(),
+      },
+      credentials: "include",
+      body: JSON.stringify({ status }),
     },
-    credentials: "include",
-    body: JSON.stringify({ status }),
-  });
+  );
 
   const payload = (await response.json()) as ApiResponse<Instructor>;
 

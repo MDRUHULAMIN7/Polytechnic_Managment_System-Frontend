@@ -113,7 +113,14 @@ export async function createAdminServer(
   );
 
   if (!response.ok || !payloadResult.success || !payloadResult.data) {
-    throw new Error(payloadResult.message || "Failed to create admin.");
+    const errorSources = (
+      payloadResult as { errorSources?: Array<{ message?: string }> }
+    ).errorSources;
+    const errorMessage = errorSources
+      ?.map((source) => source.message)
+      .filter((message): message is string => Boolean(message))
+      .join(", ");
+    throw new Error(errorMessage || payloadResult.message || "Failed to create admin.");
   }
 
   const created = Array.isArray(payloadResult.data)

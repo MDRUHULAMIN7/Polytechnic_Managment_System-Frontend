@@ -29,7 +29,7 @@ async function readAccessToken(): Promise<string | null> {
 
 async function fetchInstructorsCached(
   params: InstructorListParams,
-  token: string | null
+  token: string | null,
 ): Promise<InstructorListPayload> {
   ensureApiBaseUrl();
 
@@ -44,12 +44,12 @@ async function fetchInstructorsCached(
       next: {
         tags: [INSTRUCTORS_TAG],
       },
-    }
+    },
   );
 
   const payload = await parseJsonResponse<ApiResponse<InstructorListPayload>>(
     response,
-    "Failed to load instructors."
+    "Failed to load instructors.",
   );
 
   if (!response.ok || !payload.success || !payload.data) {
@@ -61,7 +61,7 @@ async function fetchInstructorsCached(
 
 async function fetchInstructorCached(
   id: string,
-  token: string | null
+  token: string | null,
 ): Promise<Instructor> {
   ensureApiBaseUrl();
 
@@ -77,7 +77,7 @@ async function fetchInstructorCached(
 
   const payload = await parseJsonResponse<ApiResponse<Instructor>>(
     response,
-    "Failed to load instructor."
+    "Failed to load instructor.",
   );
 
   if (!response.ok || !payload.success || !payload.data) {
@@ -88,7 +88,7 @@ async function fetchInstructorCached(
 }
 
 export async function getInstructorsServer(
-  params: InstructorListParams
+  params: InstructorListParams,
 ): Promise<InstructorListPayload> {
   const token = await readAccessToken();
   return fetchInstructorsCached(params, token);
@@ -101,7 +101,7 @@ export async function getInstructorServer(id: string): Promise<Instructor> {
 
 export async function createInstructorServer(
   payload: InstructorCreatePayload,
-  file?: File | null
+  file?: File | null,
 ): Promise<Instructor> {
   ensureApiBaseUrl();
 
@@ -113,7 +113,7 @@ export async function createInstructorServer(
     JSON.stringify({
       password: payload.password,
       instructor: payload.instructorData,
-    })
+    }),
   );
 
   if (file) {
@@ -128,13 +128,21 @@ export async function createInstructorServer(
     body: formData,
   });
 
-  const payloadResult = await parseJsonResponse<ApiResponse<Instructor | Instructor[]>>(
-    response,
-    "Failed to create instructor."
-  );
-
+  const payloadResult = await parseJsonResponse<
+    ApiResponse<Instructor | Instructor[]>
+  >(response, "Failed to create instructor.");
+  console.log(payloadResult);
   if (!response.ok || !payloadResult.success || !payloadResult.data) {
-    throw new Error(payloadResult.message || "Failed to create instructor.");
+    const errorSources = (
+      payloadResult as { errorSources?: Array<{ message?: string }> }
+    ).errorSources;
+    const errorMessage = errorSources
+      ?.map((source) => source.message)
+      .filter((message): message is string => Boolean(message))
+      .join(", ");
+    throw new Error(
+      errorMessage || payloadResult.message || "Failed to create instructor.",
+    );
   }
 
   const created = Array.isArray(payloadResult.data)
@@ -150,7 +158,7 @@ export async function createInstructorServer(
 
 export async function updateInstructorServer(
   id: string,
-  input: Partial<InstructorInput>
+  input: Partial<InstructorInput>,
 ): Promise<Instructor> {
   ensureApiBaseUrl();
 
@@ -166,7 +174,7 @@ export async function updateInstructorServer(
 
   const payload = await parseJsonResponse<ApiResponse<Instructor>>(
     response,
-    "Failed to update instructor."
+    "Failed to update instructor.",
   );
 
   if (!response.ok || !payload.success || !payload.data) {
@@ -178,23 +186,26 @@ export async function updateInstructorServer(
 
 export async function changeInstructorStatusServer(
   userId: string,
-  status: InstructorStatus
+  status: InstructorStatus,
 ): Promise<Instructor> {
   ensureApiBaseUrl();
 
   const token = await readAccessToken();
-  const response = await fetch(`${API_BASE_URL}/users/change-status/${userId}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...authHeaders(token),
+  const response = await fetch(
+    `${API_BASE_URL}/users/change-status/${userId}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...authHeaders(token),
+      },
+      body: JSON.stringify({ status }),
     },
-    body: JSON.stringify({ status }),
-  });
+  );
 
   const payload = await parseJsonResponse<ApiResponse<Instructor>>(
     response,
-    "Failed to update status."
+    "Failed to update status.",
   );
 
   if (!response.ok || !payload.success) {
@@ -205,4 +216,3 @@ export async function changeInstructorStatusServer(
 }
 
 export { INSTRUCTORS_TAG, instructorTag, userTag };
-
