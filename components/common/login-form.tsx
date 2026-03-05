@@ -71,6 +71,7 @@ export function LoginForm() {
           Sign in with your user ID and password to continue into the
           Polytechnic Management dashboard.
         </p>
+        
       </div>
 
       <form className="mt-6 space-y-5" onSubmit={handleSubmit}>
