@@ -78,6 +78,7 @@ export function OfferedSubjectFormModal({
     instructors,
     academicDepartments,
     academicInstructors,
+    semesterRegistrationId: form.semesterRegistration,
     academicInstructorId: form.academicInstructor,
     academicDepartmentId: form.academicDepartment,
     subjectId: form.subject,

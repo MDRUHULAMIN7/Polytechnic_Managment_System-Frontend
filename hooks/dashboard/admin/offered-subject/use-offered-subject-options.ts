@@ -15,6 +15,7 @@ import {
 } from "@/lib/api/dashboard/admin/academic-instructor";
 import { getInstructor, getInstructors } from "@/lib/api/dashboard/admin/instructor";
 import { getSubject, getSubjects } from "@/lib/api/dashboard/admin/subject";
+import { getOfferedSubjects } from "@/lib/api/dashboard/admin/offered-subject";
 import { useDebouncedValue } from "@/utils/common/use-debounced-value";
 import { resolveId } from "@/utils/dashboard/admin/utils";
 
@@ -24,6 +25,7 @@ type UseOfferedSubjectOptionsArgs = {
   instructors: Instructor[];
   academicDepartments: AcademicDepartment[];
   academicInstructors: AcademicInstructor[];
+  semesterRegistrationId: string;
   academicInstructorId: string;
   academicDepartmentId: string;
   subjectId: string;
@@ -36,6 +38,7 @@ export function useOfferedSubjectOptions({
   instructors,
   academicDepartments,
   academicInstructors,
+  semesterRegistrationId,
   academicInstructorId,
   academicDepartmentId,
   subjectId,
@@ -267,6 +270,44 @@ export function useOfferedSubjectOptions({
     academicDepartmentId,
     debouncedInstructorQuery,
   ]);
+
+  // Exclude already offered subjects in selected semester registration
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+    if (!semesterRegistrationId) {
+      return;
+    }
+    let active = true;
+    getOfferedSubjects({
+      page: 1,
+      limit: 1000,
+      semesterRegistration: semesterRegistrationId,
+      academicInstructor: academicInstructorId || undefined,
+      academicDepartment: academicDepartmentId || undefined,
+      fields: "subject",
+    })
+      .then((payload) => {
+        if (!active) return;
+        const offeredIds = new Set<string>();
+        for (const item of payload.result ?? []) {
+          const subj: any = (item as any).subject;
+          if (typeof subj === "string") {
+            offeredIds.add(subj);
+          } else if (subj && typeof subj._id === "string") {
+            offeredIds.add(subj._id);
+          }
+        }
+        setSubjectOptions((prev) => prev.filter((s) => !offeredIds.has(s._id)));
+      })
+      .catch(() => {
+        // ignore fetch error; keep full subject list
+      });
+    return () => {
+      active = false;
+    };
+  }, [open, semesterRegistrationId, academicInstructorId, academicDepartmentId]);
 
   useEffect(() => {
     if (!open || !subjectId) {
