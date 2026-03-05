@@ -141,7 +141,14 @@ export async function createSubjectServer(
   );
 
   if (!response.ok || !payload.success || !payload.data) {
-    throw new Error(payload.message || "Failed to create subject.");
+    const errorSources = (
+      payload as { errorSources?: Array<{ message?: string }> }
+    ).errorSources;
+    const errorMessage = errorSources
+      ?.map((source) => source.message)
+      .filter((message): message is string => Boolean(message))
+      .join(", ");
+    throw new Error(errorMessage || payload.message || "Failed to create subject.");
   }
 
   return payload.data;
