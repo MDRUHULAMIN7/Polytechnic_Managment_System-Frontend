@@ -51,6 +51,11 @@ export type Instructor = {
   updatedAt?: string;
 };
 
+export type InstructorSummary = Pick<
+  Instructor,
+  "_id" | "id" | "name" | "designation" | "email" | "profileImg" | "academicDepartment" | "user"
+>;
+
 export type InstructorSortOption = "-createdAt" | "createdAt";
 
 export type PaginationMeta = {

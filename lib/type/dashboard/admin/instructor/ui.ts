@@ -6,6 +6,8 @@ import type {
   PaginationMeta,
 } from "./index";
 import type { AcademicDepartment } from "@/lib/type/dashboard/admin/academic-department";
+import type { Subject } from "@/lib/type/dashboard/admin/subject";
+import type { OfferedSubject } from "@/lib/type/dashboard/admin/offered-subject";
 
 export type InstructorFiltersProps = {
   search: string;
@@ -57,6 +59,11 @@ export type InstructorFormModalProps = {
 export type InstructorDetailsContentProps = {
   details: Instructor | null;
   error?: string | null;
+  assignedSubjects?: Subject[];
+  offeredSubjects?: OfferedSubject[];
+  assignedError?: string | null;
+  offeredError?: string | null;
+  showSummary?: boolean;
 };
 
 export type InstructorDetailsModalShellProps = {

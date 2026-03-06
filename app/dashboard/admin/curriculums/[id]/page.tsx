@@ -40,7 +40,11 @@ export default async function CurriculumDetailsPage({ params }: PageProps) {
         </div>
       </div>
 
-      <CurriculumDetailsContent details={details} error={error} />
+      <CurriculumDetailsContent
+        details={details}
+        error={error}
+        outlineMode="admin"
+      />
     </section>
   );
 }

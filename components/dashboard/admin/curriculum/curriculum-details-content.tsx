@@ -28,6 +28,7 @@ function renderValue(value: unknown, fallback = "--") {
 export function CurriculumDetailsContent({
   details,
   error,
+  outlineMode = "admin",
 }: CurriculumDetailsContentProps) {
   if (error) {
     return (
@@ -117,6 +118,7 @@ export function CurriculumDetailsContent({
         subjects={subjects}
         semesterRegistrationId={semesterRegistrationId}
         academicDepartmentId={academicDepartmentId}
+        mode={outlineMode}
       />
     </div>
   );

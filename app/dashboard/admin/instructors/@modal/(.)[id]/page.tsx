@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { InstructorDetailsModalShell } from "@/components/dashboard/admin/instructor/instructor-details-modal-shell";
-import { InstructorDetailsContent } from "@/components/dashboard/admin/instructor/instructor-details-content";
-import { getInstructorServer } from "@/lib/api/dashboard/admin/instructor/server";
+import { InstructorDetailsPanel } from "@/components/dashboard/admin/instructor/instructor-details-panel";
+import { getInstructorSummaryServer } from "@/lib/api/dashboard/admin/instructor/server";
 
 type PageProps = {
   params: {
@@ -14,16 +14,22 @@ type ContentProps = {
 };
 
 async function InstructorModalContent({ instructorId }: ContentProps) {
-  let details = null;
+  let summary = null;
   let error: string | null = null;
 
   try {
-    details = await getInstructorServer(instructorId);
+    summary = await getInstructorSummaryServer(instructorId);
   } catch (err) {
     error = err instanceof Error ? err.message : "Unable to load instructor.";
   }
 
-  return <InstructorDetailsContent details={details} error={error} />;
+  return (
+    <InstructorDetailsPanel
+      instructorId={instructorId}
+      summary={summary}
+      summaryError={error}
+    />
+  );
 }
 
 export default async function InstructorDetailsModalPage({ params }: PageProps) {

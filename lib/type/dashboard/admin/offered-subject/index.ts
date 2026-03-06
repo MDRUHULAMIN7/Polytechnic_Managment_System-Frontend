@@ -58,6 +58,11 @@ export type OfferedSubjectListParams = {
   fields?: string;
 };
 
+export type OfferedSubjectMyListParams = {
+  page?: number;
+  limit?: number;
+};
+
 export type OfferedSubjectInput = {
   semesterRegistration: string;
   academicInstructor: string;

@@ -42,7 +42,7 @@ export async function createSemesterEnrollment(
 ): Promise<SemesterEnrollment> {
   ensureApiBaseUrl();
 
-  const response = await fetch(`${API_BASE_URL}/semester-enrollment/create-semester-enrollment`, {
+  const response = await fetch(`${API_BASE_URL}/semester-enrollments/create-semester-enrollment`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

@@ -14,6 +14,7 @@ type CurriculumOutlineProps = {
   subjects: Curriculum["subjects"];
   semesterRegistrationId?: string;
   academicDepartmentId?: string;
+  mode?: "admin" | "student";
 };
 
 function renderSubjectTitle(value: unknown) {

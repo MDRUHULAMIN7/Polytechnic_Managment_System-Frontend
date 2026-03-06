@@ -4,6 +4,7 @@ import type {
   OfferedSubjectInput,
   OfferedSubjectListParams,
   OfferedSubjectListPayload,
+  OfferedSubjectMyListParams,
   OfferedSubjectUpdateInput,
 } from "@/lib/type/dashboard/admin/offered-subject";
 import { buildOfferedSubjectQuery } from "@/utils/dashboard/admin/offered-subject/query";
@@ -61,6 +62,40 @@ export async function getOfferedSubject(id: string): Promise<OfferedSubject> {
   }
 
   return payload.data;
+}
+
+export async function getMyOfferedSubjects(
+  params: OfferedSubjectMyListParams,
+): Promise<OfferedSubjectListPayload> {
+  ensureApiBaseUrl();
+
+  const query = buildOfferedSubjectQuery(params);
+  const response = await fetch(
+    `${API_BASE_URL}/offered-subject/my-offered-subject?${query.toString()}`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        ...authHeadersFromCookie(),
+      },
+      credentials: "include",
+    },
+  );
+
+  const payload = (await response.json()) as ApiResponse<OfferedSubject[]>;
+
+  if (!response.ok || !payload.success) {
+    throw new Error(payload.message || "Failed to load offered subjects.");
+  }
+
+  return {
+    meta: payload.meta ?? {
+      page: params.page ?? 1,
+      limit: params.limit ?? 10,
+      total: payload.data?.length ?? 0,
+      totalPage: 1,
+    },
+    result: payload.data ?? [],
+  };
 }
 
 export async function createOfferedSubject(

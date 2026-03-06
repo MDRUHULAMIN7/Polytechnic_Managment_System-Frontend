@@ -6,12 +6,15 @@ import type {
   InstructorListParams,
   InstructorListPayload,
   InstructorStatus,
+  InstructorSummary,
 } from "@/lib/type/dashboard/admin/instructor";
+import type { Subject } from "@/lib/type/dashboard/admin/subject";
 import { buildInstructorQuery } from "@/utils/dashboard/admin/instructor/query";
 import {
   API_BASE_URL,
   authHeadersFromCookie,
   ensureApiBaseUrl,
+  parseJsonResponse,
 } from "@/lib/api/dashboard/api";
 
 export async function getInstructors(
@@ -58,6 +61,43 @@ export async function getInstructor(id: string): Promise<Instructor> {
   }
 
   return payload.data;
+}
+
+export async function getInstructorSummary(id: string): Promise<InstructorSummary> {
+  ensureApiBaseUrl();
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/instructors/${id}/summary`, {
+      headers: {
+        "Content-Type": "application/json",
+        ...authHeadersFromCookie(),
+      },
+      credentials: "include",
+    });
+
+    const payload = await parseJsonResponse<ApiResponse<InstructorSummary>>(
+      response,
+      "Failed to load instructor summary.",
+    );
+
+    if (!response.ok || !payload.success || !payload.data) {
+      throw new Error(payload.message || "Failed to load instructor summary.");
+    }
+
+    return payload.data;
+  } catch {
+    const fallback = await getInstructor(id);
+    return {
+      _id: fallback._id,
+      id: fallback.id,
+      name: fallback.name,
+      designation: fallback.designation,
+      email: fallback.email,
+      profileImg: fallback.profileImg,
+      academicDepartment: fallback.academicDepartment,
+      user: fallback.user,
+    };
+  }
 }
 
 export async function createInstructor(
@@ -167,4 +207,32 @@ export async function changeInstructorStatus(
   }
 
   return payload.data ?? ({} as Instructor);
+}
+
+export async function getInstructorAssignedSubjects(
+  id: string,
+): Promise<Subject[]> {
+  ensureApiBaseUrl();
+
+  const response = await fetch(
+    `${API_BASE_URL}/instructors/${id}/assigned-subjects`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        ...authHeadersFromCookie(),
+      },
+      credentials: "include",
+    },
+  );
+
+  const payload = await parseJsonResponse<ApiResponse<Subject[]>>(
+    response,
+    "Failed to load assigned subjects.",
+  );
+
+  if (!response.ok || !payload.success) {
+    throw new Error(payload.message || "Failed to load assigned subjects.");
+  }
+
+  return payload.data ?? [];
 }

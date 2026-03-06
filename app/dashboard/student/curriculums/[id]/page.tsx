@@ -30,7 +30,7 @@ export default async function CurriculumDetailsPage({ params }: PageProps) {
   }
 
   return (
-    <section className="mx-auto max-w-3xl space-y-6">
+    <section className="mx-auto  space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-(--text-dim)">
@@ -51,7 +51,11 @@ export default async function CurriculumDetailsPage({ params }: PageProps) {
         </Link>
       </div>
 
-      <CurriculumDetailsContent details={details} error={error} />
+      <CurriculumDetailsContent
+        details={details}
+        error={error}
+        outlineMode="student"
+      />
     </section>
   );
 }

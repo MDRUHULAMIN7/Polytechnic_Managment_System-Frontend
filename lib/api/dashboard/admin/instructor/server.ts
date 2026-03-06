@@ -7,7 +7,9 @@ import type {
   InstructorListParams,
   InstructorListPayload,
   InstructorStatus,
+  InstructorSummary,
 } from "@/lib/type/dashboard/admin/instructor";
+import type { Subject } from "@/lib/type/dashboard/admin/subject";
 import { buildInstructorQuery } from "@/utils/dashboard/admin/instructor/query";
 import {
   INSTRUCTORS_TAG,
@@ -87,6 +89,65 @@ async function fetchInstructorCached(
   return payload.data;
 }
 
+async function fetchInstructorSummaryCached(
+  id: string,
+  token: string | null,
+): Promise<InstructorSummary> {
+  ensureApiBaseUrl();
+
+  const response = await fetch(`${API_BASE_URL}/instructors/${id}/summary`, {
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeaders(token),
+    },
+    next: {
+      tags: [instructorTag(id)],
+    },
+  });
+
+  const payload = await parseJsonResponse<ApiResponse<InstructorSummary>>(
+    response,
+    "Failed to load instructor summary.",
+  );
+
+  if (!response.ok || !payload.success || !payload.data) {
+    throw new Error(payload.message || "Failed to load instructor summary.");
+  }
+
+  return payload.data;
+}
+
+async function fetchInstructorAssignedSubjectsCached(
+  id: string,
+  token: string | null,
+): Promise<Subject[]> {
+  ensureApiBaseUrl();
+
+  const response = await fetch(
+    `${API_BASE_URL}/instructors/${id}/assigned-subjects`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        ...authHeaders(token),
+      },
+      next: {
+        tags: [instructorTag(id)],
+      },
+    },
+  );
+
+  const payload = await parseJsonResponse<ApiResponse<Subject[]>>(
+    response,
+    "Failed to load assigned subjects.",
+  );
+
+  if (!response.ok || !payload.success) {
+    throw new Error(payload.message || "Failed to load assigned subjects.");
+  }
+
+  return payload.data ?? [];
+}
+
 export async function getInstructorsServer(
   params: InstructorListParams,
 ): Promise<InstructorListPayload> {
@@ -97,6 +158,35 @@ export async function getInstructorsServer(
 export async function getInstructorServer(id: string): Promise<Instructor> {
   const token = await readAccessToken();
   return fetchInstructorCached(id, token);
+}
+
+export async function getInstructorSummaryServer(
+  id: string,
+): Promise<InstructorSummary> {
+  const token = await readAccessToken();
+  try {
+    return await fetchInstructorSummaryCached(id, token);
+  } catch {
+    const full = await fetchInstructorCached(id, token);
+    const summary: InstructorSummary = {
+      _id: full._id,
+      id: full.id,
+      name: full.name,
+      designation: full.designation,
+      email: full.email,
+      profileImg: full.profileImg,
+      academicDepartment: full.academicDepartment,
+      user: full.user,
+    };
+    return summary;
+  }
+}
+
+export async function getInstructorAssignedSubjectsServer(
+  id: string,
+): Promise<Subject[]> {
+  const token = await readAccessToken();
+  return fetchInstructorAssignedSubjectsCached(id, token);
 }
 
 export async function createInstructorServer(

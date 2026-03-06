@@ -75,6 +75,7 @@ export type CurriculumFormModalProps = {
 export type CurriculumDetailsContentProps = {
   details: Curriculum | null;
   error?: string | null;
+  outlineMode?: "admin" | "student";
 };
 
 export type CurriculumDetailsModalShellProps = {

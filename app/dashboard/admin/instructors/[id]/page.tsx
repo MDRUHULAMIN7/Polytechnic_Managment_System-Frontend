@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { getInstructorServer } from "@/lib/api/dashboard/admin/instructor/server";
-import { InstructorDetailsContent } from "@/components/dashboard/admin/instructor/instructor-details-content";
+import { getInstructorSummaryServer } from "@/lib/api/dashboard/admin/instructor/server";
+import { InstructorDetailsPanel } from "@/components/dashboard/admin/instructor/instructor-details-panel";
 import Link from "next/link";
 
 export const metadata: Metadata = {
@@ -16,11 +16,11 @@ type PageProps = {
 export default async function InstructorDetailsPage({ params }: PageProps) {
   const resolvedParams = await Promise.resolve(params);
   const instructorId = resolvedParams.id;
-  let details = null;
+  let summary = null;
   let error: string | null = null;
 
   try {
-    details = await getInstructorServer(instructorId);
+    summary = await getInstructorSummaryServer(instructorId);
   } catch (err) {
     error = err instanceof Error ? err.message : "Unable to load instructor.";
   }
@@ -45,7 +45,11 @@ export default async function InstructorDetailsPage({ params }: PageProps) {
         </Link>
       </div>
 
-      <InstructorDetailsContent details={details} error={error} />
+      <InstructorDetailsPanel
+        instructorId={instructorId}
+        summary={summary}
+        summaryError={error}
+      />
     </section>
   );
 }
