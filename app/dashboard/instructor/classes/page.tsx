@@ -1,13 +1,21 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { getInstructorClassSessionsServer } from "@/lib/api/dashboard/class-session/server";
+import { ClassSessionPagination } from "@/components/dashboard/class-session/class-session-pagination";
+import { ClassSessionFilters } from "@/components/dashboard/class-session/class-session-filters";
+import {
+  getClassSessionFilterOptionsServer,
+  getInstructorClassSessionsServer,
+} from "@/lib/api/dashboard/class-session/server";
 import { PageProps } from "@/lib/type/dashboard/admin/type";
-import { parseNumberParam, readParam } from "@/utils/dashboard/admin/utils";
+import {
+  buildClassSessionReturnQuery,
+  createEmptyClassSessionListPayload,
+  readClassSessionListState,
+} from "@/utils/dashboard/class-session-list";
 import {
   formatClassDate,
   formatTimeRange,
   resolveClassSection,
-  resolveClassSubjectTitle,
   statusBadgeClass,
 } from "@/utils/dashboard/class-session";
 
@@ -15,42 +23,46 @@ export const metadata: Metadata = {
   title: "Instructor Classes",
 };
 
-function buildPageHref(
-  page: number,
-  params: {
-    status: string;
-    searchTerm: string;
-    startDate: string;
-    endDate: string;
-    limit: number;
-  },
-) {
-  const query = new URLSearchParams();
-  if (params.status) query.set("status", params.status);
-  if (params.searchTerm) query.set("searchTerm", params.searchTerm);
-  if (params.startDate) query.set("startDate", params.startDate);
-  if (params.endDate) query.set("endDate", params.endDate);
-  query.set("page", String(page));
-  query.set("limit", String(params.limit));
-  return `/dashboard/instructor/classes?${query.toString()}`;
-}
-
 export default async function InstructorClassesPage({ searchParams }: PageProps) {
   const resolvedSearchParams = await Promise.resolve(searchParams);
-  const status = readParam(resolvedSearchParams, "status");
-  const searchTerm = readParam(resolvedSearchParams, "searchTerm");
-  const startDate = readParam(resolvedSearchParams, "startDate");
-  const endDate = readParam(resolvedSearchParams, "endDate");
-  const page = parseNumberParam(readParam(resolvedSearchParams, "page"), 1);
-  const limit = parseNumberParam(readParam(resolvedSearchParams, "limit"), 10);
-  const payload = await getInstructorClassSessionsServer({
-    status: status || undefined,
-    searchTerm: searchTerm || undefined,
-    startDate: startDate || undefined,
-    endDate: endDate || undefined,
+  const {
+    semesterRegistration,
+    subject,
+    status,
+    startDate,
+    endDate,
+    page,
+    limit,
+  } = readClassSessionListState(resolvedSearchParams);
+  const detailQuery = buildClassSessionReturnQuery({
+    semesterRegistration,
+    subject,
+    status,
+    startDate,
+    endDate,
     page,
     limit,
   });
+
+  const filterOptions = await getClassSessionFilterOptionsServer({
+    semesterRegistration: semesterRegistration || undefined,
+  });
+
+  const payload = semesterRegistration
+    ? await getInstructorClassSessionsServer({
+        semesterRegistration,
+        status: status || undefined,
+        subject: subject || undefined,
+        startDate: startDate || undefined,
+        endDate: endDate || undefined,
+        page,
+        limit,
+      })
+    : createEmptyClassSessionListPayload(limit);
+
+  const selectedSemester = filterOptions.semesters.find(
+    (item) => item.value === semesterRegistration,
+  );
 
   return (
     <section className="space-y-6">
@@ -60,148 +72,162 @@ export default async function InstructorClassesPage({ searchParams }: PageProps)
         </p>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight">My Classes</h1>
         <p className="mt-2 text-sm text-(--text-dim)">
-          Professional class queue with filters, topic tracking, and attendance entry.
+          Work semester by semester so your class queue stays scoped to one term.
         </p>
       </div>
 
-      <form
-        action="/dashboard/instructor/classes"
-        className="grid gap-3 rounded-2xl border border-(--line) bg-(--surface) p-4 lg:grid-cols-[1.2fr_repeat(3,0.8fr)_auto]"
-      >
-        <input
-          name="searchTerm"
-          defaultValue={searchTerm}
-          placeholder="Filter by subject"
-          className="focus-ring h-11 rounded-xl border border-(--line) bg-transparent px-3 text-sm"
-        />
-        <input
-          type="date"
-          name="startDate"
-          defaultValue={startDate}
-          className="focus-ring h-11 rounded-xl border border-(--line) bg-transparent px-3 text-sm"
-        />
-        <input
-          type="date"
-          name="endDate"
-          defaultValue={endDate}
-          className="focus-ring h-11 rounded-xl border border-(--line) bg-transparent px-3 text-sm"
-        />
-        <select
-          name="status"
-          defaultValue={status}
-          className="focus-ring h-11 rounded-xl border border-(--line) bg-(--surface) px-3 text-sm"
-        >
-          <option value="">All Status</option>
-          <option value="SCHEDULED">Scheduled</option>
-          <option value="ONGOING">Ongoing</option>
-          <option value="COMPLETED">Completed</option>
-        </select>
-        <input type="hidden" name="limit" value={limit} />
-        <button
-          type="submit"
-          className="focus-ring inline-flex h-11 items-center justify-center rounded-xl bg-(--accent) px-4 text-sm font-semibold text-(--accent-ink)"
-        >
-          Apply
-        </button>
-      </form>
+      <ClassSessionFilters
+        semesterRegistration={semesterRegistration}
+        subject={subject}
+        status={status}
+        startDate={startDate}
+        endDate={endDate}
+        limit={limit}
+        semesterOptions={filterOptions.semesters}
+        subjectOptions={filterOptions.subjects}
+        statusOptions={[
+          { value: "SCHEDULED", label: "Scheduled" },
+          { value: "ONGOING", label: "Ongoing" },
+          { value: "COMPLETED", label: "Completed" },
+        ]}
+      />
 
-      <div className="flex items-center justify-between text-sm text-(--text-dim)">
-        <p>
-          Showing page {payload.meta.page} of {payload.meta.totalPage} · total{" "}
-          {payload.meta.total} classes
-        </p>
-        <p>Limit: {payload.meta.limit}</p>
-      </div>
+      {!semesterRegistration ? (
+        <div className="rounded-2xl border border-dashed border-(--line) bg-(--surface) px-5 py-10 text-center">
+          <p className="text-sm font-medium">Select a semester registration to load your classes.</p>
+          <p className="mt-2 text-sm text-(--text-dim)">
+            Subject, date, and status filters stay scoped under the selected term.
+          </p>
+        </div>
+      ) : null}
 
-      <div className="overflow-x-auto rounded-2xl border border-(--line) bg-(--surface)">
-        <table className="min-w-full text-sm">
-          <thead>
-            <tr className="border-b border-(--line) text-left text-xs uppercase tracking-[0.18em] text-(--text-dim)">
-              <th className="px-4 py-3">Subject</th>
-              <th className="px-4 py-3">Date</th>
-              <th className="px-4 py-3">Time</th>
-              <th className="px-4 py-3">Section</th>
-              <th className="px-4 py-3">Students</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Action</th>
-            </tr>
-          </thead>
-          <tbody>
+      {semesterRegistration && selectedSemester ? (
+        <div className="rounded-2xl border border-(--line) bg-(--surface) px-4 py-3 text-sm text-(--text-dim)">
+          Showing classes for <span className="font-semibold text-(--text)">{selectedSemester.label}</span>
+        </div>
+      ) : null}
+
+      {semesterRegistration ? (
+        <>
+          <div className="space-y-3 md:hidden">
             {payload.result.map((item) => (
-              <tr key={item._id} className="border-b border-(--line)/70">
-                <td className="px-4 py-3 font-medium">
-                  {resolveClassSubjectTitle(item.subject)}
-                </td>
-                <td className="px-4 py-3 text-(--text-dim)">{formatClassDate(item.date)}</td>
-                <td className="px-4 py-3 text-(--text-dim)">
-                  {formatTimeRange(item.startTime, item.endTime)}
-                </td>
-                <td className="px-4 py-3 text-(--text-dim)">
-                  {resolveClassSection(item.offeredSubject)}
-                </td>
-                <td className="px-4 py-3 text-(--text-dim)">{item.totalStudents}</td>
-                <td className="px-4 py-3">
+              <article
+                key={item._id}
+                className="rounded-2xl border border-(--line) bg-(--surface) p-4"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="font-medium">
+                      {typeof item.subject === "string"
+                        ? item.subject
+                        : `${item.subject?.title ?? "--"}${item.subject?.code ? ` (${item.subject.code})` : ""}`}
+                    </p>
+                    <p className="mt-1 text-sm text-(--text-dim)">
+                      {resolveClassSection(item.offeredSubject)}
+                    </p>
+                  </div>
                   <span
-                    className={`rounded-full border px-3 py-1 text-xs font-semibold ${statusBadgeClass(item.status)}`}
+                    className={`rounded-full border px-3 py-1 text-xs font-semibold ${statusBadgeClass(
+                      item.status,
+                    )}`}
                   >
                     {item.status}
                   </span>
-                </td>
-                <td className="px-4 py-3">
-                  <Link
-                    href={`/dashboard/instructor/classes/${item._id}`}
-                    className="focus-ring inline-flex h-9 items-center justify-center rounded-xl border border-(--line) px-3 text-sm font-semibold text-(--text-dim) transition hover:bg-(--surface-muted)"
-                  >
-                    Open
-                  </Link>
-                </td>
-              </tr>
-            ))}
-            {payload.result.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="px-4 py-8 text-center text-(--text-dim)">
-                  No classes matched the selected filters.
-                </td>
-              </tr>
-            ) : null}
-          </tbody>
-        </table>
-      </div>
+                </div>
 
-      <div className="flex items-center justify-end gap-2">
-        <Link
-          href={buildPageHref(Math.max(page - 1, 1), {
-            status,
-            searchTerm,
-            startDate,
-            endDate,
-            limit,
-          })}
-          aria-disabled={page <= 1}
-          className={`focus-ring inline-flex h-10 items-center justify-center rounded-xl border border-(--line) px-4 text-sm font-semibold transition ${
-            page <= 1 ? "pointer-events-none opacity-50" : "hover:bg-(--surface-muted)"
-          }`}
-        >
-          Previous
-        </Link>
-        <Link
-          href={buildPageHref(Math.min(page + 1, payload.meta.totalPage), {
-            status,
-            searchTerm,
-            startDate,
-            endDate,
-            limit,
-          })}
-          aria-disabled={page >= payload.meta.totalPage}
-          className={`focus-ring inline-flex h-10 items-center justify-center rounded-xl border border-(--line) px-4 text-sm font-semibold transition ${
-            page >= payload.meta.totalPage
-              ? "pointer-events-none opacity-50"
-              : "hover:bg-(--surface-muted)"
-          }`}
-        >
-          Next
-        </Link>
-      </div>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.18em] text-(--text-dim)">Date</p>
+                    <p className="mt-1 text-sm">{formatClassDate(item.date)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.18em] text-(--text-dim)">Time</p>
+                    <p className="mt-1 text-sm">{formatTimeRange(item.startTime, item.endTime)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.18em] text-(--text-dim)">
+                      Students
+                    </p>
+                    <p className="mt-1 text-sm">{item.totalStudents}</p>
+                  </div>
+                </div>
+
+                <Link
+                  href={`/dashboard/instructor/classes/${item._id}${detailQuery ? `?${detailQuery}` : ""}`}
+                  className="focus-ring mt-4 inline-flex h-10 items-center justify-center rounded-xl border border-(--line) px-4 text-sm font-semibold text-(--text-dim) transition hover:bg-(--surface-muted)"
+                >
+                  Open
+                </Link>
+              </article>
+            ))}
+
+            {payload.result.length === 0 ? (
+              <div className="rounded-2xl border border-(--line) bg-(--surface) px-4 py-8 text-center text-sm text-(--text-dim)">
+                No classes matched the selected semester filters.
+              </div>
+            ) : null}
+          </div>
+
+          <div className="hidden overflow-x-auto rounded-2xl border border-(--line) bg-(--surface) md:block">
+            <table className="min-w-full text-sm">
+              <thead>
+                <tr className="border-b border-(--line) text-left text-xs uppercase tracking-[0.18em] text-(--text-dim)">
+                  <th className="px-4 py-3">Subject</th>
+                  <th className="px-4 py-3">Date</th>
+                  <th className="px-4 py-3">Time</th>
+                  <th className="px-4 py-3">Section</th>
+                  <th className="px-4 py-3">Students</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {payload.result.map((item) => (
+                  <tr key={item._id} className="border-b border-(--line)/70">
+                    <td className="px-4 py-3 font-medium">
+                      {typeof item.subject === "string"
+                        ? item.subject
+                        : `${item.subject?.title ?? "--"}${item.subject?.code ? ` (${item.subject.code})` : ""}`}
+                    </td>
+                    <td className="px-4 py-3 text-(--text-dim)">{formatClassDate(item.date)}</td>
+                    <td className="px-4 py-3 text-(--text-dim)">
+                      {formatTimeRange(item.startTime, item.endTime)}
+                    </td>
+                    <td className="px-4 py-3 text-(--text-dim)">
+                      {resolveClassSection(item.offeredSubject)}
+                    </td>
+                    <td className="px-4 py-3 text-(--text-dim)">{item.totalStudents}</td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`rounded-full border px-3 py-1 text-xs font-semibold ${statusBadgeClass(item.status)}`}
+                      >
+                        {item.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <Link
+                        href={`/dashboard/instructor/classes/${item._id}${detailQuery ? `?${detailQuery}` : ""}`}
+                        className="focus-ring inline-flex h-9 items-center justify-center rounded-xl border border-(--line) px-3 text-sm font-semibold text-(--text-dim) transition hover:bg-(--surface-muted)"
+                      >
+                        Open
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+                {payload.result.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="px-4 py-8 text-center text-(--text-dim)">
+                      No classes matched the selected semester filters.
+                    </td>
+                  </tr>
+                ) : null}
+              </tbody>
+            </table>
+          </div>
+
+          <ClassSessionPagination meta={payload.meta} page={page} limit={limit} />
+        </>
+      ) : null}
     </section>
   );
 }

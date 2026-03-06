@@ -2,7 +2,10 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { startClassSessionAction } from "@/actions/dashboard/class-session";
+import {
+  completeClassSessionAction,
+  startClassSessionAction,
+} from "@/actions/dashboard/class-session";
 import { submitStudentAttendanceAction } from "@/actions/dashboard/student-attendance";
 import type {
   AttendanceStatus,
@@ -23,25 +26,25 @@ type InstructorClassDetailProps = {
 };
 
 const attendanceOptions: AttendanceStatus[] = ["PRESENT", "ABSENT", "LEAVE"];
+type AttendanceDraftStatus = AttendanceStatus | "";
 
 export function InstructorClassDetail({ details }: InstructorClassDetailProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [topic, setTopic] = useState(details.classSession.topic ?? "");
   const [remarks, setRemarks] = useState(details.classSession.remarks ?? "");
-  const [attendanceMap, setAttendanceMap] = useState<Record<string, AttendanceStatus>>(
+  const [attendanceMap, setAttendanceMap] = useState<Record<string, AttendanceDraftStatus>>(
     () =>
       Object.fromEntries(
         details.students.map((student) => [
           student.studentId,
-          student.attendanceStatus === "NOT_MARKED"
-            ? "ABSENT"
-            : student.attendanceStatus,
+          student.attendanceStatus === "NOT_MARKED" ? "" : student.attendanceStatus,
         ]),
       ),
   );
 
   const canStart = details.classSession.status === "SCHEDULED";
+  const canComplete = details.classSession.status === "ONGOING";
   const canSubmit =
     details.classSession.status === "ONGOING" ||
     details.classSession.status === "COMPLETED";
@@ -50,14 +53,18 @@ export function InstructorClassDetail({ details }: InstructorClassDetailProps) {
     return details.students.reduce(
       (acc, student) => {
         const status = attendanceMap[student.studentId];
-        acc[status] += 1;
+        if (status) {
+          acc[status] += 1;
+        } else {
+          acc.pending += 1;
+        }
         return acc;
       },
-      { PRESENT: 0, ABSENT: 0, LEAVE: 0 } as Record<AttendanceStatus, number>,
+      { PRESENT: 0, ABSENT: 0, LEAVE: 0, pending: 0 },
     );
   }, [attendanceMap, details.students]);
 
-  function updateAttendance(studentId: string, status: AttendanceStatus) {
+  function updateAttendance(studentId: string, status: AttendanceDraftStatus) {
     setAttendanceMap((prev) => ({
       ...prev,
       [studentId]: status,
@@ -91,11 +98,24 @@ export function InstructorClassDetail({ details }: InstructorClassDetailProps) {
   function handleSubmitAttendance() {
     startTransition(async () => {
       try {
+        const missingStudents = details.students.filter(
+          (student) => !attendanceMap[student.studentId],
+        );
+
+        if (missingStudents.length > 0) {
+          showToast({
+            variant: "error",
+            title: "Attendance incomplete",
+            description: "Select a status for every student before submitting.",
+          });
+          return;
+        }
+
         await submitStudentAttendanceAction({
           classSessionId: details.classSession._id,
           attendance: details.students.map((student) => ({
             studentId: student.studentId,
-            status: attendanceMap[student.studentId],
+            status: attendanceMap[student.studentId] as AttendanceStatus,
           })),
         });
 
@@ -113,6 +133,27 @@ export function InstructorClassDetail({ details }: InstructorClassDetailProps) {
               ? error.message
               : "Failed to submit attendance.",
           description: "Please review the sheet and try again.",
+        });
+      }
+    });
+  }
+
+  function handleCompleteClass() {
+    startTransition(async () => {
+      try {
+        await completeClassSessionAction(details.classSession._id);
+        showToast({
+          variant: "success",
+          title: "Class completed",
+          description: "You can still update attendance after completion.",
+        });
+        router.refresh();
+      } catch (error) {
+        showToast({
+          variant: "error",
+          title:
+            error instanceof Error ? error.message : "Failed to complete class.",
+          description: "Please try again.",
         });
       }
     });
@@ -175,7 +216,7 @@ export function InstructorClassDetail({ details }: InstructorClassDetailProps) {
         </div>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[1.2fr_2fr]">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,1.9fr)]">
         <section className="rounded-2xl border border-(--line) bg-(--surface) p-5">
           <h2 className="text-lg font-semibold tracking-tight">Class Control</h2>
           <p className="mt-2 text-sm text-(--text-dim)">
@@ -208,14 +249,24 @@ export function InstructorClassDetail({ details }: InstructorClassDetailProps) {
                 placeholder="Optional classroom note"
               />
             </div>
-            <button
-              type="button"
-              disabled={!canStart || isPending}
-              onClick={handleStartClass}
-              className="focus-ring inline-flex h-11 w-full items-center justify-center rounded-xl bg-(--accent) px-4 text-sm font-semibold text-(--accent-ink) transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {isPending && canStart ? "Starting..." : "Start Class"}
-            </button>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <button
+                type="button"
+                disabled={!canStart || isPending}
+                onClick={handleStartClass}
+                className="focus-ring inline-flex h-11 w-full items-center justify-center rounded-xl bg-(--accent) px-4 text-sm font-semibold text-(--accent-ink) transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 sm:col-span-2"
+              >
+                {isPending && canStart ? "Starting..." : "Start Class"}
+              </button>
+              <button
+                type="button"
+                disabled={!canComplete || isPending}
+                onClick={handleCompleteClass}
+                className="focus-ring inline-flex h-11 w-full items-center justify-center rounded-xl border border-(--line) px-4 text-sm font-semibold text-(--text) transition hover:bg-(--surface-muted) disabled:cursor-not-allowed disabled:opacity-60 sm:col-span-2"
+              >
+                {isPending && canComplete ? "Completing..." : "Complete Class"}
+              </button>
+            </div>
           </div>
         </section>
 
@@ -238,10 +289,49 @@ export function InstructorClassDetail({ details }: InstructorClassDetailProps) {
                   {status}: {attendanceCounts[status]}
                 </span>
               ))}
+              <span className="rounded-full border border-(--line) bg-(--surface-muted) px-3 py-1 font-semibold">
+                Pending: {attendanceCounts.pending}
+              </span>
             </div>
           </div>
 
-          <div className="mt-4 overflow-x-auto">
+          <div className="mt-4 space-y-3 md:hidden">
+            {details.students.map((student) => (
+              <article
+                key={student.studentId}
+                className="rounded-xl border border-(--line) bg-(--surface-muted) p-4"
+              >
+                <div className="flex flex-col gap-1">
+                  <p className="font-medium">{resolveName(student.name)}</p>
+                  <p className="text-xs text-(--text-dim)">{student.studentCode}</p>
+                </div>
+                <div className="mt-3 space-y-1 text-sm text-(--text-dim)">
+                  <p>{student.email || "--"}</p>
+                  <p>{student.contactNo || "--"}</p>
+                </div>
+                <select
+                  value={attendanceMap[student.studentId]}
+                  onChange={(event) =>
+                    updateAttendance(
+                      student.studentId,
+                      event.target.value as AttendanceDraftStatus,
+                    )
+                  }
+                  disabled={!canSubmit || isPending}
+                  className="focus-ring mt-4 h-10 w-full rounded-xl border border-(--line) bg-(--surface) px-3 text-sm disabled:opacity-60"
+                >
+                  <option value="">Select status</option>
+                  {attendanceOptions.map((status) => (
+                    <option key={status} value={status}>
+                      {status}
+                    </option>
+                  ))}
+                </select>
+              </article>
+            ))}
+          </div>
+
+          <div className="mt-4 hidden overflow-x-auto md:block">
             <table className="min-w-full text-sm">
               <thead>
                 <tr className="border-b border-(--line) text-left text-xs uppercase tracking-[0.18em] text-(--text-dim)">
@@ -269,12 +359,13 @@ export function InstructorClassDetail({ details }: InstructorClassDetailProps) {
                         onChange={(event) =>
                           updateAttendance(
                             student.studentId,
-                            event.target.value as AttendanceStatus,
+                            event.target.value as AttendanceDraftStatus,
                           )
                         }
                         disabled={!canSubmit || isPending}
                         className="focus-ring h-10 rounded-xl border border-(--line) bg-(--surface) px-3 text-sm disabled:opacity-60"
                       >
+                        <option value="">Select status</option>
                         {attendanceOptions.map((status) => (
                           <option key={status} value={status}>
                             {status}

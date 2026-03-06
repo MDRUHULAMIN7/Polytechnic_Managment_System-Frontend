@@ -2,6 +2,7 @@
 
 import { revalidateTag } from "next/cache";
 import {
+  completeClassSessionServer,
   getDashboardSummaryServer,
   startClassSessionServer,
   syncClassSessionsServer,
@@ -28,6 +29,14 @@ export async function startClassSessionAction(
   input: StartClassSessionInput,
 ) {
   const result = await startClassSessionServer(id, input);
+  revalidateTag(CLASS_SESSIONS_TAG, { expire: 0 });
+  revalidateTag(CLASS_DASHBOARD_TAG, { expire: 0 });
+  revalidateTag(classSessionTag(id), { expire: 0 });
+  return result;
+}
+
+export async function completeClassSessionAction(id: string) {
+  const result = await completeClassSessionServer(id);
   revalidateTag(CLASS_SESSIONS_TAG, { expire: 0 });
   revalidateTag(CLASS_DASHBOARD_TAG, { expire: 0 });
   revalidateTag(classSessionTag(id), { expire: 0 });

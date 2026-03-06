@@ -102,9 +102,19 @@ export type PaginationMeta = {
   totalPage: number;
 };
 
+export type ClassSessionFilterOption = {
+  value: string;
+  label: string;
+};
+
 export type ClassSessionListPayload = {
   meta: PaginationMeta;
   result: ClassSession[];
+};
+
+export type ClassSessionFilterOptionsPayload = {
+  semesters: ClassSessionFilterOption[];
+  subjects: ClassSessionFilterOption[];
 };
 
 export type InstructorClassDetails = {

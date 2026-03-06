@@ -11,6 +11,7 @@ import type {
   ApiResponse,
   ClassSessionListParams,
   ClassSessionListPayload,
+  ClassSessionFilterOptionsPayload,
   DashboardSummary,
   InstructorClassDetails,
   StartClassSessionInput,
@@ -196,6 +197,17 @@ export async function getDashboardSummaryServer() {
   );
 }
 
+export async function getClassSessionFilterOptionsServer(
+  params: Pick<ClassSessionListParams, "semesterRegistration">,
+) {
+  const query = buildQuery(params);
+  return fetchJson<ClassSessionFilterOptionsPayload>(
+    `/class-sessions/filter-options${query ? `?${query}` : ""}`,
+    "Failed to load class filter options.",
+    [CLASS_SESSIONS_TAG],
+  );
+}
+
 export async function syncClassSessionsServer(input: SyncClassSessionsInput) {
   return mutateJson<SyncClassSessionsResult>(
     "/class-sessions/sync",
@@ -214,5 +226,14 @@ export async function startClassSessionServer(
     "PATCH",
     input,
     "Failed to start class session.",
+  );
+}
+
+export async function completeClassSessionServer(id: string) {
+  return mutateJson(
+    `/class-sessions/${id}/complete`,
+    "PATCH",
+    {},
+    "Failed to complete class session.",
   );
 }

@@ -1,5 +1,6 @@
 import type { ClassSession, ClassSessionStatus } from "@/lib/type/dashboard/class-session";
 import { resolveName } from "@/utils/dashboard/admin/utils";
+import type { SemesterRegistration } from "@/lib/type/dashboard/admin/semester-registration";
 
 export function formatClassDate(value?: string) {
   if (!value) {
@@ -44,6 +45,29 @@ export function resolveClassSection(offeredSubject?: ClassSession["offeredSubjec
     return "--";
   }
   return offeredSubject.section ? `Section ${offeredSubject.section}` : "--";
+}
+
+export function resolveSemesterRegistrationLabel(
+  registration?: SemesterRegistration | string,
+) {
+  if (!registration) {
+    return "--";
+  }
+
+  if (typeof registration === "string") {
+    return registration;
+  }
+
+  const semester =
+    typeof registration.academicSemester === "string"
+      ? registration.academicSemester
+      : [registration.academicSemester?.name, registration.academicSemester?.year]
+          .filter(Boolean)
+          .join(" ");
+
+  return [semester || "Semester", registration.status, registration.shift]
+    .filter(Boolean)
+    .join(" | ");
 }
 
 export function statusBadgeClass(status: ClassSessionStatus) {
