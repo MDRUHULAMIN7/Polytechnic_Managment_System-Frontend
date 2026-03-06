@@ -1,4 +1,6 @@
 import type { CurriculumDetailsContentProps } from "@/lib/type/dashboard/admin/curriculum/ui";
+import { resolveId } from "@/utils/dashboard/admin/utils";
+import { CurriculumOutline } from "./curriculum-outline";
 
 function renderValue(value: unknown, fallback = "--") {
   if (!value) {
@@ -23,16 +25,10 @@ function renderValue(value: unknown, fallback = "--") {
   return fallback;
 }
 
-function renderSubjectTitle(value: unknown) {
-  if (!value) return "--";
-  if (typeof value === "string") return value;
-  if (typeof value === "object" && "title" in value) {
-    return (value as { title?: string }).title ?? "--";
-  }
-  return "--";
-}
-
-export function CurriculumDetailsContent({ details, error }: CurriculumDetailsContentProps) {
+export function CurriculumDetailsContent({
+  details,
+  error,
+}: CurriculumDetailsContentProps) {
   if (error) {
     return (
       <div className="rounded-2xl border border-red-400/50 bg-red-500/10 px-4 py-3 text-sm text-red-400">
@@ -50,6 +46,8 @@ export function CurriculumDetailsContent({ details, error }: CurriculumDetailsCo
   }
 
   const subjects = details.subjects ?? [];
+  const semesterRegistrationId = resolveId(details.semisterRegistration);
+  const academicDepartmentId = resolveId(details.academicDepartment);
 
   return (
     <div className="space-y-4 text-sm">
@@ -98,22 +96,28 @@ export function CurriculumDetailsContent({ details, error }: CurriculumDetailsCo
         </div>
       </div>
 
-      <div className="rounded-xl border border-(--line) px-4 py-3">
-        <p className="text-xs uppercase tracking-[0.18em] text-(--text-dim)">
-          Subjects
-        </p>
-        {subjects.length === 0 ? (
-          <p className="mt-2 text-sm text-(--text-dim)">No subjects.</p>
-        ) : (
-          <ul className="mt-2 space-y-1">
-            {subjects.map((item, index) => (
-              <li key={`${index}-${String(item)}`} className="text-sm">
-                {renderSubjectTitle(item)}
-              </li>
-            ))}
-          </ul>
-        )}
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="rounded-xl border border-(--line) px-4 py-3">
+          <p className="text-xs uppercase tracking-[0.18em] text-(--text-dim)">
+            Subjects
+          </p>
+          <p className="mt-2 font-medium">{subjects.length}</p>
+        </div>
+        <div className="rounded-xl border border-(--line) px-4 py-3">
+          <p className="text-xs uppercase tracking-[0.18em] text-(--text-dim)">
+            Offered Subjects
+          </p>
+          <p className="mt-2 text-xs text-(--text-dim)">
+            Open full outline to load.
+          </p>
+        </div>
       </div>
+
+      <CurriculumOutline
+        subjects={subjects}
+        semesterRegistrationId={semesterRegistrationId}
+        academicDepartmentId={academicDepartmentId}
+      />
     </div>
   );
 }

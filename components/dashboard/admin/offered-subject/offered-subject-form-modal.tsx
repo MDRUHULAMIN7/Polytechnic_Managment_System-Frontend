@@ -235,7 +235,7 @@ export function OfferedSubjectFormModal({
       page: 1,
       limit: 1000,
       semesterRegistration: form.semesterRegistration,
-      fields: "subject,section",
+      fields: "subject,section,days,startTime,endTime",
     })
       .then((payload) => {
         if (!active) return;
@@ -249,7 +249,12 @@ export function OfferedSubjectFormModal({
               : subj && typeof subj.title === "string"
                 ? subj.title
                 : "Subject";
-          labels.push(sec && sec > 0 ? `${base} (Sec ${sec})` : base);
+          const daysLabel = item.days?.length ? item.days.join(", ") : "";
+          const timeLabel =
+            item.startTime && item.endTime ? `${item.startTime}-${item.endTime}` : "";
+          const schedule = [daysLabel, timeLabel].filter(Boolean).join(" ");
+          const sectionLabel = sec && sec > 0 ? `${base} (Sec ${sec})` : base;
+          labels.push(schedule ? `${sectionLabel} · ${schedule}` : sectionLabel);
         }
         setOfferedLabels(labels);
       })
