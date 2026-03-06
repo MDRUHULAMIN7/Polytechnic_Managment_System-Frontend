@@ -38,6 +38,7 @@ const adminItems: SidebarItem[] = [
   { href: "/dashboard/admin/academic-semesters", label: "Academic Semesters", icon: CalendarDays },
   { href: "/dashboard/admin/semester-registrations", label: "Semester Registrations", icon: ClipboardList },
   { href: "/dashboard/admin/offered-subjects", label: "Offered Subjects", icon: BookOpen },
+  { href: "/dashboard/admin/classes", label: "Classes", icon: ClipboardCheck },
   { href: "/dashboard/admin/curriculums", label: "Curriculums", icon: Layers },
   { href: "/dashboard/admin/semester-enrollments", label: "Semester Enrollments", icon: ClipboardCheck },
   { href: "/dashboard/admin/subjects", label: "Subjects", icon: BookUser },
@@ -56,6 +57,7 @@ const instructorItems: SidebarItem[] = [
   { href: "/dashboard/instructor/subjects", label: "Subjects", icon: BookOpen },
   { href: "/dashboard/instructor/semester-registrations", label: "Semester Registrations", icon: ClipboardList },
   { href: "/dashboard/instructor/offered-subjects", label: "Offered Subjects", icon: BookOpen },
+  { href: "/dashboard/instructor/classes", label: "Classes", icon: ClipboardCheck },
   { href: "/dashboard/instructor/curriculums", label: "Curriculums", icon: Layers },
   { href: "/dashboard/instructor/semester-enrollments", label: "Semester Enrollments", icon: ClipboardCheck },
 ];
@@ -70,6 +72,7 @@ const sidebarItems: Record<DashboardRole, SidebarItem[]> = {
     { href: "/dashboard/student/subjects", label: "Subjects", icon: BookOpen },
     { href: "/dashboard/student/semester-registrations", label: "Semester Registrations", icon: ClipboardList },
     { href: "/dashboard/student/enrolled-subjects", label: "Enrolled Subjects", icon: BookOpen },
+    { href: "/dashboard/student/classes", label: "Classes", icon: ClipboardCheck },
     { href: "/dashboard/student/curriculums", label: "Curriculums", icon: Layers },
     { href: "/dashboard/student/semester-enrollments", label: "Semester Enrollments", icon: ClipboardCheck },
   ],
