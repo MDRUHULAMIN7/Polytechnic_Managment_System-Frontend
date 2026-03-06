@@ -2,7 +2,10 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import type { SubjectSortOption } from "@/lib/type/dashboard/admin/subject";
+import type {
+  SubjectScopeOption,
+  SubjectSortOption,
+} from "@/lib/type/dashboard/admin/subject";
 import type { SubjectPageProps } from "@/lib/type/dashboard/admin/subject/ui";
 import { showToast } from "@/utils/common/toast";
 import { useDebouncedValue } from "@/utils/common/use-debounced-value";
@@ -18,6 +21,7 @@ export function SubjectPage({
   page,
   limit,
   sort,
+  scope = "all",
   error,
 }: SubjectPageProps) {
   const router = useRouter();
@@ -37,6 +41,7 @@ export function SubjectPage({
     page?: number | null;
     limit?: number | null;
     sort?: SubjectSortOption | null;
+    scope?: SubjectScopeOption | null;
   }) {
     updateListSearchParams({
       pathname,
@@ -48,6 +53,7 @@ export function SubjectPage({
         ["page", next.page],
         ["limit", next.limit],
         ["sort", next.sort],
+        ["scope", next.scope],
       ],
       defaults: { page: 1, limit: 10, sort: "-title" },
     });
@@ -82,10 +88,17 @@ export function SubjectPage({
       <SubjectFilters
         search={searchInput}
         sort={sort}
+        scope={scope}
         onSearchChange={setSearchInput}
         onSortChange={(value) =>
           updateParams({
             sort: value as SubjectSortOption,
+            page: 1,
+          })
+        }
+        onScopeChange={(value) =>
+          updateParams({
+            scope: value === "all" ? null : value,
             page: 1,
           })
         }

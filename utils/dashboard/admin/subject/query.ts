@@ -19,6 +19,10 @@ export function buildSubjectQuery(params: SubjectListParams) {
     searchParams.set("sort", params.sort);
   }
 
+  if (params.scope === "my") {
+    searchParams.set("scope", params.scope);
+  }
+
   if (params.fields) {
     searchParams.set("fields", params.fields);
   }

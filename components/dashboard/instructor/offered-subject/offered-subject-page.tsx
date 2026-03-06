@@ -2,7 +2,10 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import type { OfferedSubjectSortOption } from "@/lib/type/dashboard/admin/offered-subject";
+import type {
+  OfferedSubjectScopeOption,
+  OfferedSubjectSortOption,
+} from "@/lib/type/dashboard/admin/offered-subject";
 import type { OfferedSubjectListPageProps } from "@/lib/type/dashboard/admin/offered-subject/ui";
 import { showToast } from "@/utils/common/toast";
 import { useDebouncedValue } from "@/utils/common/use-debounced-value";
@@ -18,6 +21,7 @@ export function OfferedSubjectPage({
   page,
   limit,
   sort,
+  scope = "all",
   error,
 }: OfferedSubjectListPageProps) {
   const router = useRouter();
@@ -37,6 +41,7 @@ export function OfferedSubjectPage({
     page?: number | null;
     limit?: number | null;
     sort?: OfferedSubjectSortOption | null;
+    scope?: OfferedSubjectScopeOption | null;
   }) {
     updateListSearchParams({
       pathname,
@@ -48,6 +53,7 @@ export function OfferedSubjectPage({
         ["page", next.page],
         ["limit", next.limit],
         ["sort", next.sort],
+        ["scope", next.scope],
       ],
       defaults: { page: 1, limit: 10, sort: "-createdAt" },
     });
@@ -84,10 +90,17 @@ export function OfferedSubjectPage({
       <OfferedSubjectFilters
         search={searchInput}
         sort={sort}
+        scope={scope}
         onSearchChange={setSearchInput}
         onSortChange={(value) =>
           updateParams({
             sort: value as OfferedSubjectSortOption,
+            page: 1,
+          })
+        }
+        onScopeChange={(value) =>
+          updateParams({
+            scope: value === "all" ? null : value,
             page: 1,
           })
         }

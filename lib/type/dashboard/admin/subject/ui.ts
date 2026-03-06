@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import type {
   PaginationMeta,
   Subject,
+  SubjectScopeOption,
   SubjectSortOption,
 } from "./index";
 import type { Instructor } from "@/lib/type/dashboard/admin/instructor";
@@ -9,8 +10,10 @@ import type { Instructor } from "@/lib/type/dashboard/admin/instructor";
 export type SubjectFiltersProps = {
   search: string;
   sort: SubjectSortOption;
+  scope?: SubjectScopeOption;
   onSearchChange: (value: string) => void;
   onSortChange: (value: SubjectSortOption) => void;
+  onScopeChange?: (value: SubjectScopeOption) => void;
 };
 
 export type SubjectPaginationProps = {
@@ -42,6 +45,7 @@ export type SubjectPageProps = {
   page: number;
   limit: number;
   sort: SubjectSortOption;
+  scope?: SubjectScopeOption;
   error?: string | null;
 };
 
@@ -77,6 +81,7 @@ export type SubjectServerProps = {
   page: number;
   limit: number;
   sort: SubjectSortOption;
+  scope?: SubjectScopeOption;
 };
 
 export type SubjectModalProps = {

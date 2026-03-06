@@ -32,6 +32,7 @@ export type OfferedSubject = {
 };
 
 export type OfferedSubjectSortOption = "-createdAt" | "createdAt";
+export type OfferedSubjectScopeOption = "all" | "my";
 
 export type PaginationMeta = {
   page: number;
@@ -50,6 +51,7 @@ export type OfferedSubjectListParams = {
   page?: number;
   limit?: number;
   sort?: OfferedSubjectSortOption;
+  scope?: OfferedSubjectScopeOption;
   semesterRegistration?: string;
   academicDepartment?: string;
   academicInstructor?: string;

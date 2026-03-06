@@ -17,6 +17,7 @@ export type Subject = {
 };
 
 export type SubjectSortOption = "title" | "-title" | "code" | "-code";
+export type SubjectScopeOption = "all" | "my";
 
 export type PaginationMeta = {
   page: number;
@@ -35,6 +36,7 @@ export type SubjectListParams = {
   page?: number;
   limit?: number;
   sort?: SubjectSortOption;
+  scope?: SubjectScopeOption;
   fields?: string;
 };
 

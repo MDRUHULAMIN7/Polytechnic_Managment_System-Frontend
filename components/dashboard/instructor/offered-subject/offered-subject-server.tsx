@@ -11,6 +11,7 @@ export async function OfferedSubjectPageServer({
   page,
   limit,
   sort,
+  scope = "all",
 }: OfferedSubjectServerProps) {
   const fallbackMeta: PaginationMeta = {
     page,
@@ -29,6 +30,7 @@ export async function OfferedSubjectPageServer({
       page,
       limit,
       sort,
+      scope,
     });
     items = data.result ?? [];
     meta = data.meta ?? fallbackMeta;
@@ -44,6 +46,7 @@ export async function OfferedSubjectPageServer({
       page={page}
       limit={limit}
       sort={sort}
+      scope={scope}
       error={error}
     />
   );

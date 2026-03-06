@@ -1,7 +1,10 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { SubjectPageServer } from "@/components/dashboard/instructor/subject/subject-server";
-import type { SubjectSortOption } from "@/lib/type/dashboard/admin/subject";
+import type {
+  SubjectScopeOption,
+  SubjectSortOption,
+} from "@/lib/type/dashboard/admin/subject";
 import { parseNumberParam, readParam } from "@/utils/dashboard/admin/utils";
 import { PageProps } from "@/lib/type/dashboard/admin/type";
 import { TableSkeleton } from "@/components/dashboard/TableSkeleton";
@@ -17,12 +20,21 @@ function parseSortParam(value: string): SubjectSortOption {
   return "-title";
 }
 
+function parseScopeParam(value: string): SubjectScopeOption {
+  if (value === "my") {
+    return value;
+  }
+
+  return "all";
+}
+
 export default async function SubjectsPage({ searchParams }: PageProps) {
   const resolvedSearchParams = await Promise.resolve(searchParams);
   const searchTerm = readParam(resolvedSearchParams, "searchTerm");
   const page = parseNumberParam(readParam(resolvedSearchParams, "page"), 1);
   const limit = parseNumberParam(readParam(resolvedSearchParams, "limit"), 10);
   const sort = parseSortParam(readParam(resolvedSearchParams, "sort"));
+  const scope = parseScopeParam(readParam(resolvedSearchParams, "scope"));
 
   return (
     <Suspense fallback={<TableSkeleton />}>
@@ -31,6 +43,7 @@ export default async function SubjectsPage({ searchParams }: PageProps) {
         page={page}
         limit={limit}
         sort={sort}
+        scope={scope}
       />
     </Suspense>
   );

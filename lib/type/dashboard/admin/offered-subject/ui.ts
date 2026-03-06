@@ -3,6 +3,7 @@ import type {
   OfferedSubject,
   OfferedSubjectDay,
   OfferedSubjectInput,
+  OfferedSubjectScopeOption,
   OfferedSubjectSortOption,
   PaginationMeta,
 } from "./index";
@@ -15,8 +16,10 @@ import type { SemesterRegistration } from "@/lib/type/dashboard/admin/semester-r
 export type OfferedSubjectFiltersProps = {
   search: string;
   sort: OfferedSubjectSortOption;
+  scope?: OfferedSubjectScopeOption;
   onSearchChange: (value: string) => void;
   onSortChange: (value: OfferedSubjectSortOption) => void;
+  onScopeChange?: (value: OfferedSubjectScopeOption) => void;
 };
 
 export type OfferedSubjectPaginationProps = {
@@ -61,6 +64,7 @@ export type OfferedSubjectListPageProps = {
   page: number;
   limit: number;
   sort: OfferedSubjectSortOption;
+  scope?: OfferedSubjectScopeOption;
   error?: string | null;
 };
 
@@ -98,6 +102,7 @@ export type OfferedSubjectServerProps = {
   page: number;
   limit: number;
   sort: OfferedSubjectSortOption;
+  scope?: OfferedSubjectScopeOption;
 };
 
 export type OfferedSubjectFormState = {

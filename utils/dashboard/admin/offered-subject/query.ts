@@ -19,6 +19,10 @@ export function buildOfferedSubjectQuery(params: OfferedSubjectListParams) {
     searchParams.set("sort", params.sort);
   }
 
+  if (params.scope === "my") {
+    searchParams.set("scope", params.scope);
+  }
+
   if (params.semesterRegistration) {
     searchParams.set("semesterRegistration", params.semesterRegistration);
   }
