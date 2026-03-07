@@ -17,6 +17,7 @@ import {
   ShieldCheck,
   UserRound,
   Users,
+  Clipboard,
   X
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -45,6 +46,7 @@ const adminItems: SidebarItem[] = [
   { href: "/dashboard/admin/subjects", label: "Subjects", icon: BookUser },
   { href: "/dashboard/admin/students", label: "Students", icon: Users },
   { href: "/dashboard/admin/instructors", label: "Instructors", icon: GraduationCap },
+  { href: "/dashboard/admin/notices", label: "Notices", icon: Clipboard },
 ];
 
 const superAdminItems: SidebarItem[] = [

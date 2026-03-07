@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { Space_Grotesk, Source_Sans_3 } from "next/font/google";
 import { ToastRegion } from "@/components/common/toast-region";
+import { QueryProvider } from "@/components/providers/query-provider";
 
 import "./globals.css";
 
@@ -100,8 +101,10 @@ export default async function RootLayout({
         suppressHydrationWarning
         className={`${headingFont.variable} ${bodyFont.variable} antialiased`}
       >
-        {children}
-        <ToastRegion />
+        <QueryProvider>
+          {children}
+          <ToastRegion />
+        </QueryProvider>
       </body>
     </html>
   );
