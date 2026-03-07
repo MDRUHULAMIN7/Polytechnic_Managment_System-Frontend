@@ -1,5 +1,6 @@
 ﻿import Link from "next/link";
 import type { Metadata } from "next";
+import { DashboardPageHeader } from "@/components/dashboard/shared/dashboard-page-header";
 import { getSubjectServer, getSubjectInstructorsServer } from "@/lib/api/dashboard/admin/subject/server";
 import { SubjectDetailsContent } from "@/components/dashboard/admin/subject/subject-details-content";
 import { SubjectInstructorsPanel } from "@/components/dashboard/instructor/subject/subject-instructors-panel";
@@ -56,25 +57,18 @@ export default async function SubjectDetailsPage({ params }: PageProps) {
 
   return (
     <section className="mx-auto max-w-3xl space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-(--text-dim)">
-            Student Module
-          </p>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight">
-            Subject Details
-          </h1>
-          <p className="mt-2 text-sm text-(--text-dim)">
-            View subject information and assigned instructors.
-          </p>
-        </div>
-        <Link
-          href="/dashboard/student/subjects"
-          className="focus-ring inline-flex h-10 items-center justify-center rounded-xl border border-(--line) px-4 text-sm font-semibold text-(--text-dim) transition hover:bg-(--surface-muted)"
-        >
-          Back to List
-        </Link>
-      </div>
+      <DashboardPageHeader
+        title="Subject Details"
+        description="View subject information and assigned instructors."
+        action={
+          <Link
+            href="/dashboard/student/subjects"
+            className="focus-ring inline-flex h-10 items-center justify-center rounded-xl border border-(--line) px-4 text-sm font-semibold text-(--text-dim) transition hover:bg-(--surface-muted)"
+          >
+            Back to List
+          </Link>
+        }
+      />
 
       <SubjectDetailsContent details={details} error={error} />
       <SubjectInstructorsPanel instructors={instructors} error={instructorsError} />

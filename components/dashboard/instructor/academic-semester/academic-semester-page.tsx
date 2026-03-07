@@ -13,6 +13,7 @@ import { updateListSearchParams } from "@/utils/dashboard/admin/search-params";
 import { AcademicSemesterFilters } from "@/components/dashboard/admin/academic-semester/academic-semester-filters";
 import { AcademicSemesterPagination } from "@/components/dashboard/admin/academic-semester/academic-semester-pagination";
 import { AcademicSemesterTable } from "@/components/dashboard/admin/academic-semester/academic-semester-table";
+import { DashboardPageHeader } from "@/components/dashboard/shared/dashboard-page-header";
 
 export function AcademicSemesterPage({
   items,
@@ -79,19 +80,10 @@ export function AcademicSemesterPage({
 
   return (
     <section className="space-y-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-(--text-dim)">
-            Instructor Module
-          </p>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight">
-            Academic Semesters
-          </h1>
-          <p className="mt-2 text-sm text-(--text-dim)">
-            View academic semesters and their schedules.
-          </p>
-        </div>
-      </div>
+      <DashboardPageHeader
+        title="Academic Semesters"
+        description="View academic semesters and their schedules."
+      />
 
       <AcademicSemesterFilters
         search={searchInput}

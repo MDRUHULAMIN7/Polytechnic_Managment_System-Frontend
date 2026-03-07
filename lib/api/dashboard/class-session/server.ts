@@ -14,6 +14,8 @@ import type {
   ClassSessionFilterOptionsPayload,
   DashboardSummary,
   InstructorClassDetails,
+  CurriculumClassScheduleStatus,
+  RescheduleClassSessionInput,
   StartClassSessionInput,
   StudentClassDetails,
   SyncClassSessionsInput,
@@ -217,6 +219,14 @@ export async function syncClassSessionsServer(input: SyncClassSessionsInput) {
   );
 }
 
+export async function getCurriculumClassScheduleStatusServer(curriculumId: string) {
+  return fetchJson<CurriculumClassScheduleStatus>(
+    `/class-sessions/curriculum/${curriculumId}/status`,
+    "Failed to load class schedule status.",
+    [CLASS_SESSIONS_TAG],
+  );
+}
+
 export async function startClassSessionServer(
   id: string,
   input: StartClassSessionInput,
@@ -235,5 +245,26 @@ export async function completeClassSessionServer(id: string) {
     "PATCH",
     {},
     "Failed to complete class session.",
+  );
+}
+
+export async function rescheduleClassSessionServer(
+  id: string,
+  input: RescheduleClassSessionInput,
+) {
+  return mutateJson(
+    `/class-sessions/${id}/reschedule`,
+    "PATCH",
+    input,
+    "Failed to reschedule class session.",
+  );
+}
+
+export async function cancelClassSessionServer(id: string) {
+  return mutateJson(
+    `/class-sessions/${id}/cancel`,
+    "PATCH",
+    {},
+    "Failed to cancel class session.",
   );
 }

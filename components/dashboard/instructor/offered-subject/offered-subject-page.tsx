@@ -13,6 +13,7 @@ import { updateListSearchParams } from "@/utils/dashboard/admin/search-params";
 import { OfferedSubjectFilters } from "@/components/dashboard/admin/offered-subject/offered-subject-filters";
 import { OfferedSubjectPagination } from "@/components/dashboard/admin/offered-subject/offered-subject-pagination";
 import { OfferedSubjectTable } from "@/components/dashboard/admin/offered-subject/offered-subject-table";
+import { DashboardPageHeader } from "@/components/dashboard/shared/dashboard-page-header";
 
 export function OfferedSubjectPage({
   items,
@@ -73,19 +74,10 @@ export function OfferedSubjectPage({
 
   return (
     <section className="space-y-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-(--text-dim)">
-            Instructor Module
-          </p>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight">
-            Offered Subjects
-          </h1>
-          <p className="mt-2 text-sm text-(--text-dim)">
-            Review offered subjects, schedules, and seat capacity.
-          </p>
-        </div>
-      </div>
+      <DashboardPageHeader
+        title="Offered Subjects"
+        description="Review offered subjects, schedules, and seat capacity."
+      />
 
       <OfferedSubjectFilters
         search={searchInput}

@@ -54,6 +54,10 @@ export function ClassSessionFilters({
   const hasPendingSemesterChange =
     form.semesterRegistration !== semesterRegistration;
   const effectiveSubjectOptions = hasPendingSemesterChange ? [] : subjectOptions;
+  const selectClassName =
+    "focus-ring h-11 w-full min-w-0 rounded-xl border border-(--line) bg-(--surface) px-3 pr-10 text-sm text-(--text) disabled:cursor-not-allowed disabled:opacity-60";
+  const inputClassName =
+    "focus-ring h-11 w-full min-w-0 rounded-xl border border-(--line) bg-transparent px-3 text-sm text-(--text) disabled:cursor-not-allowed disabled:opacity-60";
 
   function updateField(
     key: "semesterRegistration" | "subject" | "status" | "startDate" | "endDate",
@@ -87,13 +91,13 @@ export function ClassSessionFilters({
   }
 
   return (
-    <div className="grid gap-3 rounded-2xl border border-(--line) bg-(--surface) p-4 md:grid-cols-2 xl:grid-cols-[minmax(0,1.8fr)_minmax(0,1.3fr)_repeat(3,minmax(0,0.85fr))_auto]">
+    <div className="grid w-full min-w-0 gap-3 rounded-2xl border border-(--line) bg-(--surface) p-4 md:grid-cols-2 xl:grid-cols-[minmax(0,1.8fr)_minmax(0,1.3fr)_repeat(3,minmax(0,0.85fr))_auto]">
       <select
         value={form.semesterRegistration}
         onChange={(event) => updateField("semesterRegistration", event.target.value)}
-        className="focus-ring h-11 rounded-xl border border-(--line) bg-(--surface) px-3 text-sm"
+        className={selectClassName}
       >
-        <option value="">Select Semester Registration</option>
+        <option value="">Select Semester </option>
         {semesterOptions.map((item) => (
           <option key={item.value} value={item.value}>
             {item.label}
@@ -105,7 +109,7 @@ export function ClassSessionFilters({
         value={form.subject}
         onChange={(event) => updateField("subject", event.target.value)}
         disabled={!form.semesterRegistration || hasPendingSemesterChange}
-        className="focus-ring h-11 rounded-xl border border-(--line) bg-(--surface) px-3 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+        className={selectClassName}
       >
         <option value="">
           {hasPendingSemesterChange ? "Apply semester to load subjects" : "All Subjects"}
@@ -122,7 +126,7 @@ export function ClassSessionFilters({
         value={form.startDate}
         onChange={(event) => updateField("startDate", event.target.value)}
         disabled={!form.semesterRegistration}
-        className="focus-ring h-11 rounded-xl border border-(--line) bg-transparent px-3 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+        className={inputClassName}
       />
 
       <input
@@ -130,14 +134,14 @@ export function ClassSessionFilters({
         value={form.endDate}
         onChange={(event) => updateField("endDate", event.target.value)}
         disabled={!form.semesterRegistration}
-        className="focus-ring h-11 rounded-xl border border-(--line) bg-transparent px-3 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+        className={inputClassName}
       />
 
       <select
         value={form.status}
         onChange={(event) => updateField("status", event.target.value)}
         disabled={!form.semesterRegistration}
-        className="focus-ring h-11 rounded-xl border border-(--line) bg-(--surface) px-3 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+        className={selectClassName}
       >
         <option value="">All Status</option>
         {statusOptions.map((item) => (
@@ -151,7 +155,7 @@ export function ClassSessionFilters({
         type="button"
         onClick={applyFilters}
         disabled={isPending}
-        className="focus-ring inline-flex h-11 items-center justify-center rounded-xl bg-(--accent) px-4 text-sm font-semibold text-(--accent-ink) transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 md:col-span-2 xl:col-span-1"
+        className="focus-ring inline-flex h-11 w-full min-w-0 items-center justify-center rounded-xl bg-(--accent) px-4 text-sm font-semibold text-(--accent-ink) transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60 md:col-span-2 xl:col-span-1"
       >
         {isPending
           ? "Applying..."

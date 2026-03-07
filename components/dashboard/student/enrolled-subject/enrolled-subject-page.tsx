@@ -9,6 +9,7 @@ import { EnrolledSubjectTable } from "./enrolled-subject-table";
 import { resolveName } from "@/utils/dashboard/admin/utils";
 import { EnrolledSubjectDetailsModal } from "./enrolled-subject-details-modal";
 import { EnrolledSubjectPagination } from "./enrolled-subject-pagination";
+import { DashboardPageHeader } from "@/components/dashboard/shared/dashboard-page-header";
 
 export function EnrolledSubjectPage({ items, error }: EnrolledSubjectListPageProps) {
   const router = useRouter();
@@ -75,19 +76,10 @@ export function EnrolledSubjectPage({ items, error }: EnrolledSubjectListPagePro
 
   return (
     <section className="space-y-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-(--text-dim)">
-            Student Module
-          </p>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight">
-            Enrolled Subjects
-          </h1>
-          <p className="mt-2 text-sm text-(--text-dim)">
-            See subjects that were auto-enrolled from your selected curriculum.
-          </p>
-        </div>
-      </div>
+      <DashboardPageHeader
+        title="Enrolled Subjects"
+        description="See subjects that were auto-enrolled from your selected curriculum."
+      />
 
       <div className="grid gap-3 rounded-2xl border border-(--line) bg-(--surface) px-4 py-4 sm:grid-cols-[2fr_1fr]">
         <div>

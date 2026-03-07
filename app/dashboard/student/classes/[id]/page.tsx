@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { DashboardPageHeader } from "@/components/dashboard/shared/dashboard-page-header";
 import { getStudentClassDetailsServer } from "@/lib/api/dashboard/class-session/server";
 import { buildClassSessionBackHref } from "@/utils/dashboard/class-session-list";
 import {
@@ -32,22 +33,25 @@ export default async function StudentClassDetailsPage({ params, searchParams }: 
 
   return (
     <section className="space-y-6">
-      <Link
-        href={backHref}
-        className="focus-ring inline-flex h-10 items-center justify-center rounded-xl border border-(--line) px-4 text-sm font-semibold text-(--text-dim) transition hover:bg-(--surface-muted)"
-      >
-        Back to My Classes
-      </Link>
+      <DashboardPageHeader
+        title="Class Details"
+        description="Review schedule, topic, and attendance details for this class."
+        action={
+          <Link
+            href={backHref}
+            className="focus-ring inline-flex h-10 items-center justify-center rounded-xl border border-(--line) px-4 text-sm font-semibold text-(--text-dim) transition hover:bg-(--surface-muted)"
+          >
+            Back to My Classes
+          </Link>
+        }
+      />
 
       <div className="rounded-2xl border border-(--line) bg-(--surface) p-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-(--text-dim)">
-              Student Module
-            </p>
-            <h1 className="mt-2 text-2xl font-semibold tracking-tight">
+            <h2 className="text-2xl font-semibold tracking-tight">
               {resolveClassSubjectTitle(item.subject)}
-            </h1>
+            </h2>
             <p className="mt-2 text-sm text-(--text-dim)">
               {resolveClassInstructorName(item.instructor)}
             </p>

@@ -10,6 +10,7 @@ import { updateListSearchParams } from "@/utils/dashboard/admin/search-params";
 import { SemesterEnrollmentFilters } from "@/components/dashboard/admin/semester-enrollment/semester-enrollment-filters";
 import { SemesterEnrollmentPagination } from "@/components/dashboard/admin/semester-enrollment/semester-enrollment-pagination";
 import { SemesterEnrollmentTable } from "@/components/dashboard/admin/semester-enrollment/semester-enrollment-table";
+import { DashboardPageHeader } from "@/components/dashboard/shared/dashboard-page-header";
 import { SemesterEnrollmentFormModal } from "./semester-enrollment-form-modal";
 
 export function SemesterEnrollmentPage({
@@ -78,26 +79,19 @@ export function SemesterEnrollmentPage({
 
   return (
     <section className="space-y-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-(--text-dim)">
-            Student Module
-          </p>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight">
-            Semester Enrollments
-          </h1>
-          <p className="mt-2 text-sm text-(--text-dim)">
-            View semester enrollment status and payment details.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={() => setCreateOpen(true)}
-          className="focus-ring inline-flex h-11 items-center justify-center rounded-xl bg-(--accent) px-5 text-sm font-semibold text-(--accent-ink) transition hover:opacity-90"
-        >
-          Create Enrollment
-        </button>
-      </div>
+      <DashboardPageHeader
+        title="Semester Enrollments"
+        description="View semester enrollment status and payment details."
+        action={
+          <button
+            type="button"
+            onClick={() => setCreateOpen(true)}
+            className="focus-ring inline-flex h-11 items-center justify-center rounded-xl bg-(--accent) px-5 text-sm font-semibold text-(--accent-ink) transition hover:opacity-90"
+          >
+            Create Enrollment
+          </button>
+        }
+      />
 
       <SemesterEnrollmentFilters
         search={searchInput}

@@ -10,6 +10,7 @@ import { updateListSearchParams } from "@/utils/dashboard/admin/search-params";
 import { SubjectFilters } from "@/components/dashboard/admin/subject/subject-filters";
 import { SubjectPagination } from "@/components/dashboard/admin/subject/subject-pagination";
 import { SubjectTable } from "@/components/dashboard/admin/subject/subject-table";
+import { DashboardPageHeader } from "@/components/dashboard/shared/dashboard-page-header";
 
 export function SubjectPage({
   items,
@@ -67,17 +68,10 @@ export function SubjectPage({
 
   return (
     <section className="space-y-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-(--text-dim)">
-            Student Module
-          </p>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight">Subjects</h1>
-          <p className="mt-2 text-sm text-(--text-dim)">
-            View subject catalog and assigned instructors.
-          </p>
-        </div>
-      </div>
+      <DashboardPageHeader
+        title="Subjects"
+        description="View subject catalog and assigned instructors."
+      />
 
       <SubjectFilters
         search={searchInput}

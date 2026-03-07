@@ -10,6 +10,7 @@ import { updateListSearchParams } from "@/utils/dashboard/admin/search-params";
 import { SemesterRegistrationFilters } from "@/components/dashboard/admin/semester-registration/semester-registration-filters";
 import { SemesterRegistrationPagination } from "@/components/dashboard/admin/semester-registration/semester-registration-pagination";
 import { SemesterRegistrationTable } from "@/components/dashboard/admin/semester-registration/semester-registration-table";
+import { DashboardPageHeader } from "@/components/dashboard/shared/dashboard-page-header";
 
 export function SemesterRegistrationPage({
   items,
@@ -80,19 +81,10 @@ export function SemesterRegistrationPage({
 
   return (
     <section className="space-y-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-(--text-dim)">
-            Student Module
-          </p>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight">
-            Semester Registrations
-          </h1>
-          <p className="mt-2 text-sm text-(--text-dim)">
-            View registration windows and semester schedules.
-          </p>
-        </div>
-      </div>
+      <DashboardPageHeader
+        title="Semester Registrations"
+        description="View registration windows and semester schedules."
+      />
 
       <SemesterRegistrationFilters
         search={searchInput}

@@ -1,5 +1,6 @@
 ﻿import Link from "next/link";
 import type { Metadata } from "next";
+import { DashboardPageHeader } from "@/components/dashboard/shared/dashboard-page-header";
 import { getSemesterEnrollmentServer } from "@/lib/api/dashboard/admin/semester-enrollment/server";
 import { SemesterEnrollmentDetailsContent } from "@/components/dashboard/admin/semester-enrollment/semester-enrollment-details-content";
 
@@ -31,25 +32,18 @@ export default async function SemesterEnrollmentDetailsPage({ params }: PageProp
 
   return (
     <section className="mx-auto max-w-3xl space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-(--text-dim)">
-            Student Module
-          </p>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight">
-            Semester Enrollment Details
-          </h1>
-          <p className="mt-2 text-sm text-(--text-dim)">
-            View semester enrollment information.
-          </p>
-        </div>
-        <Link
-          href="/dashboard/student/semester-enrollments"
-          className="focus-ring inline-flex h-10 items-center justify-center rounded-xl border border-(--line) px-4 text-sm font-semibold text-(--text-dim) transition hover:bg-(--surface-muted)"
-        >
-          Back to List
-        </Link>
-      </div>
+      <DashboardPageHeader
+        title="Semester Enrollment Details"
+        description="View semester enrollment information."
+        action={
+          <Link
+            href="/dashboard/student/semester-enrollments"
+            className="focus-ring inline-flex h-10 items-center justify-center rounded-xl border border-(--line) px-4 text-sm font-semibold text-(--text-dim) transition hover:bg-(--surface-muted)"
+          >
+            Back to List
+          </Link>
+        }
+      />
 
       <SemesterEnrollmentDetailsContent details={details} error={error} />
     </section>

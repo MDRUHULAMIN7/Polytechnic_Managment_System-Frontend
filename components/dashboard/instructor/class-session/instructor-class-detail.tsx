@@ -43,12 +43,6 @@ export function InstructorClassDetail({ details }: InstructorClassDetailProps) {
       ),
   );
 
-  const canStart = details.classSession.status === "SCHEDULED";
-  const canComplete = details.classSession.status === "ONGOING";
-  const canSubmit =
-    details.classSession.status === "ONGOING" ||
-    details.classSession.status === "COMPLETED";
-
   const attendanceCounts = useMemo(() => {
     return details.students.reduce(
       (acc, student) => {
@@ -63,6 +57,13 @@ export function InstructorClassDetail({ details }: InstructorClassDetailProps) {
       { PRESENT: 0, ABSENT: 0, LEAVE: 0, pending: 0 },
     );
   }, [attendanceMap, details.students]);
+
+  const canStart = details.classSession.status === "SCHEDULED";
+  const canComplete =
+    details.classSession.status === "ONGOING" && attendanceCounts.pending === 0;
+  const canSubmit =
+    details.classSession.status === "ONGOING" ||
+    details.classSession.status === "COMPLETED";
 
   function updateAttendance(studentId: string, status: AttendanceDraftStatus) {
     setAttendanceMap((prev) => ({
@@ -122,7 +123,7 @@ export function InstructorClassDetail({ details }: InstructorClassDetailProps) {
         showToast({
           variant: "success",
           title: "Attendance submitted",
-          description: "Class has been marked as completed.",
+          description: "Attendance saved. Use Complete Class to finish the class.",
         });
         router.refresh();
       } catch (error) {
@@ -164,12 +165,9 @@ export function InstructorClassDetail({ details }: InstructorClassDetailProps) {
       <div className="flex flex-col gap-3 rounded-2xl border border-(--line) bg-(--surface) p-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-(--text-dim)">
-              Instructor Module
-            </p>
-            <h1 className="mt-2 text-2xl font-semibold tracking-tight">
+            <h2 className="text-2xl font-semibold tracking-tight">
               {resolveClassSubjectTitle(details.classSession.subject)}
-            </h1>
+            </h2>
             <p className="mt-2 text-sm text-(--text-dim)">
               {formatClassDate(details.classSession.date)} ·{" "}
               {formatTimeRange(
@@ -220,8 +218,8 @@ export function InstructorClassDetail({ details }: InstructorClassDetailProps) {
         <section className="rounded-2xl border border-(--line) bg-(--surface) p-5">
           <h2 className="text-lg font-semibold tracking-tight">Class Control</h2>
           <p className="mt-2 text-sm text-(--text-dim)">
-            Start the class before attendance submission. After completion you
-            can still reopen the sheet and update attendance.
+            Start the class first, submit attendance for every student, then use
+            Complete Class to finish the session.
           </p>
 
           <div className="mt-4 space-y-4">
@@ -393,6 +391,11 @@ export function InstructorClassDetail({ details }: InstructorClassDetailProps) {
                   : "Submit Attendance"}
             </button>
           </div>
+          {details.classSession.status === "ONGOING" && attendanceCounts.pending > 0 ? (
+            <p className="mt-3 text-sm text-(--text-dim)">
+              Complete Class stays locked until attendance is submitted for every student.
+            </p>
+          ) : null}
         </section>
       </div>
     </section>

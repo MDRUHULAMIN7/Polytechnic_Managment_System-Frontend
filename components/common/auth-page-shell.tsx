@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 export function AuthPageShell({ children }: { children: ReactNode }) {
   return (
     <main
-      className="relative isolate flex min-h-screen items-center justify-center overflow-hidden bg-[var(--bg)] px-4 py-12"
+      className="relative isolate flex min-h-screen items-center justify-center overflow-hidden bg-(--bg) px-4 py-12"
       style={{ backgroundImage: "var(--login-base)" }}
     >
       <div className="pointer-events-none absolute inset-0">

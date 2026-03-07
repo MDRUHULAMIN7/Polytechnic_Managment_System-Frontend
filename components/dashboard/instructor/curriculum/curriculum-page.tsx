@@ -10,6 +10,7 @@ import { updateListSearchParams } from "@/utils/dashboard/admin/search-params";
 import { CurriculumFilters } from "@/components/dashboard/admin/curriculum/curriculum-filters";
 import { CurriculumPagination } from "@/components/dashboard/admin/curriculum/curriculum-pagination";
 import { CurriculumTable } from "@/components/dashboard/admin/curriculum/curriculum-table";
+import { DashboardPageHeader } from "@/components/dashboard/shared/dashboard-page-header";
 
 export function CurriculumPage({
   items,
@@ -67,17 +68,10 @@ export function CurriculumPage({
 
   return (
     <section className="space-y-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-(--text-dim)">
-            Instructor Module
-          </p>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight">Curriculums</h1>
-          <p className="mt-2 text-sm text-(--text-dim)">
-            View curriculum sessions, subjects, and total credit.
-          </p>
-        </div>
-      </div>
+      <DashboardPageHeader
+        title="Curriculums"
+        description="View curriculum sessions, subjects, and total credit."
+      />
 
       <CurriculumFilters
         search={searchInput}

@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { ClassSessionPagination } from "@/components/dashboard/class-session/class-session-pagination";
 import { ClassSessionFilters } from "@/components/dashboard/class-session/class-session-filters";
+import { DashboardPageHeader } from "@/components/dashboard/shared/dashboard-page-header";
 import {
   getClassSessionFilterOptionsServer,
   getInstructorClassSessionsServer,
@@ -66,15 +67,10 @@ export default async function InstructorClassesPage({ searchParams }: PageProps)
 
   return (
     <section className="space-y-6">
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-(--text-dim)">
-          Instructor Module
-        </p>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight">My Classes</h1>
-        <p className="mt-2 text-sm text-(--text-dim)">
-          Work semester by semester so your class queue stays scoped to one term.
-        </p>
-      </div>
+      <DashboardPageHeader
+        title="My Classes"
+        description="Work semester by semester so your class queue stays scoped to one term."
+      />
 
       <ClassSessionFilters
         semesterRegistration={semesterRegistration}

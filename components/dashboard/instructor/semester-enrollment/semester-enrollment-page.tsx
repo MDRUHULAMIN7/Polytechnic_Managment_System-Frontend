@@ -10,6 +10,7 @@ import { updateListSearchParams } from "@/utils/dashboard/admin/search-params";
 import { SemesterEnrollmentFilters } from "@/components/dashboard/admin/semester-enrollment/semester-enrollment-filters";
 import { SemesterEnrollmentPagination } from "@/components/dashboard/admin/semester-enrollment/semester-enrollment-pagination";
 import { SemesterEnrollmentTable } from "@/components/dashboard/admin/semester-enrollment/semester-enrollment-table";
+import { DashboardPageHeader } from "@/components/dashboard/shared/dashboard-page-header";
 
 export function SemesterEnrollmentPage({
   items,
@@ -75,19 +76,10 @@ export function SemesterEnrollmentPage({
 
   return (
     <section className="space-y-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-(--text-dim)">
-            Instructor Module
-          </p>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight">
-            Semester Enrollments
-          </h1>
-          <p className="mt-2 text-sm text-(--text-dim)">
-            Review semester enrollment status and payment details.
-          </p>
-        </div>
-      </div>
+      <DashboardPageHeader
+        title="Semester Enrollments"
+        description="Review semester enrollment status and payment details."
+      />
 
       <SemesterEnrollmentFilters
         search={searchInput}

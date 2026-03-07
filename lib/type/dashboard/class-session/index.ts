@@ -159,12 +159,25 @@ export type ClassSessionListParams = {
 
 export type SyncClassSessionsInput = {
   offeredSubjectId?: string;
+  curriculumId?: string;
   replaceScheduled?: boolean;
+};
+
+export type CurriculumClassScheduleStatus = {
+  hasSessions: boolean;
+  totalSessions: number;
+  totalOfferedSubjects: number;
 };
 
 export type StartClassSessionInput = {
   topic?: string;
   remarks?: string;
+};
+
+export type RescheduleClassSessionInput = {
+  date: string;
+  startTime: string;
+  endTime: string;
 };
 
 export type SyncClassSessionsResult = {

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { AdminClassSessionControls } from "@/components/dashboard/admin/class-session/admin-class-session-controls";
 import { DashboardPageHeader } from "@/components/dashboard/shared/dashboard-page-header";
 import { getAdminClassDetailsServer } from "@/lib/api/dashboard/class-session/server";
 import { buildClassSessionBackHref } from "@/utils/dashboard/class-session-list";
@@ -87,6 +88,14 @@ export default async function AdminClassDetailsPage({ params, searchParams }: Pa
             </p>
           </div>
         </div>
+
+        <AdminClassSessionControls
+          classSessionId={item._id}
+          status={item.status}
+          date={item.date}
+          startTime={item.startTime}
+          endTime={item.endTime}
+        />
 
         <div className="mt-5 grid gap-3 lg:grid-cols-2">
           <div className="rounded-xl border border-(--line) px-4 py-4">

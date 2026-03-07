@@ -1,5 +1,6 @@
 ﻿import Link from "next/link";
 import type { Metadata } from "next";
+import { DashboardPageHeader } from "@/components/dashboard/shared/dashboard-page-header";
 import { getCurriculumServer } from "@/lib/api/dashboard/admin/curriculum/server";
 import { CurriculumDetailsContent } from "@/components/dashboard/admin/curriculum/curriculum-details-content";
 
@@ -31,25 +32,18 @@ export default async function CurriculumDetailsPage({ params }: PageProps) {
 
   return (
     <section className="mx-auto space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-(--text-dim)">
-            Instructor Module
-          </p>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight">
-            Curriculum Details
-          </h1>
-          <p className="mt-2 text-sm text-(--text-dim)">
-            View curriculum information and subjects.
-          </p>
-        </div>
-        <Link
-          href="/dashboard/instructor/curriculums"
-          className="focus-ring inline-flex h-10 items-center justify-center rounded-xl border border-(--line) px-4 text-sm font-semibold text-(--text-dim) transition hover:bg-(--surface-muted)"
-        >
-          Back to List
-        </Link>
-      </div>
+      <DashboardPageHeader
+        title="Curriculum Details"
+        description="View curriculum information and subjects."
+        action={
+          <Link
+            href="/dashboard/instructor/curriculums"
+            className="focus-ring inline-flex h-10 items-center justify-center rounded-xl border border-(--line) px-4 text-sm font-semibold text-(--text-dim) transition hover:bg-(--surface-muted)"
+          >
+            Back to List
+          </Link>
+        }
+      />
 
       <CurriculumDetailsContent
         details={details}
