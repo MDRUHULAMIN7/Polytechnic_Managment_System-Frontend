@@ -17,8 +17,6 @@ export async function loginUser(input: LoginInput): Promise<LoginResult> {
     body: JSON.stringify(input)
   });
 
-  console.log(response)
-
   const payload = (await response.json()) as LoginResponse;
   const accessToken = payload.data?.accessToken;
 

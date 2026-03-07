@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { DashboardPageHeader } from "@/components/dashboard/shared/dashboard-page-header";
 import { getOfferedSubjectServer } from "@/lib/api/dashboard/admin/offered-subject/server";
 import { OfferedSubjectDetailsContent } from "@/components/dashboard/admin/offered-subject/offered-subject-details-content";
 
@@ -26,19 +27,10 @@ export default async function OfferedSubjectDetailsPage({ params }: PageProps) {
 
   return (
     <section className="space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-(--text-dim)">
-            Admin Module
-          </p>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight">
-            Offered Subject Details
-          </h1>
-          <p className="mt-2 text-sm text-(--text-dim)">
-            Overview of offered subject details.
-          </p>
-        </div>
-      </div>
+      <DashboardPageHeader
+        title="Offered Subject Details"
+        description="Overview of offered subject details."
+      />
 
       <OfferedSubjectDetailsContent details={details} error={error} />
     </section>

@@ -5,6 +5,8 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { SemesterEnrollmentSortOption } from "@/lib/type/dashboard/admin/semester-enrollment";
 import type { SemesterEnrollmentPageProps } from "@/lib/type/dashboard/admin/semester-enrollment/ui";
 import { showToast } from "@/utils/common/toast";
+import { DashboardErrorBanner } from "@/components/dashboard/shared/dashboard-error-banner";
+import { DashboardPageHeader } from "@/components/dashboard/shared/dashboard-page-header";
 import { useDebouncedValue } from "@/utils/common/use-debounced-value";
 import { updateListSearchParams } from "@/utils/dashboard/admin/search-params";
 import { SemesterEnrollmentFilters } from "./semester-enrollment-filters";
@@ -75,19 +77,10 @@ export function SemesterEnrollmentPage({
 
   return (
     <section className="space-y-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-(--text-dim)">
-            Admin Module
-          </p>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight">
-            Semester Enrollments
-          </h1>
-          <p className="mt-2 text-sm text-(--text-dim)">
-            Review semester enrollment status and payment details.
-          </p>
-        </div>
-      </div>
+      <DashboardPageHeader
+        title="Semester Enrollments"
+        description="Review semester enrollment status and payment details."
+      />
 
       <SemesterEnrollmentFilters
         search={searchInput}
@@ -106,9 +99,9 @@ export function SemesterEnrollmentPage({
         }}
       />
 
-      {error ? (
-        <div className="rounded-2xl border border-red-400/50 bg-red-500/10 px-4 py-3 text-sm text-red-400">
-          {error}
+      <DashboardErrorBanner
+        error={error}
+        action={
           <button
             type="button"
             onClick={() => {
@@ -125,8 +118,8 @@ export function SemesterEnrollmentPage({
           >
             Retry
           </button>
-        </div>
-      ) : null}
+        }
+      />
 
       <SemesterEnrollmentTable items={items} loading={isPending} error={error} />
 

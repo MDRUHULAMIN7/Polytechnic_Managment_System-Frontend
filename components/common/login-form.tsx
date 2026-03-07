@@ -27,22 +27,31 @@ export function LoginForm() {
     setPending(true);
 
     try {
-      const { accessToken } = await loginUser({ id, password });
+      const { accessToken, needsPasswordChange } = await loginUser({
+        id,
+        password,
+      });
 
       const role = parseTokenRole(accessToken);
       if (!role) {
         throw new Error("Could not resolve role from access token.");
       }
 
+      const nextPath = needsPasswordChange
+        ? "/dashboard/profile"
+        : dashboardPathByRole(role);
+
       setCookie(ROLE_COOKIE, role, 60 * 60 * 24);
       setCookie(ACCESS_TOKEN_COOKIE, accessToken, 60 * 60);
       showToast({
         variant: "success",
         title: "Login successful",
-        description: "Redirecting to your dashboard."
+        description: needsPasswordChange
+          ? "Redirecting to your profile so you can update your password."
+          : "Redirecting to your dashboard."
       });
 
-      router.push(dashboardPathByRole(role));
+      router.push(nextPath);
       router.refresh();
     } catch (submitError) {
       const message =
@@ -98,9 +107,17 @@ export function LoginForm() {
         </div>
 
         <div className="space-y-2">
-          <label htmlFor="password" className="text-sm font-medium">
-            Password
-          </label>
+          <div className="flex items-center justify-between gap-3">
+            <label htmlFor="password" className="text-sm font-medium">
+              Password
+            </label>
+            <Link
+              href="/forgot-password"
+              className="text-xs font-semibold text-(--accent) transition hover:opacity-80"
+            >
+              Forgot password?
+            </Link>
+          </div>
           <div className="relative">
             <LockKeyhole
               size={16}

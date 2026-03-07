@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { Menu } from "lucide-react";
 import { motion } from "framer-motion";
-import { ThemeToggle } from "@/components/common/theme-toggle";
 import { DashboardSidebar } from "./dashboard-sidebar";
 
 type DashboardRole = "admin" | "superAdmin" | "instructor" | "student";
@@ -31,8 +30,7 @@ export function DashboardShell({
         <p className="text-sm font-semibold tracking-tight">
           Dashboard
         </p>
-
-        <ThemeToggle />
+        <div className="h-9 w-9" />
       </header>
 
       <div className="mx-auto flex min-h-screen w-full max-w-400">

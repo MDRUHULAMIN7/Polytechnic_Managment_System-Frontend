@@ -5,6 +5,8 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { StudentSortOption, StudentStatus } from "@/lib/type/dashboard/admin/student";
 import type { StudentPageProps } from "@/lib/type/dashboard/admin/student/ui";
 import { showToast } from "@/utils/common/toast";
+import { DashboardErrorBanner } from "@/components/dashboard/shared/dashboard-error-banner";
+import { DashboardPageHeader } from "@/components/dashboard/shared/dashboard-page-header";
 import { useDebouncedValue } from "@/utils/common/use-debounced-value";
 import { updateListSearchParams } from "@/utils/dashboard/admin/search-params";
 import { StudentFilters } from "./student-filters";
@@ -152,27 +154,22 @@ export function StudentPage({
 
   return (
     <section className="space-y-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-(--text-dim)">
-            Admin Module
-          </p>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight">Students</h1>
-          <p className="mt-2 text-sm text-(--text-dim)">
-            Manage students, update status, and create new profiles.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={() => {
-            resetListFilters();
-            setCreateOpen(true);
-          }}
-          className="focus-ring inline-flex h-11 items-center justify-center rounded-xl bg-(--accent) px-5 text-sm font-semibold text-(--accent-ink) transition hover:opacity-90"
-        >
-          Create Student
-        </button>
-      </div>
+      <DashboardPageHeader
+        title="Students"
+        description="Manage students, update status, and create new profiles."
+        action={
+          <button
+            type="button"
+            onClick={() => {
+              resetListFilters();
+              setCreateOpen(true);
+            }}
+            className="focus-ring inline-flex h-11 items-center justify-center rounded-xl bg-(--accent) px-5 text-sm font-semibold text-(--accent-ink) transition hover:opacity-90"
+          >
+            Create Student
+          </button>
+        }
+      />
 
       <StudentFilters
         search={searchInput}
@@ -204,9 +201,9 @@ export function StudentPage({
         }}
       />
 
-      {error ? (
-        <div className="rounded-2xl border border-red-400/50 bg-red-500/10 px-4 py-3 text-sm text-red-400">
-          {error}
+      <DashboardErrorBanner
+        error={error}
+        action={
           <button
             type="button"
             onClick={() => {
@@ -223,8 +220,8 @@ export function StudentPage({
           >
             Retry
           </button>
-        </div>
-      ) : null}
+        }
+      />
 
       <StudentTable
         items={items}

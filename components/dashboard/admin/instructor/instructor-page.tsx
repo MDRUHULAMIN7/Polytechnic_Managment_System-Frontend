@@ -5,6 +5,8 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { InstructorSortOption, InstructorStatus } from "@/lib/type/dashboard/admin/instructor";
 import type { InstructorPageProps } from "@/lib/type/dashboard/admin/instructor/ui";
 import { showToast } from "@/utils/common/toast";
+import { DashboardErrorBanner } from "@/components/dashboard/shared/dashboard-error-banner";
+import { DashboardPageHeader } from "@/components/dashboard/shared/dashboard-page-header";
 import { useDebouncedValue } from "@/utils/common/use-debounced-value";
 import { updateListSearchParams } from "@/utils/dashboard/admin/search-params";
 import { InstructorFilters } from "./instructor-filters";
@@ -132,24 +134,19 @@ export function InstructorPage({
 
   return (
     <section className="space-y-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-(--text-dim)">
-            Admin Module
-          </p>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight">Instructors</h1>
-          <p className="mt-2 text-sm text-(--text-dim)">
-            Manage instructors, update status, and create new profiles.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={() => setCreateOpen(true)}
-          className="focus-ring inline-flex h-11 items-center justify-center rounded-xl bg-(--accent) px-5 text-sm font-semibold text-(--accent-ink) transition hover:opacity-90"
-        >
-          Create Instructor
-        </button>
-      </div>
+      <DashboardPageHeader
+        title="Instructors"
+        description="Manage instructors, update status, and create new profiles."
+        action={
+          <button
+            type="button"
+            onClick={() => setCreateOpen(true)}
+            className="focus-ring inline-flex h-11 items-center justify-center rounded-xl bg-(--accent) px-5 text-sm font-semibold text-(--accent-ink) transition hover:opacity-90"
+          >
+            Create Instructor
+          </button>
+        }
+      />
 
       <InstructorFilters
         search={searchInput}
@@ -172,9 +169,9 @@ export function InstructorPage({
         }}
       />
 
-      {error ? (
-        <div className="rounded-2xl border border-red-400/50 bg-red-500/10 px-4 py-3 text-sm text-red-400">
-          {error}
+      <DashboardErrorBanner
+        error={error}
+        action={
           <button
             type="button"
             onClick={() => {
@@ -191,8 +188,8 @@ export function InstructorPage({
           >
             Retry
           </button>
-        </div>
-      ) : null}
+        }
+      />
 
       <InstructorTable
         items={items}

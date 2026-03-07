@@ -25,11 +25,7 @@ function resolvePreReqTitle(value: unknown) {
 
 export function SubjectDetailsContent({ details, error }: SubjectDetailsContentProps) {
   if (error) {
-    return (
-      <div className="rounded-2xl border border-red-400/50 bg-red-500/10 px-4 py-3 text-sm text-red-400">
-        {error}
-      </div>
-    );
+    return <DashboardErrorBanner error={error} />;
   }
 
   if (!details) {
@@ -87,3 +83,4 @@ export function SubjectDetailsContent({ details, error }: SubjectDetailsContentP
     </div>
   );
 }
+import { DashboardErrorBanner } from "@/components/dashboard/shared/dashboard-error-banner";

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { DashboardPageHeader } from "@/components/dashboard/shared/dashboard-page-header";
 import { getAdminClassDetailsServer } from "@/lib/api/dashboard/class-session/server";
 import { buildClassSessionBackHref } from "@/utils/dashboard/class-session-list";
 import { resolveName } from "@/utils/dashboard/admin/utils";
@@ -41,26 +42,20 @@ export default async function AdminClassDetailsPage({ params, searchParams }: Pa
       </Link>
 
       <div className="rounded-2xl border border-(--line) bg-(--surface) p-5">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-(--text-dim)">
-              Admin Module
-            </p>
-            <h1 className="mt-2 text-2xl font-semibold tracking-tight">
-              {resolveClassSubjectTitle(item.subject)}
-            </h1>
-            <p className="mt-2 text-sm text-(--text-dim)">
-              {resolveClassInstructorName(item.instructor)}
-            </p>
-          </div>
-          <span
-            className={`rounded-full border px-3 py-1 text-xs font-semibold ${statusBadgeClass(
-              item.status,
-            )}`}
-          >
-            {item.status}
-          </span>
-        </div>
+        <DashboardPageHeader
+          title={resolveClassSubjectTitle(item.subject)}
+          description={resolveClassInstructorName(item.instructor)}
+          action={
+            <span
+              className={`rounded-full border px-3 py-1 text-xs font-semibold ${statusBadgeClass(
+                item.status,
+              )}`}
+            >
+              {item.status}
+            </span>
+          }
+          className="sm:items-start"
+        />
 
         <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <div className="rounded-xl border border-(--line) px-4 py-3">

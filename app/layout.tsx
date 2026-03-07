@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { Space_Grotesk, Source_Sans_3 } from "next/font/google";
 import { ToastRegion } from "@/components/common/toast-region";
 
@@ -24,6 +25,14 @@ const metadataBase = (() => {
   const normalized = envUrl.startsWith("http") ? envUrl : `https://${envUrl}`;
   return new URL(normalized);
 })();
+
+function parseTheme(value: string | undefined) {
+  if (value === "light" || value === "dark") {
+    return value;
+  }
+
+  return undefined;
+}
 
 export const metadata: Metadata = {
   metadataBase,
@@ -71,11 +80,19 @@ const themeInitScript = `
 })();
 `;
 
-export default function RootLayout({
+export default async function RootLayout({
   children
 }: Readonly<{ children: React.ReactNode }>) {
+  const cookieStore = await cookies();
+  const theme = parseTheme(cookieStore.get("pms_theme")?.value);
+
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      data-theme={theme}
+      style={theme ? { colorScheme: theme } : undefined}
+    >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>

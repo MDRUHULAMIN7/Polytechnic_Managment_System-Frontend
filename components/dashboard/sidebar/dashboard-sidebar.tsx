@@ -15,6 +15,7 @@ import {
   Layers,
   BookOpen,
   ShieldCheck,
+  UserRound,
   Users,
   X
 } from "lucide-react";
@@ -182,6 +183,37 @@ function NavItem({
   );
 }
 
+function SidebarActionLink({
+  href,
+  active,
+  onClose,
+}: {
+  href: string;
+  active: boolean;
+  onClose: () => void;
+}) {
+  return (
+    <Link
+      href={href}
+      onClick={onClose}
+      className="focus-ring inline-flex h-10 w-10 items-center justify-center rounded-xl border transition"
+      style={{
+        borderColor: active
+          ? "var(--sidebar-active-border)"
+          : "var(--sidebar-border)",
+        background: active ? "var(--sidebar-active-bg)" : "var(--surface)",
+        color: active
+          ? "var(--sidebar-nav-text-active)"
+          : "var(--sidebar-nav-text)",
+      }}
+      aria-label="Open profile"
+      title="Profile"
+    >
+      <UserRound size={17} />
+    </Link>
+  );
+}
+
 export function DashboardSidebar({
   role,
   mobileOpen,
@@ -195,6 +227,7 @@ export function DashboardSidebar({
   const router = useRouter();
   const items = role ? sidebarItems[role] : [];
   const activeHref = resolveActiveHref(items, pathname);
+  const profileActive = pathname === "/dashboard/profile";
 
   function logout() {
     clearSessionCookies();
@@ -247,9 +280,6 @@ export function DashboardSidebar({
         </Link>
 
         <div className="flex items-center gap-2">
-          <div className="hidden lg:inline-flex">
-            <ThemeToggle />
-          </div>
           <button
             type="button"
             onClick={onClose}
@@ -284,33 +314,44 @@ export function DashboardSidebar({
         className="shrink-0 p-3"
         style={{ borderTop: "1px solid var(--sidebar-border)" }}
       >
-        <motion.button
-          type="button"
-          onClick={logout}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.97 }}
-          className="group relative flex h-10 w-full items-center justify-center gap-2 overflow-hidden rounded-xl text-sm font-medium transition-colors"
-          style={{
-            background: "var(--sidebar-logout-bg)",
-            border: "1px solid var(--sidebar-logout-border)",
-            color: "var(--sidebar-logout-text)",
-          }}
-        >
-          <div
-            className="absolute inset-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
-            style={{ background: "var(--sidebar-logout-hover)" }}
+        <div className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-(--sidebar-label)">
+          Quick Actions
+        </div>
+        <div className="flex items-center gap-2">
+          <SidebarActionLink
+            href="/dashboard/profile"
+            active={profileActive}
+            onClose={onClose}
           />
-          <motion.div
-            className="relative z-10"
-            whileHover={{ x: -2 }}
-            transition={{ type: "spring", stiffness: 400 }}
+          <ThemeToggle />
+          <motion.button
+            type="button"
+            onClick={logout}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
+            className="group relative flex h-10 min-w-0 flex-1 items-center justify-center gap-2 overflow-hidden rounded-xl text-sm font-medium transition-colors"
+            style={{
+              background: "var(--sidebar-logout-bg)",
+              border: "1px solid var(--sidebar-logout-border)",
+              color: "var(--sidebar-logout-text)",
+            }}
           >
-            <LogOut size={15} />
-          </motion.div>
-          <span className="relative z-10 transition-colors group-hover:text-(--sidebar-logout-text-hover)">
-            Logout
-          </span>
-        </motion.button>
+            <div
+              className="absolute inset-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+              style={{ background: "var(--sidebar-logout-hover)" }}
+            />
+            <motion.div
+              className="relative z-10"
+              whileHover={{ x: -2 }}
+              transition={{ type: "spring", stiffness: 400 }}
+            >
+              <LogOut size={15} />
+            </motion.div>
+            <span className="relative z-10 transition-colors group-hover:text-(--sidebar-logout-text-hover)">
+              Logout
+            </span>
+          </motion.button>
+        </div>
       </motion.div>
     </aside>
   );

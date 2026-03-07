@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { DashboardPageHeader } from "@/components/dashboard/shared/dashboard-page-header";
 import { getSemesterRegistrationServer } from "@/lib/api/dashboard/admin/semester-registration/server";
 import { SemesterRegistrationDetailsContent } from "@/components/dashboard/admin/semester-registration/semester-registration-details-content";
 
@@ -26,19 +27,10 @@ export default async function SemesterRegistrationDetailsPage({ params }: PagePr
 
   return (
     <section className="space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-(--text-dim)">
-            Admin Module
-          </p>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight">
-            Semester Registration Details
-          </h1>
-          <p className="mt-2 text-sm text-(--text-dim)">
-            Overview of registration details.
-          </p>
-        </div>
-      </div>
+      <DashboardPageHeader
+        title="Semester Registration Details"
+        description="Overview of registration details."
+      />
 
       <SemesterRegistrationDetailsContent details={details} error={error} />
     </section>

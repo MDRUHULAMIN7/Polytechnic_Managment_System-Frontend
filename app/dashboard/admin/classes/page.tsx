@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { DashboardPageHeader } from "@/components/dashboard/shared/dashboard-page-header";
 import { ClassSessionPagination } from "@/components/dashboard/class-session/class-session-pagination";
 import { ClassSessionFilters } from "@/components/dashboard/class-session/class-session-filters";
 import { SyncClassSessionsButton } from "@/components/dashboard/admin/class-session/sync-class-sessions-button";
@@ -63,19 +64,12 @@ export default async function AdminClassesPage({ searchParams }: PageProps) {
 
   return (
     <section className="space-y-6">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-(--text-dim)">
-            Admin Module
-          </p>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight">Class Monitor</h1>
-          <p className="mt-2 text-sm text-(--text-dim)">
-            Pick a semester registration first, then inspect the class schedule and
-            attendance flow under that term.
-          </p>
-        </div>
-        <SyncClassSessionsButton />
-      </div>
+      <DashboardPageHeader
+        title="Class Monitor"
+        description="Pick a semester registration first, then inspect the class schedule and attendance flow under that term."
+        action={<SyncClassSessionsButton />}
+        className="lg:items-end"
+      />
 
       <ClassSessionFilters
         semesterRegistration={semesterRegistration}

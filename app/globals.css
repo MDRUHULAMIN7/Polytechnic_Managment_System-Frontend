@@ -126,14 +126,6 @@ a {
   outline-offset: 2px;
 }
 
-[data-theme="light"] .theme-icon-dark {
-  display: none;
-}
-
-[data-theme="dark"] .theme-icon-light {
-  display: none;
-}
-
 .login-card {
   border: 1px solid var(--login-card-line);
   background: var(--surface);
