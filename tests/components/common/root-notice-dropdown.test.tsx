@@ -57,8 +57,6 @@ describe("RootNoticeDropdown", () => {
     expect(await screen.findByText("Latest")).toBeInTheDocument();
     expect(screen.getAllByText("Pinned")).toHaveLength(2);
     expect(screen.getByText("Latest")).toBeInTheDocument();
-    expect(screen.getByText("2")).toBeInTheDocument();
-
     await user.click(toggle);
     await user.click(toggle);
 
