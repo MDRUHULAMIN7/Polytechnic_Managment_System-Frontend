@@ -30,7 +30,7 @@ const audienceLabelMap: Record<NoticeTargetAudience, string> = {
 };
 
 function badgeClassName(colorClass: string) {
-  return `inline-flex items-center rounded-full border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] ${colorClass}`;
+  return `inline-flex items-center rounded-full border px-2 py-[3px] text-[10px] font-semibold uppercase tracking-[0.16em] ${colorClass}`;
 }
 
 export function NoticePriorityBadge({ priority }: { priority: NoticePriority }) {

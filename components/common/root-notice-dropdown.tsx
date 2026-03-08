@@ -65,12 +65,8 @@ export function RootNoticeDropdown() {
         className="focus-ring inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white/85 px-4 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 dark:border-(--line) dark:bg-(--surface) dark:text-(--text-dim) dark:hover:bg-(--surface-muted)"
       >
         <span>Notice Board</span>
-        {hasLoaded ? (
-          <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-slate-100 px-1.5 text-[11px] font-bold text-slate-700 dark:bg-(--surface-muted) dark:text-(--text)">
-            {notices.length}
-          </span>
-        ) : null}
-        <span className="text-xs">{open ? "Hide" : "Open"}</span>
+        
+        
       </button>
 
       <AnimatePresence>
@@ -80,14 +76,11 @@ export function RootNoticeDropdown() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.98 }}
             transition={{ duration: 0.18, ease: "easeOut" }}
-            className="absolute right-0 top-13 z-50 w-[min(92vw,440px)] overflow-hidden rounded-[1.6rem] border border-slate-200/80 bg-white/95 shadow-[0_28px_60px_rgba(15,23,42,0.16)] dark:border-(--line) dark:bg-(--surface)"
+            className="absolute right-0 top-14 z-50 w-[min(92vw,440px)] overflow-hidden rounded-xl border border-slate-200/80 bg-white/95 shadow-[0_28px_60px_rgba(15,23,42,0.16)] dark:border-(--line) dark:bg-(--surface)"
           >
-            <div className="border-b border-slate-200  px-4 py-4 dark:border-(--line) ">
+            <div className=" px-4 py-4 dark:border-(--line) ">
               <div>
-                <p className="text-sm font-semibold tracking-tight">Latest Notices</p>
-                <p className="mt-1 text-xs text-slate-500 dark:text-(--text-dim)">
-                  Quick glance before opening the full board.
-                </p>
+                <p className=" font-semibold tracking-tight">Latest Notices</p>
               </div>
             </div>
 
@@ -112,14 +105,18 @@ export function RootNoticeDropdown() {
                   No notices available right now.
                 </div>
               ) : (
-                notices.map((notice) => (
+                notices?.map((notice) => (
                   <motion.div
                     key={notice._id}
                     initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="rounded-2xl border border-slate-200/80 bg-white/88 px-4 py-3 transition hover:bg-slate-50 dark:border-(--line) dark:bg-(--surface) dark:hover:bg-(--surface-muted)"
+                    className="rounded-lg border border-slate-200/80 bg-white/88 px-4 py-3 transition hover:bg-slate-50 dark:border-(--line) dark:bg-(--surface) dark:hover:bg-(--surface-muted)"
                   >
-                    <div className="flex items-start justify-between gap-3">
+                    <Link
+                      href={`/notices/${notice._id}`}
+                      onClick={() => setOpen(false)}
+                      className="flex items-start justify-between gap-y-3"
+                    >
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
                           {notice.isPinned ? (
@@ -130,29 +127,21 @@ export function RootNoticeDropdown() {
                           <NoticePriorityBadge priority={notice.priority} />
                         </div>
 
-                        <p className="mt-2 line-clamp-1 text-sm font-semibold tracking-tight text-slate-900 dark:text-(--text)">
+                        <p className="mt-2 line-clamp-1  font-semibold tracking-tight text-slate-900 dark:text-(--text)">
                           {notice.title}
                         </p>
                       </div>
-
-                      <Link
-                        href={`/notices/${notice._id}`}
-                        onClick={() => setOpen(false)}
-                        className="focus-ring inline-flex h-8 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 px-3 text-xs font-semibold text-slate-600 transition hover:bg-slate-100 dark:border-(--line) dark:bg-transparent dark:text-(--text-dim) dark:hover:bg-(--surface)"
-                      >
-                        Details
-                      </Link>
-                    </div>
+                    </Link>
                   </motion.div>
                 ))
               )}
             </div>
 
-            <div className="border-t border-slate-200 bg-white/92 px-3 py-3 dark:border-(--line) dark:bg-(--surface)">
+            <div className="border-t border-slate-200  px-3 py-3 dark:border-(--line) ">
               <Link
                 href="/notices"
                 onClick={() => setOpen(false)}
-                className="focus-ring inline-flex h-11 w-full items-center justify-center rounded-xl bg-(--accent) px-4 text-sm font-semibold text-(--accent-ink) transition hover:opacity-90"
+                className="focus-ring  inline-flex h-11 w-full items-center justify-center rounded-xl bg-(--accent) px-4  font-semibold text-white! transition"
               >
                 All Notices
               </Link>
