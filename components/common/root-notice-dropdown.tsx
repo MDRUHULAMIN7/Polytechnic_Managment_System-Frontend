@@ -3,13 +3,16 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { getLatestNotices } from "@/lib/api/notice";
 import type { Notice } from "@/lib/type/notice";
 import { NoticePriorityBadge } from "@/components/notice/notice-badges";
 
-export function RootNoticeDropdown({
-  notices,
-}: Readonly<{ notices: Notice[] }>) {
+export function RootNoticeDropdown() {
   const [open, setOpen] = useState(false);
+  const [notices, setNotices] = useState<Notice[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -23,17 +26,50 @@ export function RootNoticeDropdown({
     return () => window.removeEventListener("mousedown", handleClick);
   }, []);
 
+  async function loadNotices() {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const latestData = await getLatestNotices(5);
+      const nextNotices = [...latestData.pinned, ...latestData.latest]
+        .filter(
+          (item, index, collection) =>
+            collection.findIndex((entry) => entry._id === item._id) === index,
+        )
+        .slice(0, 5);
+
+      setNotices(nextNotices);
+      setHasLoaded(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load notices.");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  function handleToggle() {
+    const nextOpen = !open;
+    setOpen(nextOpen);
+
+    if (nextOpen && !hasLoaded && !isLoading) {
+      void loadNotices();
+    }
+  }
+
   return (
     <div ref={containerRef} className="relative">
       <button
         type="button"
-        onClick={() => setOpen((current) => !current)}
+        onClick={handleToggle}
         className="focus-ring inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white/85 px-4 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 dark:border-(--line) dark:bg-(--surface) dark:text-(--text-dim) dark:hover:bg-(--surface-muted)"
       >
         <span>Notice Board</span>
-        <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-slate-100 px-1.5 text-[11px] font-bold text-slate-700 dark:bg-(--surface-muted) dark:text-(--text)">
-          {notices.length}
-        </span>
+        {hasLoaded ? (
+          <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-slate-100 px-1.5 text-[11px] font-bold text-slate-700 dark:bg-(--surface-muted) dark:text-(--text)">
+            {notices.length}
+          </span>
+        ) : null}
         <span className="text-xs">{open ? "Hide" : "Open"}</span>
       </button>
 
@@ -56,7 +92,22 @@ export function RootNoticeDropdown({
             </div>
 
             <div className="max-h-104 space-y-2 overflow-y-auto px-3 py-3">
-              {notices.length === 0 ? (
+              {isLoading ? (
+                <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center text-sm text-slate-500 dark:border-(--line) dark:bg-(--surface-muted) dark:text-(--text-dim)">
+                  Loading latest notices...
+                </div>
+              ) : error ? (
+                <div className="space-y-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-4 text-sm text-rose-700 dark:border-rose-900/60 dark:bg-rose-950/30 dark:text-rose-200">
+                  <p>{error}</p>
+                  <button
+                    type="button"
+                    onClick={() => void loadNotices()}
+                    className="focus-ring inline-flex h-9 items-center justify-center rounded-lg border border-rose-300 px-3 text-xs font-semibold transition hover:bg-rose-100 dark:border-rose-800 dark:hover:bg-rose-950/40"
+                  >
+                    Retry
+                  </button>
+                </div>
+              ) : notices.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center text-sm text-slate-500 dark:border-(--line) dark:bg-(--surface-muted) dark:text-(--text-dim)">
                   No notices available right now.
                 </div>

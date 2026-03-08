@@ -1,6 +1,5 @@
 import {
   API_BASE_URL,
-  authHeadersFromCookie,
   ensureApiBaseUrl,
   parseJsonResponse,
 } from "@/lib/api/dashboard/api";
@@ -36,6 +35,7 @@ export async function requestPasswordReset(
     headers: {
       "Content-Type": "application/json",
     },
+    credentials: "include",
     body: JSON.stringify(input),
   });
 
@@ -60,6 +60,7 @@ export async function resetPassword(input: ResetPasswordInput): Promise<void> {
       "Content-Type": "application/json",
       Authorization: `Bearer ${input.token}`,
     },
+    credentials: "include",
     body: JSON.stringify({
       id: input.id,
       newPassword: input.newPassword,
@@ -85,8 +86,8 @@ export async function changePassword(
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      ...authHeadersFromCookie(),
     },
+    credentials: "include",
     body: JSON.stringify(input),
   });
 

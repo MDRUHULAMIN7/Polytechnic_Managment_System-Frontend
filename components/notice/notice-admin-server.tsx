@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { getManagedNoticesServer } from "@/lib/api/notice/server";
 import type { Notice, PaginationMeta } from "@/lib/type/notice";
 import { NoticeAdminPage } from "./notice-admin-page";
@@ -29,6 +30,8 @@ export async function NoticeAdminServer({
   let error: string | null = null;
   let items: Notice[] = [];
   let meta = fallbackMeta;
+  const cookieStore = await cookies();
+  const canTargetAdmin = cookieStore.get("pms_role")?.value === "superAdmin";
 
   try {
     const data = await getManagedNoticesServer({
@@ -58,6 +61,7 @@ export async function NoticeAdminServer({
       priority={priority}
       targetAudience={targetAudience}
       error={error}
+      canTargetAdmin={canTargetAdmin}
     />
   );
 }

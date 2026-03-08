@@ -5,7 +5,6 @@ import type {
 } from "@/lib/type/auth/profile";
 import {
   API_BASE_URL,
-  authHeadersFromCookie,
   ensureApiBaseUrl,
   parseJsonResponse,
 } from "@/lib/api/dashboard/api";
@@ -19,8 +18,8 @@ export async function updateCurrentUserProfile(
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
-      ...authHeadersFromCookie(),
     },
+    credentials: "include",
     body: JSON.stringify({ profile }),
   });
 

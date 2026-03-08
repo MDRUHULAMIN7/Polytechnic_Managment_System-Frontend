@@ -5,18 +5,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AlertCircle, LoaderCircle, LockKeyhole } from "lucide-react";
 import { changePassword } from "@/lib/api/auth/password";
-import { removeCookie } from "@/utils/common/cookie";
+import { logoutUser } from "@/lib/api/auth/session";
 import { showToast } from "@/utils/common/toast";
 
 type ChangePasswordCardProps = {
   needsPasswordChange?: boolean;
   variant?: "panel" | "modal";
 };
-
-function clearSessionCookies() {
-  removeCookie("pms_role");
-  removeCookie("pms_access_token");
-}
 
 export function ChangePasswordCard({
   needsPasswordChange = false,
@@ -45,7 +40,7 @@ export function ChangePasswordCard({
 
     try {
       await changePassword({ oldPassword, newPassword });
-      clearSessionCookies();
+      await logoutUser();
       showToast({
         variant: "success",
         title: "Password updated",

@@ -1,11 +1,9 @@
-import { cookies } from "next/headers";
 import {
-  ACCESS_TOKEN_COOKIE,
   API_BASE_URL,
-  authHeaders,
   ensureApiBaseUrl,
   parseJsonResponse,
 } from "@/lib/api/dashboard/api";
+import { getServerAuthHeaders } from "@/lib/api/dashboard/server-auth";
 import type { ApiResponse } from "@/lib/type/dashboard/class-session";
 import type {
   AttendanceSubmissionInput,
@@ -16,19 +14,13 @@ import type {
   StudentAttendanceRecord,
 } from "@/lib/type/dashboard/student-attendance";
 
-async function readAccessToken(): Promise<string | null> {
-  const cookieStore = await cookies();
-  return cookieStore.get(ACCESS_TOKEN_COOKIE)?.value ?? null;
-}
-
 async function fetchJson<T>(path: string, fallbackMessage: string) {
   ensureApiBaseUrl();
-
-  const token = await readAccessToken();
+  const serverAuthHeaders = await getServerAuthHeaders();
   const response = await fetch(`${API_BASE_URL}${path}`, {
     headers: {
       "Content-Type": "application/json",
-      ...authHeaders(token),
+      ...serverAuthHeaders,
     },
   });
 
@@ -48,13 +40,12 @@ async function mutateJson<T>(
   fallbackMessage: string,
 ) {
   ensureApiBaseUrl();
-
-  const token = await readAccessToken();
+  const serverAuthHeaders = await getServerAuthHeaders();
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method,
     headers: {
       "Content-Type": "application/json",
-      ...authHeaders(token),
+      ...serverAuthHeaders,
     },
     body: JSON.stringify(body),
   });

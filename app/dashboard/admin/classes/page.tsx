@@ -42,21 +42,22 @@ export default async function AdminClassesPage({ searchParams }: PageProps) {
     limit,
   });
 
-  const filterOptions = await getClassSessionFilterOptionsServer({
-    semesterRegistration: semesterRegistration || undefined,
-  });
-
-  const payload = semesterRegistration
-    ? await getAdminClassSessionsServer({
-        semesterRegistration,
-        status: status || undefined,
-        subject: subject || undefined,
-        startDate: startDate || undefined,
-        endDate: endDate || undefined,
-        page,
-        limit,
-      })
-    : createEmptyClassSessionListPayload(limit);
+  const [filterOptions, payload] = await Promise.all([
+    getClassSessionFilterOptionsServer({
+      semesterRegistration: semesterRegistration || undefined,
+    }),
+    semesterRegistration
+      ? getAdminClassSessionsServer({
+          semesterRegistration,
+          status: status || undefined,
+          subject: subject || undefined,
+          startDate: startDate || undefined,
+          endDate: endDate || undefined,
+          page,
+          limit,
+        })
+      : Promise.resolve(createEmptyClassSessionListPayload(limit)),
+  ]);
 
   const selectedSemester = filterOptions.semesters.find(
     (item) => item.value === semesterRegistration,

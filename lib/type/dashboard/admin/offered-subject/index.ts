@@ -87,7 +87,7 @@ export type OfferedSubjectUpdateInput = {
 };
 
 export type ApiResponse<T> = {
-  [x: string]: any;
+  [x: string]: unknown;
   success?: boolean;
   message?: string;
   data?: T;

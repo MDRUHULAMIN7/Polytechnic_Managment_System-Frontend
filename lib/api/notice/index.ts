@@ -1,7 +1,5 @@
 import {
-  ACCESS_TOKEN_COOKIE,
   API_BASE_URL,
-  authHeadersFromCookie,
   ensureApiBaseUrl,
 } from "@/lib/api/dashboard/api";
 import type {
@@ -69,9 +67,9 @@ async function request<T>(
 
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
-      ...authHeadersFromCookie(ACCESS_TOKEN_COOKIE),
       ...(init?.headers ?? {}),
     },
   });

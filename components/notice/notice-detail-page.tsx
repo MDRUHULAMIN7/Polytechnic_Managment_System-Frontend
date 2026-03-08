@@ -1,14 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useSyncExternalStore } from "react";
+import { useEffect, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   acknowledgeNotice,
   getNotice,
   markNoticeAsRead,
 } from "@/lib/api/notice";
-import { ACCESS_TOKEN_COOKIE, readBrowserCookie } from "@/lib/api/dashboard/api";
 import { formatDate } from "@/utils/common/utils";
 import { showToast } from "@/utils/common/toast";
 import {
@@ -17,14 +16,12 @@ import {
   NoticeStatusBadge,
 } from "./notice-badges";
 
-export function NoticeDetailPage({ noticeId }: Readonly<{ noticeId: string }>) {
+export function NoticeDetailPage({
+  noticeId,
+  isAuthenticated,
+}: Readonly<{ noticeId: string; isAuthenticated: boolean }>) {
   const queryClient = useQueryClient();
   const hasMarkedReadRef = useRef(false);
-  const hasAuth = useSyncExternalStore(
-    () => () => undefined,
-    () => Boolean(readBrowserCookie(ACCESS_TOKEN_COOKIE)),
-    () => false,
-  );
 
   const noticeQuery = useQuery({
     queryKey: ["notice", noticeId],
@@ -71,13 +68,13 @@ export function NoticeDetailPage({ noticeId }: Readonly<{ noticeId: string }>) {
   });
 
   useEffect(() => {
-    if (!hasAuth || !noticeQuery.data || hasMarkedReadRef.current) {
+    if (!isAuthenticated || !noticeQuery.data || hasMarkedReadRef.current) {
       return;
     }
 
     hasMarkedReadRef.current = true;
     readMutation.mutate();
-  }, [hasAuth, noticeQuery.data, readMutation]);
+  }, [isAuthenticated, noticeQuery.data, readMutation]);
 
   const notice = noticeQuery.data;
 
@@ -190,7 +187,7 @@ export function NoticeDetailPage({ noticeId }: Readonly<{ noticeId: string }>) {
               <button
                 type="button"
                 disabled={
-                  acknowledgeMutation.isPending || Boolean(notice.isAcknowledged) || !hasAuth
+                  acknowledgeMutation.isPending || Boolean(notice.isAcknowledged) || !isAuthenticated
                 }
                 onClick={() => acknowledgeMutation.mutate()}
                 className="focus-ring inline-flex h-10 items-center justify-center rounded-xl bg-amber-500 px-4 text-sm font-semibold text-white transition hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-60"
@@ -199,7 +196,7 @@ export function NoticeDetailPage({ noticeId }: Readonly<{ noticeId: string }>) {
                   ? "Acknowledged"
                   : acknowledgeMutation.isPending
                     ? "Saving..."
-                    : hasAuth
+                    : isAuthenticated
                       ? "I Acknowledge"
                       : "Login Required"}
               </button>

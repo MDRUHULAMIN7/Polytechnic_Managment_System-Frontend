@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { RootNavbar } from "@/components/common/root-navbar";
 import { NoticeDetailPage } from "@/components/notice/notice-detail-page";
 
@@ -12,11 +13,18 @@ type PageProps = {
 
 export default async function NoticeDetailsRoute({ params }: PageProps) {
   const resolvedParams = await Promise.resolve(params);
+  const cookieStore = await cookies();
+  const isAuthenticated =
+    Boolean(cookieStore.get("pms_access_token")?.value) ||
+    Boolean(cookieStore.get("refreshToken")?.value);
 
   return (
-    <main className="min-h-screen bg-[var(--bg)] text-[var(--text)]">
+    <main className="min-h-screen bg-(--bg) text-(--text)">
       <RootNavbar />
-      <NoticeDetailPage noticeId={decodeURIComponent(resolvedParams.id ?? "")} />
+      <NoticeDetailPage
+        noticeId={decodeURIComponent(resolvedParams.id ?? "")}
+        isAuthenticated={isAuthenticated}
+      />
     </main>
   );
 }

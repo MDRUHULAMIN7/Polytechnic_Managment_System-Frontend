@@ -32,6 +32,26 @@ type UseOfferedSubjectOptionsArgs = {
   instructorId: string;
 };
 
+type OfferedSubjectSubjectRef =
+  | string
+  | {
+      _id?: string;
+    }
+  | null
+  | undefined;
+
+function resolveOfferedSubjectId(subject: OfferedSubjectSubjectRef) {
+  if (typeof subject === "string") {
+    return subject;
+  }
+
+  if (subject && typeof subject._id === "string") {
+    return subject._id;
+  }
+
+  return null;
+}
+
 export function useOfferedSubjectOptions({
   open,
   subjects,
@@ -80,18 +100,20 @@ export function useOfferedSubjectOptions({
       return;
     }
 
-    setSubjectQuery("");
-    setAcademicInstructorQuery("");
-    setDepartmentQuery("");
-    setInstructorQuery("");
-    setSubjectOptions(subjects);
-    setAcademicInstructorOptions(academicInstructors);
-    setDepartmentOptions(academicDepartments);
-    setInstructorOptions(instructors);
-    setSubjectError(null);
-    setAcademicInstructorError(null);
-    setDepartmentError(null);
-    setInstructorError(null);
+    queueMicrotask(() => {
+      setSubjectQuery("");
+      setAcademicInstructorQuery("");
+      setDepartmentQuery("");
+      setInstructorQuery("");
+      setSubjectOptions(subjects);
+      setAcademicInstructorOptions(academicInstructors);
+      setDepartmentOptions(academicDepartments);
+      setInstructorOptions(instructors);
+      setSubjectError(null);
+      setAcademicInstructorError(null);
+      setDepartmentError(null);
+      setInstructorError(null);
+    });
   }, [open, subjects, academicInstructors, academicDepartments, instructors]);
 
   useEffect(() => {
@@ -100,8 +122,11 @@ export function useOfferedSubjectOptions({
     }
 
     let active = true;
-    setSubjectLoading(true);
-    setSubjectError(null);
+    queueMicrotask(() => {
+      if (!active) return;
+      setSubjectLoading(true);
+      setSubjectError(null);
+    });
 
     getSubjects({
       page: 1,
@@ -136,8 +161,11 @@ export function useOfferedSubjectOptions({
     }
 
     let active = true;
-    setAcademicInstructorLoading(true);
-    setAcademicInstructorError(null);
+    queueMicrotask(() => {
+      if (!active) return;
+      setAcademicInstructorLoading(true);
+      setAcademicInstructorError(null);
+    });
 
     getAcademicInstructors({
       page: 1,
@@ -173,15 +201,20 @@ export function useOfferedSubjectOptions({
     }
 
     if (!academicInstructorId) {
-      setDepartmentOptions([]);
-      setDepartmentError(null);
-      setDepartmentLoading(false);
+      queueMicrotask(() => {
+        setDepartmentOptions([]);
+        setDepartmentError(null);
+        setDepartmentLoading(false);
+      });
       return;
     }
 
     let active = true;
-    setDepartmentLoading(true);
-    setDepartmentError(null);
+    queueMicrotask(() => {
+      if (!active) return;
+      setDepartmentLoading(true);
+      setDepartmentError(null);
+    });
 
     getAcademicDepartments({
       page: 1,
@@ -218,15 +251,20 @@ export function useOfferedSubjectOptions({
     }
 
     if (!academicInstructorId) {
-      setInstructorOptions([]);
-      setInstructorError(null);
-      setInstructorLoading(false);
+      queueMicrotask(() => {
+        setInstructorOptions([]);
+        setInstructorError(null);
+        setInstructorLoading(false);
+      });
       return;
     }
 
     let active = true;
-    setInstructorLoading(true);
-    setInstructorError(null);
+    queueMicrotask(() => {
+      if (!active) return;
+      setInstructorLoading(true);
+      setInstructorError(null);
+    });
 
     const params: InstructorListParams = {
       page: 1,
@@ -292,11 +330,9 @@ export function useOfferedSubjectOptions({
         if (!active) return;
         const offeredIds = new Set<string>();
         for (const item of payload.result ?? []) {
-          const subj: any = (item as any).subject;
-          if (typeof subj === "string") {
-            offeredIds.add(subj);
-          } else if (subj && typeof subj._id === "string") {
-            offeredIds.add(subj._id);
+          const subjectId = resolveOfferedSubjectId(item.subject);
+          if (subjectId) {
+            offeredIds.add(subjectId);
           }
         }
         setSubjectOptions((prev) => prev.filter((s) => !offeredIds.has(s._id)));

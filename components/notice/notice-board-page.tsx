@@ -20,7 +20,6 @@ export function NoticeBoardPage({
   error,
 }: Readonly<{
   items: Notice[];
-  featured: Notice[];
   meta: PaginationMeta;
   category: NoticeCategory | "";
   page: number;

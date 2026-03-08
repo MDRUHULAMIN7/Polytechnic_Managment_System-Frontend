@@ -1,21 +1,8 @@
 import Link from "next/link";
-import { getLatestNoticesServer } from "@/lib/api/notice/server";
 import { RootNoticeDropdown } from "./root-notice-dropdown";
 import { ThemeToggle } from "./theme-toggle";
 
-export async function RootNavbar() {
-  const latestData = await getLatestNoticesServer(5).catch(() => ({
-    pinned: [],
-    latest: [],
-  }));
-
-  const notices = [...latestData.pinned, ...latestData.latest]
-    .filter(
-      (item, index, collection) =>
-        collection.findIndex((entry) => entry._id === item._id) === index,
-    )
-    .slice(0, 5);
-
+export function RootNavbar() {
   return (
     <header className="border-b border-(--line) bg-(--surface)/90 backdrop-blur">
       <nav className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4">
@@ -23,7 +10,7 @@ export async function RootNavbar() {
           PMS
         </Link>
         <div className="flex items-center gap-3">
-          <RootNoticeDropdown notices={notices} />
+          <RootNoticeDropdown />
           <ThemeToggle />
           <Link
             href="/login"

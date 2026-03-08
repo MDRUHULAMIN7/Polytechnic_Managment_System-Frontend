@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import type { OfferedSubjectDay } from "@/lib/type/dashboard/admin/offered-subject";
 import { getOfferedSubjects } from "@/lib/api/dashboard/admin/offered-subject";
 import { isObjectId } from "@/utils/dashboard/admin/utils";
@@ -24,53 +24,30 @@ export function useInstructorBusySlots({
   instructorId,
   semesterRegistrationId,
 }: UseInstructorBusySlotsArgs) {
-  const [slots, setSlots] = useState<BusySlot[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const shouldFetch =
+    open &&
+    isObjectId(instructorId) &&
+    isObjectId(semesterRegistrationId);
 
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-
-    if (!isObjectId(instructorId) || !isObjectId(semesterRegistrationId)) {
-      setSlots([]);
-      setError(null);
-      return;
-    }
-
-    let active = true;
-    setLoading(true);
-    setError(null);
-
-    getOfferedSubjects({
-      page: 1,
-      limit: 200,
-      instructor: instructorId,
-      semesterRegistration: semesterRegistrationId,
-      fields: "days,startTime,endTime,subject",
-    })
-      .then((payload) => {
-        if (!active) return;
-        setSlots(payload.result ?? []);
-      })
-      .catch((fetchError) => {
-        if (!active) return;
-        setError(
-          fetchError instanceof Error
-            ? fetchError.message
-            : "Unable to load schedules."
-        );
-      })
-      .finally(() => {
-        if (!active) return;
-        setLoading(false);
+  const query = useQuery({
+    queryKey: ["instructor-busy-slots", instructorId, semesterRegistrationId],
+    enabled: shouldFetch,
+    queryFn: async () => {
+      const payload = await getOfferedSubjects({
+        page: 1,
+        limit: 200,
+        instructor: instructorId,
+        semesterRegistration: semesterRegistrationId,
+        fields: "days,startTime,endTime,subject",
       });
 
-    return () => {
-      active = false;
-    };
-  }, [open, instructorId, semesterRegistrationId]);
+      return payload.result ?? [];
+    },
+  });
 
-  return { slots, loading, error };
+  return {
+    slots: shouldFetch ? ((query.data ?? []) as BusySlot[]) : [],
+    loading: query.isLoading,
+    error: query.error instanceof Error ? query.error.message : null,
+  };
 }

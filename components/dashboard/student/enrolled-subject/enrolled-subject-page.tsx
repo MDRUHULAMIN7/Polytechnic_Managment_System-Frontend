@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { EnrolledSubject } from "@/lib/type/dashboard/admin/enrolled-subject";
 import type { EnrolledSubjectListPageProps } from "@/lib/type/dashboard/admin/enrolled-subject/ui";
@@ -64,10 +64,6 @@ export function EnrolledSubjectPage({ items, error }: EnrolledSubjectListPagePro
     });
   }, [items, searchInput, statusFilter]);
 
-  useEffect(() => {
-    setPage(1);
-  }, [searchInput, statusFilter]);
-
   const total = filteredItems.length;
   const totalPages = Math.max(Math.ceil(total / limit) || 1, 1);
   const safePage = Math.min(page, totalPages);
@@ -88,7 +84,10 @@ export function EnrolledSubjectPage({ items, error }: EnrolledSubjectListPagePro
           </label>
           <input
             value={searchInput}
-            onChange={(event) => setSearchInput(event.target.value)}
+            onChange={(event) => {
+              setSearchInput(event.target.value);
+              setPage(1);
+            }}
             placeholder="Search by subject, instructor, or schedule"
             className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-(--surface) px-3 text-sm text-(--text)"
           />
@@ -99,9 +98,10 @@ export function EnrolledSubjectPage({ items, error }: EnrolledSubjectListPagePro
           </label>
           <select
             value={statusFilter}
-            onChange={(event) =>
-              setStatusFilter(event.target.value as "" | "enrolled" | "completed")
-            }
+            onChange={(event) => {
+              setStatusFilter(event.target.value as "" | "enrolled" | "completed");
+              setPage(1);
+            }}
             className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-(--surface) px-3 text-sm text-(--text)"
           >
             <option value="" className="bg-(--surface) text-(--text)">

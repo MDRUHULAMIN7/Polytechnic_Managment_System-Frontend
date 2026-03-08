@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { Instructor } from "@/lib/type/dashboard/admin/instructor";
 import type { SubjectAssignModalProps } from "@/lib/type/dashboard/admin/subject/ui";
 import { showToast } from "@/utils/common/toast";
 import { Modal } from "./modal";

@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import type {
   PaginationMeta,
   SemesterRegistration,
-  SemesterRegistrationInput,
   SemesterRegistrationShift,
   SemesterRegistrationSortOption,
   SemesterRegistrationStatus,

@@ -6,7 +6,7 @@ export type LoginInput = {
 };
 
 export type LoginResponseData = {
-  accessToken?: string;
+  role?: AuthRole;
   needsPasswordChange?: boolean;
 };
 
@@ -17,7 +17,7 @@ export type LoginResponse = {
 };
 
 export type LoginResult = {
-  accessToken: string;
+  role: AuthRole;
   needsPasswordChange?: boolean;
 };
 

@@ -1,10 +1,8 @@
-import { cookies } from "next/headers";
 import {
-  ACCESS_TOKEN_COOKIE,
   API_BASE_URL,
-  authHeaders,
   ensureApiBaseUrl,
 } from "@/lib/api/dashboard/api";
+import { getServerAuthHeaders } from "@/lib/api/dashboard/server-auth";
 import type {
   ApiResponse,
   LatestNoticePayload,
@@ -27,11 +25,6 @@ function buildQuery(params: NoticeListParams) {
   return query;
 }
 
-async function readAccessToken() {
-  const cookieStore = await cookies();
-  return cookieStore.get(ACCESS_TOKEN_COOKIE)?.value ?? null;
-}
-
 async function parseNoticeResponse<T>(
   response: Response,
   fallbackMessage: string,
@@ -52,15 +45,15 @@ async function parseNoticeResponse<T>(
 
 async function request<T>(
   path: string,
-  token: string | null,
   fallbackMessage: string,
 ) {
   ensureApiBaseUrl();
+  const serverAuthHeaders = await getServerAuthHeaders();
 
   const response = await fetch(`${API_BASE_URL}${path}`, {
     headers: {
       "Content-Type": "application/json",
-      ...authHeaders(token),
+      ...serverAuthHeaders,
     },
     cache: "no-store",
   });
@@ -77,11 +70,9 @@ async function request<T>(
 export async function getManagedNoticesServer(
   params: NoticeListParams,
 ): Promise<NoticeListPayload> {
-  const token = await readAccessToken();
   const query = buildQuery(params);
   const payload = await request<Notice[]>(
     `/notices/manage?${query.toString()}`,
-    token,
     "Failed to load managed notices.",
   );
 
@@ -99,11 +90,9 @@ export async function getManagedNoticesServer(
 export async function getNoticesServer(
   params: NoticeListParams,
 ): Promise<NoticeListPayload> {
-  const token = await readAccessToken();
   const query = buildQuery(params);
   const payload = await request<Notice[]>(
     `/notices?${query.toString()}`,
-    token,
     "Failed to load notices.",
   );
 
@@ -119,10 +108,8 @@ export async function getNoticesServer(
 }
 
 export async function getLatestNoticesServer(limit: number = 5) {
-  const token = await readAccessToken();
   const payload = await request<LatestNoticePayload>(
     `/notices/latest?limit=${limit}`,
-    token,
     "Failed to load latest notices.",
   );
 
@@ -130,10 +117,8 @@ export async function getLatestNoticesServer(limit: number = 5) {
 }
 
 export async function getNoticeServer(id: string) {
-  const token = await readAccessToken();
   const payload = await request<Notice>(
     `/notices/${id}`,
-    token,
     "Failed to load notice.",
   );
 

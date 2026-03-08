@@ -3,24 +3,34 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { removeCookie } from "@/utils/common/cookie";
-
-const ACCESS_TOKEN_COOKIE = "pms_access_token";
-const ROLE_COOKIE = "pms_role";
+import { logoutUser } from "@/lib/api/auth/session";
 
 export default function ForbiddenPage() {
   const router = useRouter();
 
   useEffect(() => {
-    removeCookie(ACCESS_TOKEN_COOKIE);
-    removeCookie(ROLE_COOKIE);
+    let active = true;
+    let handle: number | null = null;
 
-    const handle = window.setTimeout(() => {
-      router.replace("/login");
-      router.refresh();
-    }, 150);
+    void logoutUser()
+      .catch(() => undefined)
+      .finally(() => {
+        if (!active) {
+          return;
+        }
 
-    return () => window.clearTimeout(handle);
+        handle = window.setTimeout(() => {
+          router.replace("/login");
+          router.refresh();
+        }, 150);
+      });
+
+    return () => {
+      active = false;
+      if (handle !== null) {
+        window.clearTimeout(handle);
+      }
+    };
   }, [router]);
 
   return (

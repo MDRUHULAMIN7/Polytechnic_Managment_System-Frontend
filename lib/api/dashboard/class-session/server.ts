@@ -1,11 +1,9 @@
-import { cookies } from "next/headers";
 import {
-  ACCESS_TOKEN_COOKIE,
   API_BASE_URL,
-  authHeaders,
   ensureApiBaseUrl,
   parseJsonResponse,
 } from "@/lib/api/dashboard/api";
+import { getServerAuthHeaders } from "@/lib/api/dashboard/server-auth";
 import type {
   AdminClassDetails,
   ApiResponse,
@@ -27,11 +25,6 @@ import {
   classSessionTag,
 } from "./tags";
 
-async function readAccessToken(): Promise<string | null> {
-  const cookieStore = await cookies();
-  return cookieStore.get(ACCESS_TOKEN_COOKIE)?.value ?? null;
-}
-
 function buildQuery(params: ClassSessionListParams) {
   const query = new URLSearchParams();
 
@@ -52,12 +45,11 @@ async function fetchJson<T>(
   tags: string[],
 ) {
   ensureApiBaseUrl();
-
-  const token = await readAccessToken();
+  const serverAuthHeaders = await getServerAuthHeaders();
   const response = await fetch(`${API_BASE_URL}${path}`, {
     headers: {
       "Content-Type": "application/json",
-      ...authHeaders(token),
+      ...serverAuthHeaders,
     },
     next: { tags },
   });
@@ -77,12 +69,11 @@ async function fetchList(
   tags: string[],
 ): Promise<ClassSessionListPayload> {
   ensureApiBaseUrl();
-
-  const token = await readAccessToken();
+  const serverAuthHeaders = await getServerAuthHeaders();
   const response = await fetch(`${API_BASE_URL}${path}`, {
     headers: {
       "Content-Type": "application/json",
-      ...authHeaders(token),
+      ...serverAuthHeaders,
     },
     next: { tags },
   });
@@ -114,13 +105,12 @@ async function mutateJson<T>(
   fallbackMessage: string,
 ) {
   ensureApiBaseUrl();
-
-  const token = await readAccessToken();
+  const serverAuthHeaders = await getServerAuthHeaders();
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method,
     headers: {
       "Content-Type": "application/json",
-      ...authHeaders(token),
+      ...serverAuthHeaders,
     },
     body: JSON.stringify(body),
   });

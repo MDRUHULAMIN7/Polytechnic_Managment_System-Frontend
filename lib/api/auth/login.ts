@@ -18,14 +18,14 @@ export async function loginUser(input: LoginInput): Promise<LoginResult> {
   });
 
   const payload = (await response.json()) as LoginResponse;
-  const accessToken = payload.data?.accessToken;
+  const role = payload.data?.role;
 
-  if (!response.ok || !payload.success || !accessToken) {
+  if (!response.ok || !payload.success || !role) {
     throw new Error(payload.message || "Login failed. Check credentials.");
   }
 
   return {
-    accessToken,
+    role,
     needsPasswordChange: payload.data?.needsPasswordChange
   };
 }

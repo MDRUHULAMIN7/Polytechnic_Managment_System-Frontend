@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { readBrowserCookie } from "@/lib/api/dashboard/api";
+import { useState } from "react";
 import type { Notice, NoticeAttachment, NoticeInput } from "@/lib/type/notice";
 import {
   NOTICE_AUDIENCES,
@@ -41,10 +40,29 @@ function createAttachmentDraft(): AttachmentDraft {
   };
 }
 
+function createInitialAttachments(notice?: Notice | null): AttachmentDraft[] {
+  return (notice?.attachments ?? []).map((attachment, index) => ({
+    key: `${notice?._id ?? "new"}-${index}`,
+    ...attachment,
+  }));
+}
+
+function createInitialTargetAudience(
+  notice: Notice | null | undefined,
+  canTargetAdmin: boolean,
+): NoticeInput["targetAudience"] {
+  if (!canTargetAdmin && notice?.targetAudience === "admin") {
+    return "public";
+  }
+
+  return notice?.targetAudience ?? "public";
+}
+
 export function NoticeFormModal({
   open,
   mode,
   notice,
+  canTargetAdmin,
   submitting,
   onClose,
   onSubmit,
@@ -52,55 +70,39 @@ export function NoticeFormModal({
   open: boolean;
   mode: "create" | "edit";
   notice?: Notice | null;
+  canTargetAdmin: boolean;
   submitting: boolean;
   onClose: () => void;
   onSubmit: (input: NoticeInput, noticeId?: string) => Promise<unknown>;
 }>) {
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [targetAudience, setTargetAudience] = useState<NoticeInput["targetAudience"]>("public");
-  const [category, setCategory] = useState<NoticeInput["category"]>("general");
-  const [priority, setPriority] = useState<NoticeInput["priority"]>("normal");
-  const [status, setStatus] = useState<NoticeInput["status"]>("published");
-  const [isPinned, setIsPinned] = useState(false);
-  const [requiresAcknowledgment, setRequiresAcknowledgment] = useState(false);
-  const [publishedAt, setPublishedAt] = useState("");
-  const [expiresAt, setExpiresAt] = useState("");
-  const [tagsInput, setTagsInput] = useState("");
-  const [attachments, setAttachments] = useState<AttachmentDraft[]>([]);
-  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
-
-  useEffect(() => {
-    setIsSuperAdmin(readBrowserCookie("pms_role") === "superAdmin");
-  }, []);
-
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-
-    setTitle(notice?.title ?? "");
-    setContent(notice?.content ?? "");
-    setTargetAudience(notice?.targetAudience ?? "public");
-    setCategory(notice?.category ?? "general");
-    setPriority(notice?.priority ?? "normal");
-    setStatus(notice?.status ?? "published");
-    setIsPinned(Boolean(notice?.isPinned));
-    setRequiresAcknowledgment(Boolean(notice?.requiresAcknowledgment));
-    setPublishedAt(toDateTimeLocal(notice?.publishedAt));
-    setExpiresAt(toDateTimeLocal(notice?.expiresAt));
-    setTagsInput((notice?.tags ?? []).join(", "));
-    setAttachments(
-      (notice?.attachments ?? []).map((attachment, index) => ({
-        key: `${notice?._id ?? "new"}-${index}`,
-        ...attachment,
-      })),
-    );
-
-    if (!isSuperAdmin && notice?.targetAudience === "admin") {
-      setTargetAudience("public");
-    }
-  }, [open, notice, isSuperAdmin]);
+  const [title, setTitle] = useState(() => notice?.title ?? "");
+  const [content, setContent] = useState(() => notice?.content ?? "");
+  const [targetAudience, setTargetAudience] = useState<NoticeInput["targetAudience"]>(
+    () => createInitialTargetAudience(notice, canTargetAdmin),
+  );
+  const [category, setCategory] = useState<NoticeInput["category"]>(
+    () => notice?.category ?? "general",
+  );
+  const [priority, setPriority] = useState<NoticeInput["priority"]>(
+    () => notice?.priority ?? "normal",
+  );
+  const [status, setStatus] = useState<NoticeInput["status"]>(
+    () => notice?.status ?? "published",
+  );
+  const [isPinned, setIsPinned] = useState(() => Boolean(notice?.isPinned));
+  const [requiresAcknowledgment, setRequiresAcknowledgment] = useState(
+    () => Boolean(notice?.requiresAcknowledgment),
+  );
+  const [publishedAt, setPublishedAt] = useState(
+    () => toDateTimeLocal(notice?.publishedAt),
+  );
+  const [expiresAt, setExpiresAt] = useState(
+    () => toDateTimeLocal(notice?.expiresAt),
+  );
+  const [tagsInput, setTagsInput] = useState(() => (notice?.tags ?? []).join(", "));
+  const [attachments, setAttachments] = useState<AttachmentDraft[]>(
+    () => createInitialAttachments(notice),
+  );
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -188,10 +190,14 @@ export function NoticeFormModal({
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="sm:col-span-2">
-            <label className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-(--text-dim)">
+            <label
+              htmlFor="notice-title"
+              className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-(--text-dim)"
+            >
               Title
             </label>
             <input
+              id="notice-title"
               value={title}
               onChange={(event) => setTitle(event.target.value)}
               placeholder="Mid-term exam schedule published"
@@ -201,10 +207,14 @@ export function NoticeFormModal({
           </div>
 
           <div className="sm:col-span-2">
-            <label className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-(--text-dim)">
+            <label
+              htmlFor="notice-content"
+              className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-(--text-dim)"
+            >
               Content
             </label>
             <textarea
+              id="notice-content"
               value={content}
               onChange={(event) => setContent(event.target.value)}
               rows={6}
@@ -214,23 +224,27 @@ export function NoticeFormModal({
           </div>
 
           <div>
-            <label className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-(--text-dim)">
+            <label
+              htmlFor="notice-audience"
+              className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-(--text-dim)"
+            >
               Audience
             </label>
             <select
+              id="notice-audience"
               value={targetAudience}
               onChange={(event) =>
                 setTargetAudience(event.target.value as NoticeInput["targetAudience"])
               }
               className="focus-ring mt-2 h-11 w-full rounded-xl border border-slate-200 bg-slate-50/90 px-3 text-sm text-slate-700 dark:border-(--line) dark:bg-(--surface) dark:text-inherit"
             >
-              {NOTICE_AUDIENCES.filter((item) => isSuperAdmin || item !== "admin").map((item) => (
+              {NOTICE_AUDIENCES.filter((item) => canTargetAdmin || item !== "admin").map((item) => (
                 <option key={item} value={item}>
                   {item}
                 </option>
               ))}
             </select>
-            {!isSuperAdmin ? (
+            {!canTargetAdmin ? (
               <p className="mt-2 text-xs text-slate-500 dark:text-(--text-dim)">
                 Admin audience notices can only be published by super admin.
               </p>
@@ -238,10 +252,14 @@ export function NoticeFormModal({
           </div>
 
           <div>
-            <label className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-(--text-dim)">
+            <label
+              htmlFor="notice-category"
+              className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-(--text-dim)"
+            >
               Category
             </label>
             <select
+              id="notice-category"
               value={category}
               onChange={(event) =>
                 setCategory(event.target.value as NoticeInput["category"])
@@ -257,10 +275,14 @@ export function NoticeFormModal({
           </div>
 
           <div>
-            <label className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-(--text-dim)">
+            <label
+              htmlFor="notice-priority"
+              className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-(--text-dim)"
+            >
               Priority
             </label>
             <select
+              id="notice-priority"
               value={priority}
               onChange={(event) =>
                 setPriority(event.target.value as NoticeInput["priority"])
@@ -276,10 +298,14 @@ export function NoticeFormModal({
           </div>
 
           <div>
-            <label className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-(--text-dim)">
+            <label
+              htmlFor="notice-status"
+              className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-(--text-dim)"
+            >
               Status
             </label>
             <select
+              id="notice-status"
               value={status}
               onChange={(event) =>
                 setStatus(event.target.value as NoticeInput["status"])
@@ -295,10 +321,14 @@ export function NoticeFormModal({
           </div>
 
           <div>
-            <label className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-(--text-dim)">
+            <label
+              htmlFor="notice-published-at"
+              className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-(--text-dim)"
+            >
               Publish At
             </label>
             <input
+              id="notice-published-at"
               type="datetime-local"
               value={publishedAt}
               onChange={(event) => setPublishedAt(event.target.value)}
@@ -307,10 +337,14 @@ export function NoticeFormModal({
           </div>
 
           <div>
-            <label className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-(--text-dim)">
+            <label
+              htmlFor="notice-expires-at"
+              className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-(--text-dim)"
+            >
               Expires At
             </label>
             <input
+              id="notice-expires-at"
               type="datetime-local"
               value={expiresAt}
               onChange={(event) => setExpiresAt(event.target.value)}
@@ -319,10 +353,14 @@ export function NoticeFormModal({
           </div>
 
           <div className="sm:col-span-2">
-            <label className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-(--text-dim)">
+            <label
+              htmlFor="notice-tags"
+              className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-(--text-dim)"
+            >
               Tags
             </label>
             <input
+              id="notice-tags"
               value={tagsInput}
               onChange={(event) => setTagsInput(event.target.value)}
               placeholder="exam, routine, 2026"

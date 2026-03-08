@@ -34,6 +34,7 @@ export function NoticeAdminPage({
   priority,
   targetAudience,
   error,
+  canTargetAdmin,
 }: Readonly<{
   items: Notice[];
   meta: PaginationMeta;
@@ -45,6 +46,7 @@ export function NoticeAdminPage({
   priority: Notice["priority"] | "";
   targetAudience: Notice["targetAudience"] | "";
   error: string | null;
+  canTargetAdmin: boolean;
 }>) {
   const router = useRouter();
   const pathname = usePathname();
@@ -378,17 +380,21 @@ export function NoticeAdminPage({
       </div>
 
       <NoticeFormModal
+        key={`create-${createOpen ? "open" : "closed"}`}
         open={createOpen}
         mode="create"
+        canTargetAdmin={canTargetAdmin}
         submitting={saveMutation.isPending || isPending}
         onClose={() => setCreateOpen(false)}
         onSubmit={(input) => saveMutation.mutateAsync({ input })}
       />
 
       <NoticeFormModal
+        key={editNotice?._id ?? "edit-empty"}
         open={Boolean(editNotice)}
         mode="edit"
         notice={editNotice}
+        canTargetAdmin={canTargetAdmin}
         submitting={saveMutation.isPending || isPending}
         onClose={() => setEditNotice(null)}
         onSubmit={(input, noticeId) =>

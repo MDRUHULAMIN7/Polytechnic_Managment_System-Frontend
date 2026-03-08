@@ -6,12 +6,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AlertCircle, IdCard, LoaderCircle, LockKeyhole } from "lucide-react";
 import { loginUser } from "@/lib/api/auth/login";
-import { dashboardPathByRole, parseTokenRole } from "@/utils/auth/login";
-import { setCookie } from "@/utils/common/cookie";
+import { dashboardPathByRole } from "@/utils/auth/login";
 import { showToast } from "@/utils/common/toast";
-
-const ROLE_COOKIE = "pms_role";
-const ACCESS_TOKEN_COOKIE = "pms_access_token";
 
 export function LoginForm() {
   const router = useRouter();
@@ -27,22 +23,15 @@ export function LoginForm() {
     setPending(true);
 
     try {
-      const { accessToken, needsPasswordChange } = await loginUser({
+      const { role, needsPasswordChange } = await loginUser({
         id,
         password,
       });
-
-      const role = parseTokenRole(accessToken);
-      if (!role) {
-        throw new Error("Could not resolve role from access token.");
-      }
 
       const nextPath = needsPasswordChange
         ? "/dashboard/profile"
         : dashboardPathByRole(role);
 
-      setCookie(ROLE_COOKIE, role, 60 * 60 * 24);
-      setCookie(ACCESS_TOKEN_COOKIE, accessToken, 60 * 60);
       showToast({
         variant: "success",
         title: "Login successful",

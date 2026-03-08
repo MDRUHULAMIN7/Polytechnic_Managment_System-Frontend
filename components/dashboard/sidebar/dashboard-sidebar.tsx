@@ -21,7 +21,7 @@ import {
   X
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { removeCookie } from "@/utils/common/cookie";
+import { logoutUser } from "@/lib/api/auth/session";
 import { showToast } from "@/utils/common/toast";
 import { ThemeToggle } from "@/components/common/theme-toggle";
 
@@ -85,11 +85,6 @@ function rootPath(role: DashboardRole | undefined): string {
   if (role === "student") return "/dashboard/student";
   if (role === "instructor") return "/dashboard/instructor";
   return "/dashboard/admin";
-}
-
-function clearSessionCookies() {
-  removeCookie("pms_role");
-  removeCookie("pms_access_token");
 }
 
 function resolveActiveHref(items: SidebarItem[], pathname: string) {
@@ -231,11 +226,20 @@ export function DashboardSidebar({
   const activeHref = resolveActiveHref(items, pathname);
   const profileActive = pathname === "/dashboard/profile";
 
-  function logout() {
-    clearSessionCookies();
-    showToast({ variant: "info", title: "Logged out", description: "You have been signed out." });
-    router.push("/login");
-    router.refresh();
+  async function logout() {
+    try {
+      await logoutUser();
+      showToast({ variant: "info", title: "Logged out", description: "You have been signed out." });
+    } catch (error) {
+      showToast({
+        variant: "error",
+        title: "Logout failed",
+        description: error instanceof Error ? error.message : "Unable to logout.",
+      });
+    } finally {
+      router.push("/login");
+      router.refresh();
+    }
   }
 
   const sidebarContent = (
@@ -328,7 +332,7 @@ export function DashboardSidebar({
           <ThemeToggle />
           <motion.button
             type="button"
-            onClick={logout}
+            onClick={() => void logout()}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.97 }}
             className="group relative flex h-10 min-w-0 flex-1 items-center justify-center gap-2 overflow-hidden rounded-xl text-sm font-medium transition-colors"
