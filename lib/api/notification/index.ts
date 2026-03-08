@@ -1,4 +1,8 @@
-import { API_BASE_URL, ensureApiBaseUrl } from "@/lib/api/dashboard/api";
+import {
+  API_BASE_URL,
+  authHeadersFromCookie,
+  ensureApiBaseUrl,
+} from "@/lib/api/dashboard/api";
 import type { RealtimeNotification } from "@/lib/type/realtime";
 
 type ApiResponse<T> = {
@@ -56,9 +60,9 @@ async function request<T>(
 
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
-    credentials: "include",
     headers: {
       "Content-Type": "application/json",
+      ...authHeadersFromCookie(),
       ...(init?.headers ?? {}),
     },
   });

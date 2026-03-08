@@ -1,5 +1,6 @@
 import {
   API_BASE_URL,
+  authHeadersFromCookie,
   ensureApiBaseUrl,
   parseJsonResponse,
 } from "@/lib/api/dashboard/api";
@@ -86,8 +87,8 @@ export async function changePassword(
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      ...authHeadersFromCookie(),
     },
-    credentials: "include",
     body: JSON.stringify(input),
   });
 

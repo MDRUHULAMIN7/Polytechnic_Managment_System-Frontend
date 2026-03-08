@@ -1,16 +1,11 @@
-import { API_BASE_URL, ensureApiBaseUrl } from "@/lib/api/dashboard/api";
-
 type AuthMutationResponse = {
   success?: boolean;
   message?: string;
 };
 
 export async function logoutUser(): Promise<void> {
-  ensureApiBaseUrl();
-
-  const response = await fetch(`${API_BASE_URL}/auth/logout`, {
+  const response = await fetch("/api/auth/logout", {
     method: "POST",
-    credentials: "include",
   });
 
   const payload = (await response.json()) as AuthMutationResponse;

@@ -5,15 +5,9 @@ import type {
 } from "@/lib/type/auth/login";
 
 export async function loginUser(input: LoginInput): Promise<LoginResult> {
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-  if (!apiBaseUrl) {
-    throw new Error("Missing NEXT_PUBLIC_API_BASE_URL in environment.");
-  }
-
-  const response = await fetch(`${apiBaseUrl}/auth/login`, {
+  const response = await fetch("/api/auth/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    credentials: "include",
     body: JSON.stringify(input)
   });
 

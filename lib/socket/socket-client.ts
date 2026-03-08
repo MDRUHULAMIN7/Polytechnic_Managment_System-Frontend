@@ -1,6 +1,10 @@
 "use client";
 
 import { io, type Socket } from "socket.io-client";
+import {
+  ACCESS_TOKEN_COOKIE,
+  readBrowserCookie,
+} from "@/lib/api/dashboard/api";
 import type { RealtimeConnectionAck, RealtimeNotification } from "@/lib/type/realtime";
 
 type RealtimeSocket = Socket<
@@ -48,6 +52,9 @@ class RealtimeSocketClient {
         reconnectionDelayMax: 5000,
       });
     }
+
+    const accessToken = readBrowserCookie(ACCESS_TOKEN_COOKIE);
+    this.socket.auth = accessToken ? { accessToken } : {};
 
     if (!this.socket.connected) {
       this.socket.connect();
