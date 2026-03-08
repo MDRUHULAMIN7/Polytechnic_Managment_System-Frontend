@@ -11,7 +11,7 @@ const MockNextLink = function Link({
     children,
     href,
     ...props
-  }: React.AnchorHTMLAttributes<HTMLAnchorElement> & {
+  }: Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, "href"> & {
     href: string | { pathname?: string };
   }) {
     const resolvedHref = typeof href === "string" ? href : href.pathname ?? "#";
