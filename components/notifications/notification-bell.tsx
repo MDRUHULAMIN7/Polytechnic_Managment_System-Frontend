@@ -13,6 +13,7 @@ import {
 import { AnimatePresence, motion } from "framer-motion";
 import { useRealtimeNotifications } from "@/components/providers/realtime-provider";
 import type { RealtimeNotification } from "@/lib/type/realtime";
+import { useAnchoredDropdown } from "@/hooks/use-anchored-dropdown";
 
 function formatRelativeTime(value: string) {
   const timestamp = new Date(value).getTime();
@@ -98,13 +99,7 @@ function NotificationDropdown({
   } = useRealtimeNotifications();
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10, scale: 0.98 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: 8, scale: 0.98 }}
-      transition={{ duration: 0.18, ease: "easeOut" }}
-      className="absolute right-0 top-12 z-60 w-[min(92vw,400px)] overflow-hidden rounded-3xl border border-(--line) bg-(--surface) shadow-[0_24px_56px_rgba(15,23,42,0.18)]"
-    >
+    <div>
       <div className="flex items-start justify-between gap-3 border-b border-(--line) px-4 py-4">
         <div>
           <p className="text-sm font-semibold tracking-tight">Notifications</p>
@@ -206,7 +201,7 @@ function NotificationDropdown({
           })
         )}
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -214,6 +209,12 @@ export function NotificationBell() {
   const { unreadCount, isConnected } = useRealtimeNotifications();
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const { anchorRef, dropdownClassName, dropdownStyle } = useAnchoredDropdown({
+    open,
+    maxWidth: 400,
+    desktopClassName:
+      "absolute right-0 top-12 z-[60] w-[min(92vw,400px)] overflow-hidden rounded-3xl border border-(--line) shadow-[0_24px_56px_rgba(15,23,42,0.18)]",
+  });
 
   useEffect(() => {
     function handleClick(event: MouseEvent) {
@@ -237,6 +238,7 @@ export function NotificationBell() {
   return (
     <div ref={containerRef} className="relative">
       <button
+        ref={anchorRef}
         type="button"
         onClick={() => setOpen((current) => !current)}
         className="focus-ring relative inline-flex h-10 w-10 items-center justify-center rounded-xl border border-(--line) bg-(--surface) text-(--text-dim) transition hover:bg-(--surface-muted)"
@@ -257,7 +259,24 @@ export function NotificationBell() {
       </button>
 
       <AnimatePresence>
-        {open ? <NotificationDropdown onClose={() => setOpen(false)} /> : null}
+        {open ? (
+          <motion.div
+            initial={{ opacity: 0, y: 10, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 8, scale: 0.98 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+            className={dropdownClassName}
+            style={dropdownStyle}
+            aria-label="Notifications dropdown"
+          >
+            <div
+              className="overflow-hidden rounded-3xl border border-(--line) shadow-[0_24px_56px_rgba(15,23,42,0.18)]"
+              style={{ backgroundColor: "var(--surface)" }}
+            >
+              <NotificationDropdown onClose={() => setOpen(false)} />
+            </div>
+          </motion.div>
+        ) : null}
       </AnimatePresence>
     </div>
   );

@@ -75,4 +75,34 @@ describe("LoginForm", () => {
       }),
     );
   });
+
+  it("locks the login screen while authentication is pending", async () => {
+    let resolveLogin: ((value: { role: "admin"; needsPasswordChange: false }) => void) | null =
+      null;
+
+    vi.mocked(loginUser).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveLogin = resolve;
+        }),
+    );
+
+    render(<LoginForm />);
+    const user = userEvent.setup();
+
+    await user.type(screen.getByLabelText("User ID"), "A-0001");
+    await user.type(screen.getByLabelText("Password"), "secret");
+    await user.click(screen.getByRole("button", { name: "Login" }));
+
+    expect(await screen.findByRole("status", { name: "Signing in" })).toBeInTheDocument();
+    expect(screen.getByLabelText("User ID")).toBeDisabled();
+    expect(screen.getByLabelText("Password")).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Signing in..." })).toBeDisabled();
+
+    resolveLogin?.({ role: "admin", needsPasswordChange: false });
+
+    await waitFor(() => {
+      expect(pushMock).toHaveBeenCalledWith("/dashboard/admin");
+    });
+  });
 });

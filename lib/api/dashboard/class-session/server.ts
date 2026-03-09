@@ -43,6 +43,7 @@ async function fetchJson<T>(
   path: string,
   fallbackMessage: string,
   tags: string[],
+  revalidate?: number,
 ) {
   ensureApiBaseUrl();
   const serverAuthHeaders = await getServerAuthHeaders();
@@ -51,7 +52,10 @@ async function fetchJson<T>(
       "Content-Type": "application/json",
       ...serverAuthHeaders,
     },
-    next: { tags },
+    next: {
+      tags,
+      ...(revalidate ? { revalidate } : {}),
+    },
   });
 
   const payload = await parseJsonResponse<ApiResponse<T>>(response, fallbackMessage);
@@ -186,6 +190,7 @@ export async function getDashboardSummaryServer() {
     "/class-sessions/dashboard-summary",
     "Failed to load dashboard summary.",
     [CLASS_DASHBOARD_TAG],
+    60,
   );
 }
 

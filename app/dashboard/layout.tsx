@@ -22,5 +22,9 @@ export default async function DashboardLayout({
   const cookieStore = await cookies();
   const role = parseRole(cookieStore.get("pms_role")?.value);
 
-  return <DashboardShell role={role}>{children}</DashboardShell>;
+  return (
+    <DashboardShell role={role}>
+      {children}
+    </DashboardShell>
+  );
 }

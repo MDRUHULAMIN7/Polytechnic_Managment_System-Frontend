@@ -239,7 +239,6 @@ export function StudentFormModal({
       onSaved();
       onClose();
     } catch (error) {
-      console.log(error)
       showToast({
         variant: "error",
         title: "Action failed",

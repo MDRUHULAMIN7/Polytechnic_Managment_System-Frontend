@@ -230,7 +230,6 @@ export async function createInstructorServer(
       ?.map((source) => source.message)
       .filter((message): message is string => Boolean(message))
       .join(", ");
-      console.log(errorMessage);
     throw new Error(
       errorMessage || payloadResult.message || "Failed to create instructor.",
     );

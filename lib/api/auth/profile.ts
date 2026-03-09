@@ -35,3 +35,26 @@ export async function updateCurrentUserProfile(
 
   return payload.data;
 }
+
+export async function getCurrentUserProfile(): Promise<CurrentUserProfile> {
+  ensureApiBaseUrl();
+
+  const response = await fetch(`${API_BASE_URL}/users/me`, {
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeadersFromCookie(),
+    },
+    credentials: "include",
+  });
+
+  const payload = await parseJsonResponse<CurrentUserProfileResponse>(
+    response,
+    "Failed to load profile.",
+  );
+
+  if (!response.ok || !payload.success || !payload.data) {
+    throw new Error(payload.message || "Failed to load profile.");
+  }
+
+  return payload.data;
+}

@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { getLatestNotices } from "@/lib/api/notice";
 import type { Notice } from "@/lib/type/notice";
 import { NoticePriorityBadge } from "@/components/notice/notice-badges";
+import { useAnchoredDropdown } from "@/hooks/use-anchored-dropdown";
 
 export function RootNoticeDropdown() {
   const [open, setOpen] = useState(false);
@@ -14,6 +15,13 @@ export function RootNoticeDropdown() {
   const [error, setError] = useState<string | null>(null);
   const [hasLoaded, setHasLoaded] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const { anchorRef, dropdownClassName, dropdownStyle } = useAnchoredDropdown({
+    open,
+    maxWidth: 440,
+    desktopClassName:
+      "absolute right-0 top-14 z-[50] w-[min(92vw,440px)] shadow-[0_28px_60px_rgba(15,23,42,0.16)]",
+    mobileClassName: "fixed z-[60]",
+  });
 
   useEffect(() => {
     function handleClick(event: MouseEvent) {
@@ -60,6 +68,7 @@ export function RootNoticeDropdown() {
   return (
     <div ref={containerRef} className="relative">
       <button
+        ref={anchorRef}
         type="button"
         onClick={handleToggle}
         className="focus-ring inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white/85 px-4 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 dark:border-(--line) dark:bg-(--surface) dark:text-(--text-dim) dark:hover:bg-(--surface-muted)"
@@ -76,11 +85,16 @@ export function RootNoticeDropdown() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.98 }}
             transition={{ duration: 0.18, ease: "easeOut" }}
-            className="absolute right-0 top-14 z-50 w-[min(92vw,440px)] overflow-hidden rounded-xl border border-slate-200/80 bg-white/95 shadow-[0_28px_60px_rgba(15,23,42,0.16)] dark:border-(--line) dark:bg-(--surface)"
+            className={dropdownClassName}
+            style={dropdownStyle}
           >
-            <div className=" px-4 py-4 dark:border-(--line) ">
+            <div
+              className="overflow-hidden rounded-xl border border-slate-200 dark:border-(--line)"
+              style={{ backgroundColor: "var(--surface)" }}
+            >
+            <div className="px-4 py-4">
               <div>
-                <p className=" font-semibold tracking-tight">Latest Notices</p>
+                <p className="font-semibold tracking-tight">Latest Notices</p>
               </div>
             </div>
 
@@ -110,7 +124,8 @@ export function RootNoticeDropdown() {
                     key={notice._id}
                     initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="rounded-lg border border-slate-200/80 bg-white/88 px-4 py-3 transition hover:bg-slate-50 dark:border-(--line) dark:bg-(--surface) dark:hover:bg-(--surface-muted)"
+                    className="rounded-lg border border-slate-200 px-4 py-3 transition hover:bg-slate-50 dark:border-(--line) dark:hover:bg-(--surface-muted)"
+                    style={{ backgroundColor: "var(--surface)" }}
                   >
                     <Link
                       href={`/notices/${notice._id}`}
@@ -145,6 +160,7 @@ export function RootNoticeDropdown() {
               >
                 All Notices
               </Link>
+            </div>
             </div>
           </motion.div>
         ) : null}

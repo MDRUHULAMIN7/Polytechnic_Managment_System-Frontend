@@ -53,7 +53,7 @@ export async function getStudent(id: string): Promise<Student> {
   if (!response.ok || !payload.success || !payload.data) {
     throw new Error(payload.message || "Failed to load student.");
   }
- console.log(payload)
+
   return payload.data;
 }
 

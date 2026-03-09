@@ -9,7 +9,7 @@ function isPrivilegedRole(role: string | undefined) {
   );
 }
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const role = request.cookies.get("pms_role")?.value;
   const privileged = isPrivilegedRole(role);
