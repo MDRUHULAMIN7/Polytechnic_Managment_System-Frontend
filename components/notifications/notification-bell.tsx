@@ -133,7 +133,7 @@ function NotificationDropdown({
         </div>
       </div>
 
-      <div className="max-h-112 space-y-2 overflow-y-auto px-3 py-3">
+      <div className="max-h-[min(28rem,calc(100vh-11rem))] space-y-2 overflow-y-auto px-3 py-3">
         {notifications.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-(--line) bg-(--surface-muted) px-4 py-8 text-center text-sm text-(--text-dim)">
             No notifications yet.
@@ -209,12 +209,13 @@ export function NotificationBell() {
   const { unreadCount, isConnected } = useRealtimeNotifications();
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const { anchorRef, dropdownClassName, dropdownStyle } = useAnchoredDropdown({
+  const { anchorRef, dropdownClassName, dropdownRef, dropdownStyle } =
+    useAnchoredDropdown({
     open,
     maxWidth: 400,
     desktopClassName:
-      "absolute right-0 top-12 z-[60] w-[min(92vw,400px)] overflow-hidden rounded-3xl border border-(--line) shadow-[0_24px_56px_rgba(15,23,42,0.18)]",
-  });
+      "absolute right-0 top-[calc(100%+0.75rem)] z-[90] w-[min(92vw,400px)] overflow-hidden rounded-3xl border border-(--line) shadow-[0_24px_56px_rgba(15,23,42,0.18)]",
+    });
 
   useEffect(() => {
     function handleClick(event: MouseEvent) {
@@ -241,7 +242,10 @@ export function NotificationBell() {
         ref={anchorRef}
         type="button"
         onClick={() => setOpen((current) => !current)}
-        className="focus-ring relative inline-flex h-10 w-10 items-center justify-center rounded-xl border border-(--line) bg-(--surface) text-(--text-dim) transition hover:bg-(--surface-muted)"
+        aria-expanded={open}
+        className={`focus-ring relative inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-(--line)/80 bg-(--surface)/76 text-(--text-dim) shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] backdrop-blur-sm transition hover:bg-(--surface-muted) ${
+          open ? "shadow-[0_12px_28px_rgba(15,23,42,0.14)]" : ""
+        }`}
         aria-label="Open notifications"
         title="Notifications"
       >
@@ -261,6 +265,7 @@ export function NotificationBell() {
       <AnimatePresence>
         {open ? (
           <motion.div
+            ref={dropdownRef}
             initial={{ opacity: 0, y: 10, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.98 }}
@@ -269,10 +274,7 @@ export function NotificationBell() {
             style={dropdownStyle}
             aria-label="Notifications dropdown"
           >
-            <div
-              className="overflow-hidden rounded-3xl border border-(--line) shadow-[0_24px_56px_rgba(15,23,42,0.18)]"
-              style={{ backgroundColor: "var(--surface)" }}
-            >
+            <div className="max-h-full overflow-hidden rounded-3xl border border-(--line)/80 bg-(--surface)/96 shadow-[0_24px_56px_rgba(15,23,42,0.18)] backdrop-blur-xl">
               <NotificationDropdown onClose={() => setOpen(false)} />
             </div>
           </motion.div>

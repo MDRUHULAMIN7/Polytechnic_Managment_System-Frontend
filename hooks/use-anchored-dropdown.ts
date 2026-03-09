@@ -5,6 +5,8 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 const MOBILE_BREAKPOINT = 640;
 const VIEWPORT_MARGIN = 16;
 const VERTICAL_OFFSET = 12;
+const MIN_DROPDOWN_WIDTH = 280;
+const MIN_DROPDOWN_HEIGHT = 220;
 
 type UseAnchoredDropdownOptions = {
   open: boolean;
@@ -20,6 +22,7 @@ export function useAnchoredDropdown({
   mobileClassName = "fixed z-[70]",
 }: UseAnchoredDropdownOptions) {
   const anchorRef = useRef<HTMLButtonElement | null>(null);
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
   const [mobileStyle, setMobileStyle] = useState<CSSProperties>();
 
   useEffect(() => {
@@ -40,18 +43,62 @@ export function useAnchoredDropdown({
       const rect = anchorRef.current.getBoundingClientRect();
       const width = Math.min(
         maxWidth,
-        Math.max(window.innerWidth - VIEWPORT_MARGIN * 2, 280),
+        Math.max(window.innerWidth - VIEWPORT_MARGIN * 2, MIN_DROPDOWN_WIDTH),
       );
       const idealLeft = rect.left + rect.width / 2 - width / 2;
       const left = Math.min(
         Math.max(VIEWPORT_MARGIN, idealLeft),
         window.innerWidth - width - VIEWPORT_MARGIN,
       );
+      const measuredHeight =
+        dropdownRef.current?.getBoundingClientRect().height ?? MIN_DROPDOWN_HEIGHT;
+      const cappedHeight = Math.min(
+        measuredHeight,
+        window.innerHeight - VIEWPORT_MARGIN * 2,
+      );
+      const availableBelow = window.innerHeight - rect.bottom - VIEWPORT_MARGIN;
+      const availableAbove = rect.top - VIEWPORT_MARGIN;
+      const shouldOpenAbove =
+        availableBelow < cappedHeight && availableAbove > availableBelow;
+
+      if (shouldOpenAbove) {
+        const maxHeight = Math.min(
+          cappedHeight,
+          Math.max(160, availableAbove - VERTICAL_OFFSET),
+        );
+        const top = Math.max(
+          VIEWPORT_MARGIN,
+          rect.top - VERTICAL_OFFSET - maxHeight,
+        );
+
+        setMobileStyle({
+          top,
+          left,
+          width,
+          maxHeight,
+          overflowY: "auto",
+        });
+        return;
+      }
+
+      const top = Math.max(
+        VIEWPORT_MARGIN,
+        Math.min(
+          rect.bottom + VERTICAL_OFFSET,
+          window.innerHeight - VIEWPORT_MARGIN - cappedHeight,
+        ),
+      );
+      const maxHeight = Math.max(
+        160,
+        window.innerHeight - top - VIEWPORT_MARGIN,
+      );
 
       setMobileStyle({
-        top: rect.bottom + VERTICAL_OFFSET,
+        top,
         left,
         width,
+        maxHeight,
+        overflowY: "auto",
       });
     }
 
@@ -73,6 +120,7 @@ export function useAnchoredDropdown({
 
   return {
     anchorRef,
+    dropdownRef,
     dropdownClassName: shouldUseMobilePosition
       ? mobileClassName
       : desktopClassName,
