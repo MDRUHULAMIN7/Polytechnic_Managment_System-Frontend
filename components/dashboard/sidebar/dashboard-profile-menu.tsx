@@ -2,13 +2,14 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   BellOff,
   BellRing,
   ChevronDown,
+  House,
   LayoutDashboard,
   LogOut,
   UserRound,
@@ -59,30 +60,11 @@ function resolveDashboardHref(profile: CurrentUserProfile | null) {
   return "/dashboard/admin";
 }
 
-function resolveRoleLabel(profile: CurrentUserProfile | null) {
-  const role = profile?.role ?? profile?.user?.role;
 
-  if (role === "superAdmin") {
-    return "Super Admin";
-  }
-
-  if (role === "admin") {
-    return "Admin";
-  }
-
-  if (role === "instructor") {
-    return "Instructor";
-  }
-
-  if (role === "student") {
-    return "Student";
-  }
-
-  return "Account";
-}
 
 export function DashboardProfileMenu() {
   const router = useRouter();
+  const pathname = usePathname();
   const { notificationSoundLevel, setNotificationSoundLevel } =
     useRealtimeNotifications();
   const [open, setOpen] = useState(false);
@@ -93,7 +75,6 @@ export function DashboardProfileMenu() {
   const email = useMemo(() => resolveEmail(profile), [profile]);
   const initials = useMemo(() => resolveInitials(displayName), [displayName]);
   const dashboardHref = useMemo(() => resolveDashboardHref(profile), [profile]);
-  const roleLabel = useMemo(() => resolveRoleLabel(profile), [profile]);
   const imageSrc =
     !avatarFailed && profile?.profileImg?.trim() ? profile.profileImg.trim() : null;
   const { anchorRef, dropdownClassName, dropdownRef, dropdownStyle } =
@@ -101,7 +82,8 @@ export function DashboardProfileMenu() {
     open,
     maxWidth: 320,
     desktopClassName:
-      "absolute right-0 top-[calc(100%+0.75rem)] z-[90] w-[min(92vw,320px)] overflow-hidden rounded-3xl border border-(--line) bg-(--surface) shadow-[0_24px_56px_rgba(15,23,42,0.18)]",
+      "absolute right-0 top-[calc(100%+0.75rem)] z-[90] w-[min(82vw,320px)] overflow-hidden rounded-3xl border border-(--line) bg-(--surface) shadow-[0_24px_56px_rgba(15,23,42,0.18)]",
+    mobileAlign: "end",
     });
 
   useEffect(() => {
@@ -157,6 +139,7 @@ export function DashboardProfileMenu() {
   }
 
   const soundMuted = notificationSoundLevel === "mute";
+  const onDashboard = pathname?.startsWith("/dashboard") ?? false;
 
   return (
     <div ref={containerRef} className="relative">
@@ -185,9 +168,7 @@ export function DashboardProfileMenu() {
             </span>
           )}
         </span>
-        <span className="hidden max-w-32 truncate text-sm font-semibold sm:block">
-          {displayName}
-        </span>
+        
         <ChevronDown
           size={16}
           className={`text-(--text-dim) transition ${open ? "rotate-180" : ""}`}
@@ -229,9 +210,7 @@ export function DashboardProfileMenu() {
                       {displayName}
                     </p>
                     <p className="mt-1 truncate text-xs text-(--text-dim)">{email}</p>
-                    <span className="mt-2 inline-flex rounded-full border border-(--line)/80 bg-(--surface-muted)/80 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-(--text-dim)">
-                      {roleLabel}
-                    </span>
+
                   </div>
                 </div>
               </div>
@@ -239,12 +218,16 @@ export function DashboardProfileMenu() {
               <div className="space-y-3 px-3 py-3">
                 <div className="grid grid-cols-2 gap-2">
                   <Link
-                    href={dashboardHref}
+                    href={onDashboard ? "/" : dashboardHref}
                     onClick={() => setOpen(false)}
                     className="focus-ring flex items-center gap-2 rounded-2xl border border-(--line)/80 bg-(--surface-muted)/70 px-3 py-3 text-sm font-medium transition hover:bg-(--surface-muted)"
                   >
-                    <LayoutDashboard size={16} className="text-(--accent)" />
-                    <span>Dashboard</span>
+                    {onDashboard ? (
+                      <House size={16} className="text-(--accent)" />
+                    ) : (
+                      <LayoutDashboard size={16} className="text-(--accent)" />
+                    )}
+                    <span>{onDashboard ? "Home" : "Dashboard"}</span>
                   </Link>
 
                   <Link

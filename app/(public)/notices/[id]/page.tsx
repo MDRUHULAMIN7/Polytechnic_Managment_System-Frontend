@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
-import { RootNavbar } from "@/components/common/root-navbar";
 import { NoticeDetailPage } from "@/components/notice/notice-detail-page";
 
 export const metadata: Metadata = {
@@ -20,7 +19,6 @@ export default async function NoticeDetailsRoute({ params }: PageProps) {
 
   return (
     <main className="min-h-screen bg-(--bg) text-(--text)">
-      <RootNavbar />
       <NoticeDetailPage
         noticeId={decodeURIComponent(resolvedParams.id ?? "")}
         isAuthenticated={isAuthenticated}

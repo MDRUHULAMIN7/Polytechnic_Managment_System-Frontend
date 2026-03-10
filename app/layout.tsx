@@ -102,6 +102,7 @@ export default async function RootLayout({
         className={`${headingFont.variable} ${bodyFont.variable} antialiased`}
       >
         <QueryProvider>
+          
           {children}
           <ToastRegion />
         </QueryProvider>

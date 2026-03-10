@@ -29,6 +29,7 @@ export function RootNoticeDropdown({
     desktopClassName:
       "absolute right-0 top-[calc(100%+0.75rem)] z-[90] w-[min(92vw,440px)] shadow-[0_28px_60px_rgba(15,23,42,0.16)]",
     mobileClassName: "fixed z-[90]",
+    mobileAlign: "end",
     });
 
   useEffect(() => {

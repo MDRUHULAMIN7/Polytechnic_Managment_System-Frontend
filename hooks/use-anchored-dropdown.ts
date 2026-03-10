@@ -13,6 +13,7 @@ type UseAnchoredDropdownOptions = {
   maxWidth: number;
   desktopClassName: string;
   mobileClassName?: string;
+  mobileAlign?: "start" | "center" | "end";
 };
 
 export function useAnchoredDropdown({
@@ -20,6 +21,7 @@ export function useAnchoredDropdown({
   maxWidth,
   desktopClassName,
   mobileClassName = "fixed z-[70]",
+  mobileAlign = "center",
 }: UseAnchoredDropdownOptions) {
   const anchorRef = useRef<HTMLButtonElement | null>(null);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
@@ -45,7 +47,12 @@ export function useAnchoredDropdown({
         maxWidth,
         Math.max(window.innerWidth - VIEWPORT_MARGIN * 2, MIN_DROPDOWN_WIDTH),
       );
-      const idealLeft = rect.left + rect.width / 2 - width / 2;
+      const idealLeft =
+        mobileAlign === "start"
+          ? rect.left
+          : mobileAlign === "end"
+            ? rect.right - width
+            : rect.left + rect.width / 2 - width / 2;
       const left = Math.min(
         Math.max(VIEWPORT_MARGIN, idealLeft),
         window.innerWidth - width - VIEWPORT_MARGIN,

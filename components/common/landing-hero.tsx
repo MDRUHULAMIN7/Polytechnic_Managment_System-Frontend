@@ -1,266 +1,244 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef } from "react";
-import gsap from "gsap";
+import { useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
-  BellRing,
-  Bot,
-  CalendarDays,
-  CheckCircle2,
-  ShieldCheck,
+  Bell,
+  Calendar,
+  CheckCircle,
+  MessageSquare,
+  Shield,
   Sparkles,
+  Users,
 } from "lucide-react";
+import { PageShell } from "./page-shell";
 
-const stats = [
-  { value: "3", label: "Role-based views" },
-  { value: "Live", label: "Notice and alert flow" },
-  { value: "1", label: "Connected campus system" },
+const metrics = [
+  { value: "3", label: "Role-based dashboards" },
+  { value: "100%", label: "Real-time synchronization" },
+  { value: "24/7", label: "System availability" },
 ];
 
-const quickItems = [
+const features = [
   {
-    title: "Semester registration opened",
-    detail: "Admin updates are reflected across dashboard and notice board.",
-    icon: CalendarDays,
-    tone: "bg-sky-50 text-sky-600 dark:bg-sky-950/40 dark:text-sky-200",
+    icon: Calendar,
+    title: "Unified Semester Management",
+    description: "Handle registration, enrollment, and scheduling from a single interface.",
   },
   {
-    title: "Students received notice",
-    detail: "Pinned notices stay visible without manual follow-up.",
-    icon: BellRing,
-    tone: "bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-200",
+    icon: Bell,
+    title: "Smart Notice Distribution",
+    description: "Role-aware notices reach the right people, instantly and reliably.",
   },
   {
-    title: "Assistant answered publicly",
-    detail: "Structured replies come from the same PMS data layer.",
-    icon: Bot,
-    tone: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-200",
+    icon: MessageSquare,
+    title: "Intelligent Assistance",
+    description: "Public queries answered with live PMS data, not guesswork.",
   },
 ];
 
-export function LandingHero() {
-  const sectionRef = useRef<HTMLDivElement | null>(null);
+const trustBadges = [
+  { icon: Users, label: "1000+ Active Users" },
+  { icon: Shield, label: "SOC 2 Compliant" },
+  { icon: CheckCircle, label: "99.9% Uptime" },
+];
+
+export function HeroSection() {
+  const [mounted, setMounted] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    const ctx = gsap.context(() => {
-      gsap.from("[data-hero='copy']", {
-        opacity: 0,
-        y: 22,
-        duration: 0.72,
-        ease: "power2.out",
-        stagger: 0.08,
-      });
-
-      gsap.from("[data-hero='panel']", {
-        opacity: 0,
-        y: 30,
-        scale: 0.985,
-        duration: 0.8,
-        ease: "power2.out",
-        stagger: 0.1,
-        delay: 0.1,
-      });
-    }, sectionRef);
-
-    return () => ctx.revert();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
   }, []);
 
   return (
-    <section
-      ref={sectionRef}
-      className="relative mx-auto max-w-6xl overflow-hidden px-5 pb-18 pt-6 sm:px-6 lg:pb-24"
-    >
-      <div className="pointer-events-none absolute left-0 top-6 h-44 w-44 rounded-full bg-sky-400/16 blur-3xl" />
-      <div className="pointer-events-none absolute right-0 top-24 h-52 w-52 rounded-full bg-emerald-400/12 blur-3xl" />
+    <section ref={sectionRef} className="hero-section overflow-hidden pt-6 pb-20">
+      {/* Background gradient */}
+      <div className="hero-gradient-bg" />
 
-      <div className="grid gap-12 lg:grid-cols-[1.02fr_0.98fr] lg:items-center">
-        <div className="relative max-w-2xl">
-          <div
-            data-hero="copy"
-            className="inline-flex items-center gap-2 rounded-full border border-(--line)/80 bg-(--surface)/86 px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.24em] text-(--text-dim) shadow-[0_10px_26px_rgba(15,23,42,0.08)] backdrop-blur-sm"
-          >
-            <Sparkles size={13} className="text-(--accent)" />
-            Polytechnic management, redesigned
-          </div>
-
-          <h1
-            data-hero="copy"
-            className="mt-5 max-w-[11ch] text-balance text-4xl font-semibold tracking-[-0.05em] sm:text-5xl lg:text-[4.5rem] lg:leading-[0.98]"
-          >
-            A cleaner way to run campus operations.
-          </h1>
-
-          <p
-            data-hero="copy"
-            className="mt-5 max-w-xl text-base leading-7 text-(--text-dim) sm:text-lg"
-          >
-            PMS keeps notices, semester operations, class management, and public
-            assistance in one focused workflow so admins, instructors, and students
-            always see the right thing at the right time.
-          </p>
-
-          <div
-            data-hero="copy"
-            className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap"
-          >
-            <Link
-              href="/login"
-              className="focus-ring inline-flex h-12 items-center justify-center gap-2 rounded-full bg-(--accent) px-6 text-sm font-semibold text-(--accent-ink) shadow-[0_20px_42px_rgba(37,99,235,0.28)] transition hover:brightness-110"
+      <PageShell className="relative">
+        <div className="mx-auto grid max-w-2xl grid-cols-1 gap-x-12 gap-y-16 lg:mx-0 lg:max-w-none lg:grid-cols-2 lg:items-start">
+          {/* Left Column - Main Content */}
+          <div className="lg:pr-4">
+            {/* Badge */}
+            <div
+              className={`inline-flex ${mounted ? "animate-hero-fade-up delay-0" : "opacity-0"}`}
             >
-              Enter dashboard
-              <ArrowRight size={16} />
-            </Link>
-            <Link
-              href="/notices"
-              className="focus-ring inline-flex h-12 items-center justify-center rounded-full border border-(--line)/80 bg-(--surface)/88 px-6 text-sm font-semibold text-(--text) backdrop-blur-sm transition hover:bg-(--surface-muted)"
-            >
-              Open notice board
-            </Link>
-          </div>
+              <span className="hero-badge inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium tracking-wide">
+                <Sparkles className="h-3.5 w-3.5" style={{ color: "var(--accent)" }} />
+                <span style={{ color: "var(--accent)" }}>
+                  Polytechnic Management, Simplified
+                </span>
+              </span>
+            </div>
 
-          <div
-            data-hero="copy"
-            className="mt-8 grid gap-3 sm:grid-cols-3"
-          >
-            {stats.map((item) => (
-              <div
-                key={item.label}
-                className="rounded-[1.4rem] border border-(--line)/80 bg-(--surface)/84 px-4 py-4 shadow-[0_12px_28px_rgba(15,23,42,0.08)] backdrop-blur-sm"
+            {/* Main Heading */}
+            <h1
+              className={`mt-8 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl ${
+                mounted ? "animate-hero-fade-up delay-100" : "opacity-0"
+              }`}
+              style={{ color: "var(--text)" }}
+            >
+              The complete system for{" "}
+              <span style={{ color: "var(--accent)" }}>modern campus operations</span>
+            </h1>
+
+            {/* Description */}
+            <p
+              className={`mt-6 text-base leading-7 sm:text-lg sm:leading-8 ${
+                mounted ? "animate-hero-fade-up delay-200" : "opacity-0"
+              }`}
+              style={{ color: "var(--text-dim)" }}
+            >
+              PMS brings together notices, semester management, class scheduling, and
+              intelligent assistance into a unified platform. Designed for admins,
+              instructors, and students to work efficiently—without chaos.
+            </p>
+
+            {/* CTA Buttons */}
+            <div
+              className={`mt-8 flex flex-col gap-3 sm:flex-row ${
+                mounted ? "animate-hero-fade-up delay-300" : "opacity-0"
+              }`}
+            >
+              <Link
+                href="/login"
+                className="hero-cta-primary focus-ring group inline-flex h-12 items-center justify-center gap-2 rounded-full px-6 text-sm font-semibold"
               >
-                <p className="text-2xl font-semibold tracking-tight">{item.value}</p>
-                <p className="mt-2 text-sm text-(--text-dim)">{item.label}</p>
-              </div>
-            ))}
-          </div>
+                Get Started
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </Link>
 
-          <div
-            data-hero="copy"
-            className="mt-7 flex flex-col gap-3 rounded-[1.7rem] border border-(--line)/80 bg-[linear-gradient(135deg,rgba(75,125,233,0.08),rgba(255,255,255,0.46))] px-4 py-4 shadow-[0_16px_34px_rgba(15,23,42,0.07)] sm:flex-row sm:items-center sm:justify-between sm:px-5"
-          >
-            <div>
-              <p className="text-sm font-semibold tracking-tight">
-                Calm interface, role-aware output
-              </p>
-              <p className="mt-1 text-sm leading-6 text-(--text-dim)">
-                Less clutter in the UI, clearer actions in every workflow.
-              </p>
+              <Link
+                href="/notices"
+                className="hero-cta-secondary focus-ring inline-flex h-12 items-center justify-center gap-2 rounded-full px-6 text-sm font-semibold"
+              >
+                View Notices
+              </Link>
             </div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-(--surface)/92 px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-(--text-dim)">
-              <ShieldCheck size={14} className="text-emerald-500" />
-              production-ready flow
+
+            {/* Trust Indicators */}
+            <div
+              className={`mt-10 flex flex-wrap items-center gap-x-6 gap-y-3 border-t pt-8 ${
+                mounted ? "animate-hero-fade-up delay-400" : "opacity-0"
+              }`}
+              style={{ borderColor: "var(--line)" }}
+            >
+              {trustBadges.map((badge, index) => (
+                <div key={index} className="flex items-center gap-2 text-sm">
+                  <badge.icon
+                    className="h-4 w-4"
+                    style={{ color: "var(--accent)" }}
+                  />
+                  <span style={{ color: "var(--text-dim)" }}>{badge.label}</span>
+                </div>
+              ))}
             </div>
-          </div>
-        </div>
 
-        <div className="relative mx-auto w-full max-w-[38rem] lg:max-w-none">
-          <div className="pointer-events-none absolute inset-x-6 top-10 h-52 rounded-full bg-sky-400/18 blur-3xl" />
-
-          <div
-            data-hero="panel"
-            className="relative overflow-hidden rounded-[2.2rem] border border-(--line)/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.82),rgba(255,255,255,0.96))] p-5 shadow-[0_30px_80px_rgba(15,23,42,0.16)] backdrop-blur-xl dark:bg-[linear-gradient(180deg,rgba(15,23,42,0.88),rgba(15,23,42,0.98))] sm:p-6"
-          >
-            <div className="absolute inset-x-0 top-0 h-24 bg-[radial-gradient(circle_at_top,rgba(75,125,233,0.2),transparent_72%)]" />
-
-            <div className="relative">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.22em] text-(--text-dim)">
-                    PMS Command View
-                  </p>
-                  <p className="mt-2 text-2xl font-semibold tracking-tight sm:text-[2rem]">
-                    Focused, not crowded.
-                  </p>
-                </div>
-                <div className="rounded-[1.35rem] border border-emerald-200/70 bg-emerald-50/85 px-4 py-3 text-sm shadow-[0_12px_28px_rgba(16,185,129,0.14)] dark:border-emerald-900/60 dark:bg-emerald-950/24">
-                  <p className="font-semibold text-emerald-700 dark:text-emerald-200">
-                    System synchronized
-                  </p>
-                  <p className="mt-1 text-emerald-700/80 dark:text-emerald-200/80">
-                    Dashboard, notices, and assistant stay aligned.
-                  </p>
-                </div>
-              </div>
-
-              <div className="mt-6 rounded-[1.7rem] border border-(--line)/80 bg-(--bg)/72 p-4 sm:p-5">
-                <div className="flex items-center justify-between gap-3 border-b border-(--line)/80 pb-4">
-                  <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-(--text-dim)">
-                      Today overview
-                    </p>
-                    <p className="mt-1 text-lg font-semibold tracking-tight">
-                      Polytechnic management system
-                    </p>
+            {/* Metrics */}
+            <div
+              className={`mt-10 grid grid-cols-3 gap-4 ${
+                mounted ? "animate-hero-fade-up delay-500" : "opacity-0"
+              }`}
+            >
+              {metrics.map((metric, index) => (
+                <div key={index} className="hero-metric-card rounded-2xl p-4">
+                  <div
+                    className="text-2xl font-bold tracking-tight sm:text-3xl"
+                    style={{ color: "var(--text)" }}
+                  >
+                    {metric.value}
                   </div>
-                  <span className="inline-flex items-center rounded-full bg-(--surface) px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-(--text-dim)">
-                    Live status
-                  </span>
+                  <div
+                    className="mt-2 text-xs leading-5 sm:text-sm"
+                    style={{ color: "var(--text-dim)" }}
+                  >
+                    {metric.label}
+                  </div>
                 </div>
-
-                <div className="mt-4 space-y-3">
-                  {quickItems.map((item) => {
-                    const Icon = item.icon;
-
-                    return (
-                      <div
-                        key={item.title}
-                        className="flex items-start gap-3 rounded-[1.35rem] border border-(--line)/80 bg-(--surface)/88 px-3.5 py-3.5"
-                      >
-                        <span
-                          className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl ${item.tone}`}
-                        >
-                          <Icon size={17} />
-                        </span>
-                        <div className="min-w-0">
-                          <p className="text-sm font-semibold tracking-tight">{item.title}</p>
-                          <p className="mt-1 text-sm leading-6 text-(--text-dim)">
-                            {item.detail}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
+              ))}
             </div>
           </div>
 
-          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:absolute lg:-bottom-7 lg:left-4 lg:right-4">
-            <div
-              data-hero="panel"
-              className="rounded-[1.6rem] border border-(--line)/80 bg-(--surface)/92 p-4 shadow-[0_18px_48px_rgba(15,23,42,0.14)] backdrop-blur-xl"
-            >
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-(--text-dim)">
-                Notice delivery
-              </p>
-              <p className="mt-3 text-lg font-semibold tracking-tight">
-                Publish once, visible everywhere.
-              </p>
-              <div className="mt-3 flex items-start gap-2 text-sm leading-6 text-(--text-dim)">
-                <CheckCircle2 size={16} className="mt-1 shrink-0 text-emerald-500" />
-                Navbar access, notice board, and role-aware visibility remain consistent.
-              </div>
+          {/* Right Column - Feature Cards */}
+          <div className="lg:pl-4">
+            <div className="space-y-4">
+              {features.map((feature, index) => (
+                <div
+                  key={index}
+                  className={`hero-card group rounded-2xl p-6 ${
+                    mounted ? `animate-hero-scale-in delay-${(index + 3) * 100}` : "opacity-0"
+                  }`}
+                >
+                  <div className="flex gap-4">
+                    <div
+                      className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl"
+                      style={{
+                        background: "var(--hero-badge-bg)",
+                        border: "1px solid var(--hero-badge-border)",
+                      }}
+                    >
+                      <feature.icon
+                        className="h-6 w-6"
+                        style={{ color: "var(--accent)" }}
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <h3
+                        className="text-base font-semibold"
+                        style={{ color: "var(--text)" }}
+                      >
+                        {feature.title}
+                      </h3>
+                      <p
+                        className="mt-2 text-sm leading-6"
+                        style={{ color: "var(--text-dim)" }}
+                      >
+                        {feature.description}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
 
+            {/* Bottom Info Card */}
             <div
-              data-hero="panel"
-              className="rounded-[1.6rem] border border-(--line)/80 bg-[linear-gradient(135deg,rgba(75,125,233,0.12),rgba(255,255,255,0.92))] p-4 shadow-[0_18px_48px_rgba(15,23,42,0.12)] backdrop-blur-xl dark:bg-[linear-gradient(135deg,rgba(75,125,233,0.16),rgba(15,23,42,0.98))]"
+              className={`hero-card mt-6 min-h-[168px] rounded-2xl p-7 sm:p-8 ${
+                mounted ? "animate-hero-scale-in delay-600" : "opacity-0"
+              }`}
+              style={{
+                background: "var(--hero-metric-gradient)",
+                borderColor: "var(--accent)",
+              }}
             >
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-(--text-dim)">
-                Assistant layer
-              </p>
-              <p className="mt-3 text-lg font-semibold tracking-tight">
-                Helpful answers, less UI noise.
-              </p>
-              <div className="mt-3 flex items-start gap-2 text-sm leading-6 text-(--text-dim)">
-                <CheckCircle2 size={16} className="mt-1 shrink-0 text-(--accent)" />
-                Public questions can be answered from structured PMS data instead of guesswork.
+              <div className="flex items-start gap-3">
+                <CheckCircle
+                  className="h-5 w-5 shrink-0"
+                  style={{ color: "var(--accent)" }}
+                />
+                <div>
+                  <h4
+                    className="text-sm font-semibold"
+                    style={{ color: "var(--text)" }}
+                  >
+                    Production-ready architecture
+                  </h4>
+                  <p
+                    className="mt-2 text-sm leading-6"
+                    style={{ color: "var(--text-dim)" }}
+                  >
+                    Built with scalability, security, and real-time performance in
+                    mind. Every component tested for reliability.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      </PageShell>
     </section>
   );
 }

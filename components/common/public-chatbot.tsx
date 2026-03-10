@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from "framer-motion";
 import {
   Bot,
   LoaderCircle,
@@ -103,6 +103,7 @@ export function PublicChatbot() {
   const [error, setError] = useState<string | null>(null);
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
+  const reduceMotion = useReducedMotion();
 
   function closeChatbot() {
     setIsOpen(false);
@@ -246,29 +247,43 @@ export function PublicChatbot() {
     starterPrompts;
 
   return (
-    <>
-      <motion.button
-        type="button"
-        onClick={() => setIsOpen(true)}
-        whileHover={{ y: -2, scale: 1.02 }}
-        whileTap={{ scale: 0.97 }}
-        className="focus-ring group fixed bottom-4 right-4 z-40 inline-flex h-14 w-14 items-center justify-center rounded-full border border-(--line) bg-(--surface) text-(--text) shadow-[0_18px_38px_rgba(15,23,42,0.16)] sm:bottom-5 sm:right-5"
-        aria-label="Open PMS assistant"
-      >
-        <span className="pointer-events-none absolute inset-0 rounded-full bg-[radial-gradient(circle_at_30%_30%,rgba(75,125,233,0.18),transparent_58%)]" />
-        <span className="relative inline-flex items-center justify-center">
-          <MessageCircleQuestion className="h-5 w-5" />
-          <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-3 ring-[var(--surface)]" />
-        </span>
-        <span className="pointer-events-none absolute right-16 hidden rounded-full border border-(--line) bg-(--surface) px-3 py-1 text-xs font-medium text-(--text-dim) shadow-[0_10px_28px_rgba(15,23,42,0.12)] sm:block sm:translate-x-2 sm:opacity-0 sm:transition sm:group-hover:translate-x-0 sm:group-hover:opacity-100">
-          Ask PMS
-        </span>
-      </motion.button>
-
+    <LayoutGroup>
       <AnimatePresence>
-        {isOpen ? (
+        {!isOpen ? (
+          <motion.button
+            key="chatbot-fab"
+            type="button"
+            onClick={() => setIsOpen(true)}
+            whileHover={reduceMotion ? undefined : { y: -2, scale: 1.02 }}
+            whileTap={reduceMotion ? undefined : { scale: 0.97 }}
+            className="group fixed bottom-4 right-4 z-40 inline-flex h-14 w-14 items-center justify-center"
+            aria-label="Open PMS assistant"
+          >
+            <motion.span
+              layoutId="pms-chatbot-shell"
+              transition={
+                reduceMotion
+                  ? { duration: 0.01 }
+                  : { type: "spring", stiffness: 320, damping: 38 }
+              }
+              className="absolute inset-0 rounded-full border border-(--line) bg-(--surface) shadow-[0_18px_38px_rgba(15,23,42,0.16)]"
+            >
+              <span className="pointer-events-none absolute inset-0 rounded-full bg-[radial-gradient(circle_at_30%_30%,rgba(75,125,233,0.18),transparent_58%)]" />
+            </motion.span>
+
+            <span className="relative inline-flex items-center justify-center text-(--text)">
+              <MessageCircleQuestion className="h-5 w-5" />
+              <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-3 ring-(--surface)" />
+            </span>
+
+            <span className="pointer-events-none absolute right-16 hidden rounded-full border border-(--line) bg-(--surface) px-3 py-1 text-xs font-medium text-(--text-dim) shadow-[0_10px_28px_rgba(15,23,42,0.12)] sm:block sm:translate-x-2 sm:opacity-0 sm:transition sm:group-hover:translate-x-0 sm:group-hover:opacity-100">
+              Ask PMS
+            </span>
+          </motion.button>
+        ) : (
           <>
             <motion.button
+              key="chatbot-backdrop"
               type="button"
               aria-label="Close assistant"
               onClick={closeChatbot}
@@ -276,18 +291,33 @@ export function PublicChatbot() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              transition={reduceMotion ? { duration: 0.01 } : { duration: 0.18 }}
             />
 
             <motion.section
+              key="chatbot-panel"
               role="dialog"
               aria-modal="true"
               aria-label="PMS assistant"
-              initial={{ opacity: 0, y: 28, scale: 0.97 }}
+              initial={
+                reduceMotion ? { opacity: 1 } : { opacity: 0, y: 18, scale: 0.99 }
+              }
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 18, scale: 0.98 }}
-              transition={{ duration: 0.22, ease: "easeOut" }}
-              className="fixed bottom-3 left-3 right-3 z-50 flex h-[min(42rem,calc(100vh-1.5rem))] flex-col overflow-hidden rounded-[1.75rem] border border-(--line) bg-(--surface) text-(--text) shadow-[0_28px_90px_rgba(15,23,42,0.22)] sm:bottom-5 sm:left-auto sm:right-5 sm:w-[24rem]"
+              exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 12, scale: 0.99 }}
+              transition={
+                reduceMotion ? { duration: 0.01 } : { duration: 0.32, ease: "easeOut" }
+              }
+              className="fixed bottom-3 left-3 right-3 z-50 flex h-[min(42rem,calc(85vh-1.5rem))] flex-col overflow-visible sm:bottom-5 sm:left-auto sm:right-5 sm:w-[24rem]"
             >
+              <motion.div
+                layoutId="pms-chatbot-shell"
+                transition={
+                  reduceMotion
+                    ? { duration: 0.01 }
+                    : { type: "spring", stiffness: 320, damping: 42 }
+                }
+                className="flex h-full flex-col overflow-hidden rounded-[1.75rem] border border-(--line) bg-(--surface) text-(--text) shadow-[0_28px_90px_rgba(15,23,42,0.22)]"
+              >
               <div className="border-b border-(--line) bg-[linear-gradient(180deg,rgba(75,125,233,0.08),transparent_120%)] px-4 py-4">
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
@@ -297,12 +327,7 @@ export function PublicChatbot() {
                       </span>
                       PMS Assistant
                     </div>
-                    <h2 className="mt-3 text-lg font-semibold tracking-tight">
-                      Ask your question
-                    </h2>
-                    <p className="mt-1 text-sm text-(--text-dim)">
-                      Department, semester, registration, or instructor info.
-                    </p>
+                   
                   </div>
 
                   <button
@@ -318,7 +343,7 @@ export function PublicChatbot() {
 
               <div
                 ref={viewportRef}
-                className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto bg-[radial-gradient(circle_at_top,rgba(75,125,233,0.08),transparent_30%),var(--bg)] px-4 py-4"
+                className="scrollbar-soft flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto bg-[radial-gradient(circle_at_top,rgba(75,125,233,0.08),transparent_30%),var(--bg)] px-4 py-4"
               >
                 {messages.map((message) => (
                   <motion.article
@@ -400,14 +425,14 @@ export function PublicChatbot() {
                       }}
                       placeholder="Type your question..."
                       rows={1}
-                      className="focus-ring min-h-[3rem] max-h-32 flex-1 resize-none bg-transparent px-3 py-2.5 text-sm outline-none placeholder:text-(--text-dim)"
+                      className="min-h-8 max-h-12 flex-1 resize-none bg-transparent px-3 py-2 text-sm outline-none placeholder:text-(--text-dim)"
                     />
                     <motion.button
                       type="submit"
                       whileHover={{ scale: 1.03 }}
                       whileTap={{ scale: 0.96 }}
                       disabled={isSubmitting || !question.trim()}
-                      className="focus-ring inline-flex h-11 w-11 items-center justify-center rounded-full bg-(--accent) text-(--accent-ink) shadow-[0_12px_26px_rgba(75,125,233,0.24)] transition disabled:cursor-not-allowed disabled:opacity-60"
+                      className=" inline-flex h-8 w-8 items-center justify-center rounded-full bg-(--accent) text-(--accent-ink) shadow-[0_12px_26px_rgba(75,125,233,0.24)] transition disabled:cursor-not-allowed disabled:opacity-60"
                       aria-label="Send message"
                     >
                       <SendHorizontal className="h-4 w-4" />
@@ -417,16 +442,13 @@ export function PublicChatbot() {
 
                 {error ? (
                   <p className="mt-3 text-xs text-rose-600">{error}</p>
-                ) : (
-                  <p className="mt-3 text-xs text-(--text-dim)">
-                    Enter to send, Shift + Enter for a new line.
-                  </p>
-                )}
+                ) : null}
               </div>
+              </motion.div>
             </motion.section>
           </>
-        ) : null}
+        )}
       </AnimatePresence>
-    </>
+    </LayoutGroup>
   );
 }

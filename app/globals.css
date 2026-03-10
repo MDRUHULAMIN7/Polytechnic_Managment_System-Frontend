@@ -19,6 +19,7 @@ button{
     ellipse 80% 50% at 50% -10%,
     rgba(21, 93, 252, 0.18),
     transparent
+
   );
   --sidebar-nav-text: rgba(82, 96, 122, 0.9);
   --sidebar-nav-text-active: #0f172a;
@@ -52,6 +53,16 @@ button{
   --login-grid-line: rgba(15, 23, 42, 0.095);
   --login-grid-opacity: 0.42;
   --login-card-line: #ccd8ec;
+
+  --hero-gradient-start: rgba(75, 125, 233, 0.08);
+  --hero-gradient-end: rgba(255, 255, 255, 0.02);
+  --hero-card-shadow: 0 1px 3px rgba(15, 23, 42, 0.08),
+                       0 8px 24px rgba(15, 23, 42, 0.06);
+  --hero-card-hover-shadow: 0 4px 12px rgba(15, 23, 42, 0.12),
+                             0 16px 48px rgba(75, 125, 233, 0.15);
+  --hero-badge-bg: rgba(75, 125, 233, 0.08);
+  --hero-badge-border: rgba(75, 125, 233, 0.2);
+  --hero-metric-gradient: linear-gradient(135deg, rgba(75, 125, 233, 0.05) 0%, transparent 100%);
 }
 
 [data-theme="dark"] {
@@ -99,8 +110,17 @@ button{
   --login-grid-line: rgba(148, 163, 184, 0.14);
   --login-grid-opacity: 0.36;
   --login-card-line: var(--line);
-}
 
+  --hero-gradient-start: rgba(96, 165, 250, 0.12);
+  --hero-gradient-end: rgba(15, 23, 42, 0.02);
+  --hero-card-shadow: 0 2px 8px rgba(2, 8, 23, 0.4),
+                       0 12px 32px rgba(2, 8, 23, 0.3);
+  --hero-card-hover-shadow: 0 8px 24px rgba(2, 8, 23, 0.5),
+                             0 20px 56px rgba(96, 165, 250, 0.2);
+  --hero-badge-bg: rgba(96, 165, 250, 0.12);
+  --hero-badge-border: rgba(96, 165, 250, 0.3);
+  --hero-metric-gradient: linear-gradient(135deg, rgba(96, 165, 250, 0.08) 0%, transparent 100%);
+}
 * {
   box-sizing: border-box;
 }
@@ -114,6 +134,53 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-body), sans-serif;
+}
+
+/* Global scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.7) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.7);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.9);
+}
+
+[data-theme="dark"] * {
+  scrollbar-color: rgba(71, 85, 105, 0.9) transparent;
+}
+
+[data-theme="dark"] *::-webkit-scrollbar-thumb {
+  background: rgba(71, 85, 105, 0.9);
+}
+
+[data-theme="dark"] *::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.9);
+}
+
+/* Slightly more defined scrollbar for scrollable panes */
+.scrollbar-soft {
+  scrollbar-width: thin;
+}
+
+.scrollbar-soft::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.9);
 }
 
 a {
@@ -141,3 +208,119 @@ a {
 [data-theme="dark"] .login-card {
   box-shadow: 0 18px 42px rgba(2, 8, 23, 0.5);
 }
+
+
+.hero-section {
+  position: relative;
+  isolation: isolate;
+  background: transparent;
+}
+
+.hero-gradient-bg {
+  position: absolute;
+  inset: 0;
+  z-index: -10;
+  background: radial-gradient(
+    ellipse 80% 50% at top,
+    var(--hero-gradient-start),
+    var(--hero-gradient-end)
+  );
+  opacity: 0.6;
+}
+
+.hero-badge {
+  background: var(--hero-badge-bg);
+  border: 1px solid var(--hero-badge-border);
+  backdrop-filter: blur(8px);
+}
+
+.hero-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--hero-card-shadow);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hero-card:hover {
+  box-shadow: var(--hero-card-hover-shadow);
+  border-color: var(--accent);
+}
+
+.hero-metric-card {
+  background: var(--hero-metric-gradient);
+  border: 1px solid var(--line);
+  backdrop-filter: blur(12px);
+}
+
+.hero-cta-primary {
+  background: var(--accent);
+  color: var(--accent-ink);
+  box-shadow: 0 8px 24px rgba(75, 125, 233, 0.35);
+  transition: all 0.25s ease;
+}
+
+.hero-cta-primary:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 12px 32px rgba(75, 125, 233, 0.45);
+  transform: translateY(-1px);
+}
+
+[data-theme="dark"] .hero-cta-primary {
+  box-shadow: 0 8px 24px rgba(96, 165, 250, 0.4);
+}
+
+[data-theme="dark"] .hero-cta-primary:hover {
+  box-shadow: 0 12px 32px rgba(96, 165, 250, 0.5);
+}
+
+.hero-cta-secondary {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--text);
+  transition: all 0.25s ease;
+}
+
+.hero-cta-secondary:hover {
+  background: var(--surface-muted);
+  border-color: var(--accent);
+}
+
+/* Animation classes */
+@keyframes hero-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes hero-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-hero-fade-up {
+  animation: hero-fade-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-hero-scale-in {
+  animation: hero-scale-in 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Stagger delays */
+.delay-0 { animation-delay: 0ms; }
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
+.delay-500 { animation-delay: 500ms; }
+.delay-600 { animation-delay: 600ms; }

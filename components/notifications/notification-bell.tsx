@@ -215,6 +215,7 @@ export function NotificationBell() {
     maxWidth: 400,
     desktopClassName:
       "absolute right-0 top-[calc(100%+0.75rem)] z-[90] w-[min(92vw,400px)] overflow-hidden rounded-3xl border border-(--line) shadow-[0_24px_56px_rgba(15,23,42,0.18)]",
+    mobileAlign: "end",
     });
 
   useEffect(() => {

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { RootNavbar } from "@/components/common/root-navbar";
 import { NoticeBoardServer } from "@/components/notice/notice-board-server";
 import type { NoticeCategory } from "@/lib/type/notice";
 import { PageProps } from "@/lib/type/dashboard/admin/type";
@@ -20,7 +19,6 @@ export default async function NoticesPage({ searchParams }: PageProps) {
 
   return (
     <main className="min-h-screen bg-(--bg) text-(--text)">
-      <RootNavbar />
       <NoticeBoardServer category={category} page={page} limit={limit} />
     </main>
   );

@@ -5,7 +5,7 @@ import { RealtimeProvider } from "@/components/providers/realtime-provider";
 import { DashboardProfileMenu } from "@/components/dashboard/sidebar/dashboard-profile-menu";
 import { ThemeToggle } from "./theme-toggle";
 import { RootNoticeDropdown } from "./root-notice-dropdown";
-import { RootMobileProfileMenu } from "./root-mobile-profile-menu";
+import { PageShell } from "./page-shell";
 
 type DashboardRole = "admin" | "superAdmin" | "instructor" | "student";
 
@@ -22,27 +22,17 @@ function parseRole(value: string | undefined): DashboardRole | undefined {
   return undefined;
 }
 
-function dashboardHref(role: DashboardRole) {
-  if (role === "student") {
-    return "/dashboard/student";
-  }
 
-  if (role === "instructor") {
-    return "/dashboard/instructor";
-  }
-
-  return "/dashboard/admin";
-}
 
 export async function RootNavbar() {
   const cookieStore = await cookies();
   const role = parseRole(cookieStore.get("pms_role")?.value);
 
   return (
-    <header className="sticky top-0 z-[80] px-3 py-3 sm:px-5">
-      <div className="mx-auto max-w-6xl">
-        <nav className="relative flex w-full items-center justify-between overflow-visible rounded-[1.75rem] border border-(--line)/70 bg-(--surface)/72 px-4 py-3 shadow-[0_18px_42px_rgba(15,23,42,0.1)] backdrop-blur-2xl sm:px-5">
-          <div className="pointer-events-none absolute inset-0 rounded-[inherit] bg-[linear-gradient(135deg,rgba(255,255,255,0.22),transparent_42%,rgba(75,125,233,0.08))]" />
+    <header className="sticky top-0 z-80">
+      <nav className="relative w-full border-b border-(--line)/70 bg-(--surface)/72 shadow-[0_18px_42px_rgba(15,23,42,0.1)] backdrop-blur-2xl">
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.22),transparent_42%,rgba(75,125,233,0.08))]" />
+        <PageShell className="relative z-10 flex w-full items-center justify-between py-3">
 
           <Link
             href="/"
@@ -56,7 +46,7 @@ export async function RootNavbar() {
                 Polytechnic Management
               </span>
               <span className="truncate text-[11px] font-normal text-(--text-dim)">
-                Academic and admin workflows, simplified.
+                Simplified Academic Workflows.
               </span>
             </span>
           </Link>
@@ -74,7 +64,7 @@ export async function RootNavbar() {
                   <RootNoticeDropdown compact />
                   <NotificationBell />
                   <ThemeToggle />
-                  <RootMobileProfileMenu dashboardHref={dashboardHref(role)} />
+                   <DashboardProfileMenu />
                 </div>
               </>
             ) : (
@@ -89,8 +79,8 @@ export async function RootNavbar() {
               </div>
             )}
           </RealtimeProvider>
-        </nav>
-      </div>
+        </PageShell>
+      </nav>
     </header>
   );
 }
