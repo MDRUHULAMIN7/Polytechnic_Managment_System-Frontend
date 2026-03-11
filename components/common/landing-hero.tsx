@@ -69,7 +69,7 @@ export function HeroSection() {
               <span className="hero-badge inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium tracking-wide">
                 <Sparkles className="h-3.5 w-3.5" style={{ color: "var(--accent)" }} />
                 <span style={{ color: "var(--accent)" }}>
-                  Polytechnic Management, Simplified
+                  Polytechnic Management
                 </span>
               </span>
             </div>
