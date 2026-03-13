@@ -1,20 +1,26 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
-import { Space_Grotesk, Source_Sans_3 } from "next/font/google";
+import { Inter, Noto_Sans_Bengali } from "next/font/google";
 import { ToastRegion } from "@/components/common/toast-region";
 import { QueryProvider } from "@/components/providers/query-provider";
 
 import "./globals.css";
 
-const headingFont = Space_Grotesk({
+const headingFont = Inter({
   subsets: ["latin"],
   variable: "--font-heading",
   display: "swap"
 });
 
-const bodyFont = Source_Sans_3({
+const bodyFont = Inter({
   subsets: ["latin"],
   variable: "--font-body",
+  display: "swap"
+});
+
+const bengaliFont = Noto_Sans_Bengali({
+  subsets: ["bengali", "latin"],
+  variable: "--font-bengali",
   display: "swap"
 });
 
@@ -99,7 +105,7 @@ export default async function RootLayout({
       </head>
       <body
         suppressHydrationWarning
-        className={`${headingFont.variable} ${bodyFont.variable} antialiased`}
+        className={`${headingFont.variable} ${bodyFont.variable} ${bengaliFont.variable} antialiased`}
       >
         <QueryProvider>
           
