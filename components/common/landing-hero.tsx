@@ -134,8 +134,7 @@ export function HeroSection() {
                     Built for Bangladesh context
                   </h3>
                   <p className="mt-2 text-sm leading-6 text-(--text-dim)">
-                    Designed to work efficiently even with slow internet connections and
-                    optimized for local needs.
+                    Designed to work efficiently even with slow internet connections .
                   </p>
                 </div>
               </div>
