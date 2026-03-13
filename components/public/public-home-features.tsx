@@ -76,7 +76,7 @@ export function PublicHomeFeatures() {
                   border: "1px solid var(--hero-badge-border)",
                 }}
               >
-                <feature.icon className="h-6 w-6" style={{ color: "var(--accent)" }} />
+                <feature.icon className="h-6 w-6" />
               </div>
               <h3 className="mt-4 text-lg font-semibold text-(--text)">
                 {feature.title}

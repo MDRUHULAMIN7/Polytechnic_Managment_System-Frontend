@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
@@ -24,7 +24,6 @@ const navLinks: NavLink[] = [
   { label: "Contact", href: "/contact" },
 ];
 
-type Language = "en" | "bn";
 type DashboardRole = "admin" | "superAdmin" | "instructor" | "student";
 
 function parseRole(value: string | undefined): DashboardRole | undefined {
@@ -58,31 +57,36 @@ function dashboardHref(role: DashboardRole | undefined) {
 
 export function PublicNavbar() {
   const pathname = usePathname();
-  const [isOpen, setIsOpen] = useState(false);
-  const [language, setLanguage] = useState<Language>("en");
-  const [role, setRole] = useState<DashboardRole | undefined>(undefined);
+  const [menuState, setMenuState] = useState(() => ({
+    open: false,
+    path: pathname,
+  }));
+  const role = useMemo(() => {
+    if (typeof document === "undefined") {
+      return undefined;
+    }
 
-  useEffect(() => {
     const cookieValue = document.cookie
       .split("; ")
       .find((row) => row.startsWith("pms_role="))
       ?.split("=")[1];
-    setRole(parseRole(cookieValue));
-  }, []);
 
-  useEffect(() => {
-    setIsOpen(false);
+    return parseRole(cookieValue);
+  }, []);
+  const isOpen = menuState.open && menuState.path === pathname;
+  const closeMenu = useCallback(() => {
+    setMenuState({ open: false, path: pathname });
   }, [pathname]);
 
   useEffect(() => {
     const media = window.matchMedia("(min-width: 1024px)");
-    const handleChange = () => setIsOpen(false);
+    const handleChange = () => closeMenu();
     media.addEventListener("change", handleChange);
 
     return () => {
       media.removeEventListener("change", handleChange);
     };
-  }, []);
+  }, [closeMenu]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -91,7 +95,7 @@ export function PublicNavbar() {
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        setIsOpen(false);
+        closeMenu();
       }
     };
 
@@ -103,13 +107,9 @@ export function PublicNavbar() {
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isOpen]);
+  }, [closeMenu, isOpen]);
 
-  function toggleLanguage() {
-                  {language === "en" ? "EN / ???" : "??? / EN"}
-    setLanguage(nextLanguage);
-    // TODO: Wire up next-intl or equivalent for real language switching.
-  }
+
 
   return (
     <RealtimeProvider role={role}>
@@ -138,14 +138,7 @@ export function PublicNavbar() {
 
             <div className="public-nav-actions">
               <div className="hidden items-center gap-2 lg:flex">
-                <button
-                  type="button"
-                  onClick={toggleLanguage}
-                  className="focus-ring inline-flex h-10 items-center rounded-lg border border-(--line) bg-(--surface) px-3 text-xs font-semibold text-(--text) transition hover:bg-(--surface-muted)"
-                  aria-label="Toggle language"
-                >
-                  {language === "en" ? "EN / বাং" : "বাং / EN"}
-                </button>
+              
                 <RootNoticeDropdown />
                 <ThemeToggle />
                 {role ? (
@@ -172,7 +165,15 @@ export function PublicNavbar() {
               <button
                 type="button"
                 className="public-nav-toggle focus-ring inline-flex lg:hidden"
-                onClick={() => setIsOpen((current) => !current)}
+                onClick={() =>
+                  setMenuState((current) => {
+                    if (current.path !== pathname) {
+                      return { open: true, path: pathname };
+                    }
+
+                    return { open: !current.open, path: pathname };
+                  })
+                }
                 aria-label="Open menu"
                 aria-expanded={isOpen}
                 aria-controls="public-mobile-menu"
@@ -188,7 +189,7 @@ export function PublicNavbar() {
             <button
               type="button"
               className="public-drawer-backdrop"
-              onClick={() => setIsOpen(false)}
+              onClick={closeMenu}
               aria-label="Close menu"
             />
             <aside
@@ -202,7 +203,7 @@ export function PublicNavbar() {
                 <span className="text-sm font-semibold text-(--text)">Menu</span>
                 <button
                   type="button"
-                  onClick={() => setIsOpen(false)}
+                  onClick={closeMenu}
                   className="public-nav-toggle focus-ring inline-flex"
                   aria-label="Close menu"
                 >
@@ -220,7 +221,7 @@ export function PublicNavbar() {
                       className={`text-sm font-semibold ${
                         isActive ? "text-(--accent)" : "text-(--text)"
                       }`}
-                      onClick={() => setIsOpen(false)}
+                      onClick={closeMenu}
                     >
                       {link.label}
                     </Link>
