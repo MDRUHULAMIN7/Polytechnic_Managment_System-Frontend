@@ -5,6 +5,7 @@ Frontend for the PMS backend using:
 - Next.js 16 (App Router + Turbopack)
 - TypeScript
 - Tailwind CSS v4
+- socket.io
 - React Hook Form
 - Lucide React icons
 - Framer Motion + GSAP animations
