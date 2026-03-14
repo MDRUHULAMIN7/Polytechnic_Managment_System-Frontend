@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 import { ThemeToggle } from "@/components/common/theme-toggle";
 import { RootNoticeDropdown } from "@/components/common/root-notice-dropdown";
 import { NotificationBell } from "@/components/notifications/notification-bell";
@@ -76,6 +77,9 @@ export function PublicNavbar() {
   const isOpen = menuState.open && menuState.path === pathname;
   const closeMenu = useCallback(() => {
     setMenuState({ open: false, path: pathname });
+  }, [pathname]);
+  const openMenu = useCallback(() => {
+    setMenuState({ open: true, path: pathname });
   }, [pathname]);
 
   useEffect(() => {
@@ -165,15 +169,14 @@ export function PublicNavbar() {
               <button
                 type="button"
                 className="public-nav-toggle focus-ring inline-flex lg:hidden"
-                onClick={() =>
-                  setMenuState((current) => {
-                    if (current.path !== pathname) {
-                      return { open: true, path: pathname };
-                    }
+                onClick={() => {
+                  if (!isOpen) {
+                    openMenu();
+                    return;
+                  }
 
-                    return { open: !current.open, path: pathname };
-                  })
-                }
+                  closeMenu();
+                }}
                 aria-label="Open menu"
                 aria-expanded={isOpen}
                 aria-controls="public-mobile-menu"
@@ -184,21 +187,36 @@ export function PublicNavbar() {
           </div>
         </div>
 
-        {isOpen ? (
-          <div className="public-drawer public-drawer-open">
-            <button
-              type="button"
-              className="public-drawer-backdrop"
-              onClick={closeMenu}
-              aria-label="Close menu"
-            />
-            <aside
-              id="public-mobile-menu"
-              className="public-drawer-panel"
-              role="dialog"
-              aria-modal="true"
-              aria-label="Navigation menu"
+        <AnimatePresence>
+          {isOpen ? (
+            <motion.div
+              className="public-drawer"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.18 }}
             >
+              <motion.button
+                type="button"
+                className="public-drawer-backdrop"
+                onClick={closeMenu}
+                aria-label="Close menu"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+              />
+              <motion.aside
+                id="public-mobile-menu"
+                className="public-drawer-panel"
+                role="dialog"
+                aria-modal="true"
+                aria-label="Navigation menu"
+                initial={{ x: "100%" }}
+                animate={{ x: 0 }}
+                exit={{ x: "100%" }}
+                transition={{ type: "spring", stiffness: 420, damping: 40 }}
+              >
               <div className="flex items-center justify-between">
                 <span className="text-sm font-semibold text-(--text)">Menu</span>
                 <button
@@ -247,9 +265,10 @@ export function PublicNavbar() {
                   </Link>
                 )}
               </div>
-            </aside>
-          </div>
-        ) : null}
+              </motion.aside>
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
       </header>
     </RealtimeProvider>
   );

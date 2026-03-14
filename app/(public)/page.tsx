@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { HeroSection } from "@/components/common/landing-hero";
+import { PublicChatbot } from "@/components/common/public-chatbot";
 import { PublicNavbar } from "@/components/public/public-navbar";
 import { PublicHomeQuickLinks } from "@/components/public/public-home-quick-links";
 import { PublicHomeFeatures } from "@/components/public/public-home-features";
@@ -36,6 +37,7 @@ export default function HomePage() {
         <PublicHomeNotices />
         <PublicHomeCta />
       </main>
+      <PublicChatbot />
       <PublicFooter />
     </>
   );

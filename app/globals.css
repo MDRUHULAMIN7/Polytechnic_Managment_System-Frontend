@@ -63,6 +63,7 @@ button{
   --hero-badge-bg: rgba(75, 125, 233, 0.08);
   --hero-badge-border: rgba(75, 125, 233, 0.2);
   --hero-metric-gradient: linear-gradient(135deg, rgba(75, 125, 233, 0.05) 0%, transparent 100%);
+  --public-nav-height: 72px;
 }
 
 [data-theme="dark"] {
@@ -120,6 +121,12 @@ button{
   --hero-badge-bg: rgba(96, 165, 250, 0.12);
   --hero-badge-border: rgba(96, 165, 250, 0.3);
   --hero-metric-gradient: linear-gradient(135deg, rgba(96, 165, 250, 0.08) 0%, transparent 100%);
+}
+
+@media (max-width: 639px) {
+  :root {
+    --public-nav-height: 64px;
+  }
 }
 * {
   box-sizing: border-box;
@@ -1251,54 +1258,55 @@ a {
 
 .public-drawer {
   position: fixed;
-  inset: 0;
+  top: var(--public-nav-height);
+  left: 0;
+  right: 0;
+  bottom: 0;
   z-index: 80;
-  pointer-events: none;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.2s ease, visibility 0.2s ease;
-}
-
-.public-drawer-open {
   pointer-events: auto;
-  opacity: 1;
-  visibility: visible;
+  height: calc(100dvh - var(--public-nav-height));
 }
 
 .public-drawer-backdrop {
   position: absolute;
   inset: 0;
-  background: color-mix(in srgb, var(--text) 35%, transparent);
-  opacity: 0;
-  transition: opacity 0.2s ease;
-  backdrop-filter: blur(2px);
+  background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--text) 50%, transparent),
+      color-mix(in srgb, var(--text) 38%, transparent)
+    );
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   z-index: 0;
-}
-
-.public-drawer-open .public-drawer-backdrop {
-  opacity: 1;
 }
 
 .public-drawer-panel {
   position: fixed;
-  top: 0;
+  top: var(--public-nav-height);
   right: 0;
-  height: 100%;
+  height: calc(100dvh - var(--public-nav-height));
   width: min(85vw, 320px);
   background: var(--surface);
   border-left: 1px solid var(--line);
-  transform: translateX(100%);
-  transition: transform 0.25s ease;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  padding: 1.5rem;
+  padding: max(1.25rem, env(safe-area-inset-top)) 1.5rem
+    calc(1.25rem + env(safe-area-inset-bottom));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   backdrop-filter: blur(12px);
+  will-change: transform;
   z-index: 1;
 }
 
-.public-drawer-open .public-drawer-panel {
-  transform: translateX(0);
+@media (max-width: 640px) {
+  .public-drawer-panel {
+    width: 100%;
+    max-width: 100%;
+    border-left: none;
+  }
 }
 
 .home-section {
