@@ -160,7 +160,11 @@ export function NoticeAdminPage({
       setEditNotice(null);
       refreshPage();
     },
-    onError: (mutationError) => {
+    onError: (mutationError, variables) => {
+      console.error("[NoticeAdminPage] save notice failed", {
+        error: mutationError,
+        variables,
+      });
       showToast({
         variant: "error",
         title: "Action failed",
