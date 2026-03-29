@@ -3002,3 +3002,427 @@ a {
 .delay-400 { animation-delay: 400ms; }
 .delay-500 { animation-delay: 500ms; }
 .delay-600 { animation-delay: 600ms; }
+
+.instructor-directory-page {
+  position: relative;
+  isolation: isolate;
+}
+
+.instructor-directory-page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(circle at top left, rgba(59, 130, 246, 0.16), transparent 32%),
+    radial-gradient(circle at top right, rgba(15, 23, 42, 0.08), transparent 28%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.74) 0%, rgba(245, 247, 251, 0) 44%);
+  pointer-events: none;
+}
+
+.instructor-page-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.instructor-stat-card,
+.instructor-directory-card,
+.instructor-sidebar-card,
+.instructor-content-card,
+.instructor-empty-state {
+  border: 1px solid color-mix(in srgb, var(--line) 82%, transparent);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  box-shadow: 0 24px 56px rgba(15, 23, 42, 0.08);
+}
+
+.instructor-stat-card,
+.instructor-empty-state,
+.instructor-sidebar-card,
+.instructor-content-card {
+  border-radius: 2rem;
+  padding: 1.75rem;
+}
+
+.instructor-stat-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.6rem;
+  height: 2.6rem;
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
+}
+
+.instructor-directory-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 1.8rem;
+  transition:
+    transform 220ms ease,
+    box-shadow 220ms ease,
+    border-color 220ms ease;
+}
+
+.instructor-directory-card:hover {
+  transform: translateY(-6px);
+  border-color: color-mix(in srgb, var(--accent) 30%, transparent);
+  box-shadow: 0 28px 64px rgba(15, 23, 42, 0.12);
+}
+
+.instructor-card-photo-shell {
+  position: relative;
+  height: 16rem;
+  overflow: hidden;
+  background: linear-gradient(135deg, #0f172a 0%, #1d4ed8 100%);
+}
+
+.instructor-card-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(1);
+  transition:
+    transform 600ms ease,
+    filter 300ms ease;
+}
+
+.instructor-directory-card:hover .instructor-card-photo {
+  transform: scale(1.08);
+  filter: grayscale(0);
+}
+
+.instructor-card-photo-fallback {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-heading), var(--font-bengali), serif;
+  font-size: 4rem;
+  font-weight: 700;
+  letter-spacing: -0.08em;
+  color: rgba(255, 255, 255, 0.24);
+}
+
+.instructor-card-photo-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 35%, rgba(2, 6, 23, 0.7) 100%);
+}
+
+.instructor-card-media {
+  position: relative;
+  min-height: 16rem;
+  overflow: hidden;
+  padding: 1.5rem;
+  color: white;
+}
+
+.instructor-card-media-blue {
+  background: linear-gradient(135deg, #0f2859 0%, #2453b8 52%, #60a5fa 100%);
+}
+
+.instructor-card-media-ink {
+  background: linear-gradient(135deg, #020617 0%, #0f172a 48%, #1d4ed8 100%);
+}
+
+.instructor-card-media-sky {
+  background: linear-gradient(135deg, #0f172a 0%, #0369a1 45%, #7dd3fc 100%);
+}
+
+.instructor-card-media-slate {
+  background: linear-gradient(135deg, #172554 0%, #334155 45%, #38bdf8 100%);
+}
+
+.instructor-card-pattern {
+  position: absolute;
+  inset: auto -10% -18% auto;
+  width: 72%;
+  aspect-ratio: 1;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, 0.34) 0%, rgba(255, 255, 255, 0.06) 42%, transparent 70%);
+  filter: blur(4px);
+}
+
+.instructor-card-badge {
+  position: absolute;
+  left: 1rem;
+  bottom: 1rem;
+  z-index: 1;
+  display: inline-flex;
+  width: fit-content;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.12);
+  padding: 0.45rem 0.85rem;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  backdrop-filter: blur(12px);
+}
+
+.instructor-card-monogram {
+  position: absolute;
+  left: 1.5rem;
+  bottom: 1.2rem;
+  z-index: 1;
+  font-family: var(--font-heading), var(--font-bengali), serif;
+  font-size: clamp(3.5rem, 6vw, 5rem);
+  font-weight: 700;
+  letter-spacing: -0.08em;
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.instructor-card-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+  padding: 0.35rem 0.8rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--text-dim);
+}
+
+.instructor-feature-card {
+  position: relative;
+  display: flex;
+  min-height: 23rem;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 2rem;
+  background: linear-gradient(135deg, #08112a 0%, #0f2d67 46%, #1d4ed8 100%);
+  box-shadow: 0 32px 72px rgba(15, 23, 42, 0.2);
+}
+
+.instructor-feature-visual {
+  position: relative;
+  flex: 1;
+  min-height: 15rem;
+  overflow: hidden;
+}
+
+.instructor-feature-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.09) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.09) 1px, transparent 1px);
+  background-size: 36px 36px;
+  mask-image: linear-gradient(180deg, transparent 0%, black 24%, black 100%);
+}
+
+.instructor-feature-panel {
+  position: absolute;
+  inset: auto 1.5rem 1.5rem;
+  border-radius: 1.8rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.08);
+  padding: 1.4rem;
+  backdrop-filter: blur(20px);
+}
+
+.instructor-pagination-button {
+  display: inline-flex;
+  min-width: 3rem;
+  min-height: 3rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--line) 82%, transparent);
+  background: color-mix(in srgb, var(--surface) 90%, transparent);
+  padding: 0 1rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text);
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease;
+}
+
+.instructor-pagination-button:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--accent) 24%, transparent);
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+}
+
+.instructor-pagination-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.instructor-pagination-button-active {
+  background: linear-gradient(135deg, var(--text) 0%, var(--accent) 100%);
+  border-color: transparent;
+  color: white;
+}
+
+.instructor-detail-hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: 2.2rem;
+  padding: 2rem;
+  background: linear-gradient(135deg, #08112a 0%, #0f2d67 46%, #1d4ed8 100%);
+  box-shadow: 0 32px 72px rgba(15, 23, 42, 0.2);
+}
+
+.instructor-detail-portrait {
+  position: relative;
+  height: 18rem;
+  width: min(100%, 17rem);
+  overflow: hidden;
+  border-radius: 1.8rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.instructor-detail-portrait-fallback {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-heading), var(--font-bengali), serif;
+  font-size: 4.25rem;
+  font-weight: 700;
+  letter-spacing: -0.08em;
+  color: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(18px);
+}
+
+.instructor-detail-hero-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: radial-gradient(circle at top left, black 0%, black 56%, transparent 100%);
+}
+
+.instructor-detail-monogram {
+  display: inline-flex;
+  min-width: 5.5rem;
+  min-height: 5.5rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1.8rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.1);
+  font-family: var(--font-heading), var(--font-bengali), serif;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.08em;
+  color: white;
+  backdrop-filter: blur(18px);
+}
+
+.instructor-detail-meta {
+  min-width: min(100%, 15rem);
+  border-radius: 1.8rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.08);
+  padding: 1.25rem;
+  backdrop-filter: blur(18px);
+}
+
+.instructor-side-row {
+  display: flex;
+  gap: 1rem;
+}
+
+.instructor-link-tile {
+  display: flex;
+  min-height: 3.5rem;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 1.2rem;
+  border: 1px solid color-mix(in srgb, var(--line) 82%, transparent);
+  background: color-mix(in srgb, var(--surface) 86%, transparent);
+  padding: 0.95rem 1rem;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text);
+  transition:
+    border-color 180ms ease,
+    background-color 180ms ease,
+    color 180ms ease;
+}
+
+.instructor-link-tile:hover {
+  border-color: color-mix(in srgb, var(--accent) 24%, transparent);
+  color: var(--accent);
+}
+
+@media (min-width: 768px) {
+  .instructor-stat-card,
+  .instructor-empty-state,
+  .instructor-sidebar-card,
+  .instructor-content-card {
+    padding: 2rem;
+  }
+
+  .instructor-detail-hero {
+    padding: 2.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .instructor-feature-card {
+    flex-direction: row;
+  }
+}
+
+[data-theme="dark"] .instructor-directory-page::before {
+  background:
+    radial-gradient(circle at top left, rgba(96, 165, 250, 0.18), transparent 34%),
+    radial-gradient(circle at top right, rgba(59, 130, 246, 0.12), transparent 30%),
+    linear-gradient(180deg, rgba(15, 23, 42, 0.72) 0%, rgba(11, 18, 32, 0) 44%);
+}
+
+[data-theme="dark"] .instructor-stat-card,
+[data-theme="dark"] .instructor-directory-card,
+[data-theme="dark"] .instructor-sidebar-card,
+[data-theme="dark"] .instructor-content-card,
+[data-theme="dark"] .instructor-empty-state {
+  border-color: rgba(148, 163, 184, 0.14);
+  background: rgba(15, 23, 42, 0.9);
+  box-shadow: 0 28px 64px rgba(2, 8, 23, 0.24);
+}
+
+[data-theme="dark"] .instructor-directory-card:hover {
+  border-color: rgba(96, 165, 250, 0.28);
+  box-shadow: 0 32px 72px rgba(2, 8, 23, 0.3);
+}
+
+[data-theme="dark"] .instructor-card-chip,
+[data-theme="dark"] .instructor-link-tile,
+[data-theme="dark"] .instructor-pagination-button {
+  border-color: rgba(148, 163, 184, 0.14);
+  background: rgba(30, 41, 59, 0.84);
+}
+
+[data-theme="dark"] .instructor-card-chip {
+  color: #cbd5e1;
+}
+
+[data-theme="dark"] .instructor-link-tile:hover {
+  border-color: rgba(96, 165, 250, 0.28);
+}
+
+[data-theme="dark"] .instructor-pagination-button-active {
+  background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%);
+  color: #eff6ff;
+}
