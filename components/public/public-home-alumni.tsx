@@ -1,64 +1,35 @@
-import Link from "next/link";
-import { Award, Handshake, Users } from "lucide-react";
-
-const alumniHighlights = [
-  {
-    title: "Mentorship network",
-    description: "Connect students with alumni mentors and advisors.",
-    icon: Handshake,
-  },
-  {
-    title: "Career support",
-    description: "Share openings, referrals, and placement opportunities.",
-    icon: Award,
-  },
-  {
-    title: "Community stories",
-    description: "Celebrate alumni milestones and campus contributions.",
-    icon: Users,
-  },
-];
+import { homeAlumniPrograms } from "./public-home-data";
+import { SectionKicker } from "./public-home-shared";
 
 export function PublicHomeAlumni() {
   return (
-    <section className="home-section" aria-labelledby="home-alumni-title">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <Users className="h-5 w-5 text-(--accent)" />
-            <h2 id="home-alumni-title" className="text-2xl font-semibold text-(--text)">
-              Alumni Network
+    <section className="home-alumni-section relative overflow-hidden px-4 py-24 sm:px-6 lg:px-8 lg:py-32" data-animate-section>
+      <div className="home-alumni-section-bg absolute inset-0 -z-10" />
+      <div className="home-alumni-section-stripe absolute -right-32 top-0 -z-10 h-full w-[40%] skew-x-[-18deg]" />
+
+      <div className="public-shell">
+        <div className="grid gap-16 lg:grid-cols-2 lg:items-center">
+          <div className="space-y-8 home-alumni-copy" data-animate="heading">
+            <SectionKicker dark>Alumni network</SectionKicker>
+            <h2 className="home-alumni-title font-display text-5xl leading-none tracking-[-0.05em] sm:text-6xl">
+              Our legacy is your <span className="home-alumni-accent">network.</span>
             </h2>
+            <p className="home-alumni-copy-muted max-w-xl text-lg leading-8">
+              RPI alumni help shape careers, communities, and opportunity. The public experience should make that network feel immediate and real.
+            </p>
           </div>
-          <Link href="/alumni" className="text-sm font-semibold text-(--accent)">
-            Explore alumni -&gt;
-          </Link>
-        </div>
 
-        <p className="mt-3 max-w-2xl text-sm text-(--text-dim) sm:text-base">
-          Keep alumni engaged through mentorship, career collaboration, and community
-          updates.
-        </p>
-
-        <div className="mt-8 grid gap-4 md:grid-cols-3">
-          {alumniHighlights.map((item, index) => (
-            <article
-              key={item.title}
-              className={`hero-card rounded-xl p-6 animate-hero-scale-in delay-${index * 100}`}
-            >
-              <div className="flex items-start gap-3">
-                <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-(--surface-muted) text-(--accent)">
-                  <item.icon className="h-5 w-5" />
+          <div className="grid gap-4 sm:grid-cols-2" data-animate-item>
+            {homeAlumniPrograms.map((program, index) => (
+              <article key={program.title} className={`home-editorial-dark-card rounded-[1.7rem] p-6 ${index % 2 === 0 ? "sm:translate-y-8" : ""}`}>
+                <span className="home-alumni-icon inline-flex h-11 w-11 items-center justify-center rounded-2xl">
+                  <program.icon className="h-5 w-5" />
                 </span>
-                <div>
-                  <h3 className="text-lg font-semibold text-(--text)">{item.title}</h3>
-                  <p className="mt-2 text-sm leading-6 text-(--text-dim)">
-                    {item.description}
-                  </p>
-                </div>
-              </div>
-            </article>
-          ))}
+                <h3 className="home-alumni-card-title mt-5 text-xl font-bold">{program.title}</h3>
+                <p className="home-alumni-card-body mt-3 leading-7">{program.description}</p>
+              </article>
+            ))}
+          </div>
         </div>
       </div>
     </section>

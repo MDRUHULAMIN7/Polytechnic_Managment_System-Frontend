@@ -1,14 +1,7 @@
 import type { Metadata } from "next";
-import { HeroSection } from "@/components/common/landing-hero";
 import { PublicChatbot } from "@/components/common/public-chatbot";
+import { PublicHomePage } from "@/components/public/public-home-page";
 import { PublicNavbar } from "@/components/public/public-navbar";
-import { PublicHomeQuickLinks } from "@/components/public/public-home-quick-links";
-import { PublicHomeFeatures } from "@/components/public/public-home-features";
-import { PublicHomeStats } from "@/components/public/public-home-stats";
-import { PublicHomeNotices } from "@/components/public/public-home-notices";
-import { PublicHomeEvents } from "@/components/public/public-home-events";
-import { PublicHomeAlumni } from "@/components/public/public-home-alumni";
-import { PublicHomeCta } from "@/components/public/public-home-cta";
 import { PublicFooter } from "@/components/public/public-footer";
 
 export const metadata: Metadata = {
@@ -24,19 +17,7 @@ export default function HomePage() {
         Skip to main content
       </a>
       <PublicNavbar />
-      <main
-        id="main-content"
-        className="min-h-screen bg-(--bg) text-(--text)"
-      >
-        <HeroSection />
-        <PublicHomeQuickLinks />
-        <PublicHomeFeatures />
-        <PublicHomeEvents />
-        <PublicHomeAlumni />
-        <PublicHomeStats />
-        <PublicHomeNotices />
-        <PublicHomeCta />
-      </main>
+      <PublicHomePage />
       <PublicChatbot />
       <PublicFooter />
     </>

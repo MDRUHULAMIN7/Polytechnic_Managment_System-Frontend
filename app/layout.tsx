@@ -1,18 +1,18 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
-import { Inter, Noto_Sans_Bengali } from "next/font/google";
+import { Manrope, Newsreader, Noto_Sans_Bengali } from "next/font/google";
 import { ToastRegion } from "@/components/common/toast-region";
 import { QueryProvider } from "@/components/providers/query-provider";
 
 import "./globals.css";
 
-const headingFont = Inter({
+const headingFont = Newsreader({
   subsets: ["latin"],
   variable: "--font-heading",
   display: "swap"
 });
 
-const bodyFont = Inter({
+const bodyFont = Manrope({
   subsets: ["latin"],
   variable: "--font-body",
   display: "swap"

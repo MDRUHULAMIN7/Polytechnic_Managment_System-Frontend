@@ -19,10 +19,10 @@ type NavLink = {
 const navLinks: NavLink[] = [
   { label: "Home", href: "/" },
   { label: "Notices", href: "/notices" },
-  { label: "About", href: "/about" },
-  { label: "Admissions", href: "/admissions" },
-  { label: "Departments", href: "/departments" },
-  { label: "Contact", href: "/contact" },
+  { label: "Events", href: "/events" },
+  { label: "Alumni", href: "/alumni" },
+  { label: "Calendar", href: "/academic-calendar" },
+  { label: "Instructors", href: "/academic-instructors" },
 ];
 
 type DashboardRole = "admin" | "superAdmin" | "instructor" | "student";
@@ -118,9 +118,9 @@ export function PublicNavbar() {
   return (
     <RealtimeProvider role={role}>
       <header className="public-nav">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8">
           <div className="public-nav-inner">
-            <Link href="/" className="public-nav-logo">
+            <Link href="/" className="public-nav-logo font-display text-2xl tracking-[-0.03em]">
               RPI Polytechnic
             </Link>
 
@@ -131,7 +131,7 @@ export function PublicNavbar() {
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={`public-nav-link ${isActive ? "public-nav-link-active" : ""}`}
+                    className={`public-nav-link text-sm font-semibold tracking-[0.02em] ${isActive ? "public-nav-link-active" : ""}`}
                     aria-current={isActive ? "page" : undefined}
                   >
                     {link.label}
@@ -153,9 +153,9 @@ export function PublicNavbar() {
                 ) : (
                   <Link
                     href="/login"
-                    className="hero-cta-primary focus-ring inline-flex h-10 items-center rounded-full px-4 text-xs font-semibold"
+                    className="focus-ring inline-flex h-11 items-center rounded-2xl bg-(--accent) px-5 text-xs font-bold uppercase tracking-[0.16em] text-(--accent-ink) shadow-[0_16px_32px_color-mix(in_srgb,var(--accent)_26%,transparent)] transition hover:brightness-110"
                   >
-                    Login
+                    Portal Login
                   </Link>
                 )}
               </div>
@@ -252,16 +252,16 @@ export function PublicNavbar() {
                 {role ? (
                   <Link
                     href={dashboardHref(role)}
-                    className="hero-cta-primary focus-ring inline-flex h-10 items-center justify-center rounded-full px-4 text-xs font-semibold"
+                    className="focus-ring inline-flex h-11 items-center justify-center rounded-2xl bg-(--accent) px-4 text-xs font-bold uppercase tracking-[0.16em] text-(--accent-ink) shadow-[0_16px_32px_color-mix(in_srgb,var(--accent)_26%,transparent)] transition hover:brightness-110"
                   >
                     Dashboard
                   </Link>
                 ) : (
                   <Link
                     href="/login"
-                    className="hero-cta-primary focus-ring inline-flex h-10 items-center justify-center rounded-full px-4 text-xs font-semibold"
+                    className="focus-ring inline-flex h-11 items-center justify-center rounded-2xl bg-(--accent) px-4 text-xs font-bold uppercase tracking-[0.16em] text-(--accent-ink) shadow-[0_16px_32px_color-mix(in_srgb,var(--accent)_26%,transparent)] transition hover:brightness-110"
                   >
-                    Login
+                    Portal Login
                   </Link>
                 )}
               </div>

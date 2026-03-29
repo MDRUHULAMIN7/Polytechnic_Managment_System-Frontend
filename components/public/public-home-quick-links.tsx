@@ -1,37 +1,27 @@
-import type { ComponentType } from "react";
 import Link from "next/link";
-import { Bell, GraduationCap, LogIn, Calendar } from "lucide-react";
-
-type QuickLink = {
-  title: string;
-  href: string;
-  icon: ComponentType<{ className?: string }>;
-};
-
-const quickLinks: QuickLink[] = [
-  { title: "Student Portal", href: "/login", icon: LogIn },
-  { title: "Notice Board", href: "/notices", icon: Bell },
-  { title: "Academic Calendar", href: "/academic-calendar", icon: Calendar },
-  { title: "Admissions", href: "/admissions", icon: GraduationCap },
-];
+import { ArrowRight } from "lucide-react";
+import { homeQuickLinks } from "./public-home-data";
 
 export function PublicHomeQuickLinks() {
   return (
-    <section className="home-quick-links">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {quickLinks.map((item, index) => (
+    <section className="border-y border-(--line) bg-[color:color-mix(in_srgb,var(--surface)_88%,transparent)] py-20" data-animate-section>
+      <div className="public-shell">
+        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+          {homeQuickLinks.map((item) => (
             <Link
               key={item.title}
               href={item.href}
-              className={`hero-card group rounded-xl p-6 transition-transform hover:-translate-y-1 animate-hero-scale-in delay-${index * 100}`}
+              data-animate-item
+              className="home-editorial-panel group rounded-[1.8rem] p-7 transition duration-300 hover:-translate-y-1 hover:border-(--accent)"
             >
-              <span className="home-quick-icon">
-                <item.icon className="h-5 w-5" />
+              <span className="home-editorial-icon inline-flex h-14 w-14 items-center justify-center rounded-2xl text-(--accent)">
+                <item.icon className="h-6 w-6" />
               </span>
-              <h3 className="mt-4 text-lg font-semibold text-(--text)">{item.title}</h3>
-              <span className="mt-2 inline-flex items-center gap-2 text-sm font-semibold text-(--accent)">
-                Access -&gt;
+              <h2 className="mt-6 text-lg font-bold text-(--text)">{item.title}</h2>
+              <p className="mt-2 text-sm text-(--text-dim)">{item.subtitle}</p>
+              <span className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-(--accent)">
+                Access
+                <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
               </span>
             </Link>
           ))}
