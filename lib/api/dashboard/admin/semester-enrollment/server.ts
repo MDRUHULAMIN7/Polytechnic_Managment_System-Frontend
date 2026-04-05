@@ -54,6 +54,36 @@ async function fetchSemesterEnrollmentsCached(
   return payload.data;
 }
 
+async function fetchMySemesterEnrollmentsCached(
+  token: string | null
+): Promise<SemesterEnrollment[]> {
+  ensureApiBaseUrl();
+
+  const response = await fetch(
+    `${API_BASE_URL}/semester-enrollments/my-semester-enrollments`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        ...authHeaders(token),
+      },
+      next: {
+        tags: [SEMESTER_ENROLLMENTS_TAG],
+      },
+    }
+  );
+
+  const payload = await parseJsonResponse<ApiResponse<SemesterEnrollment[]>>(
+    response,
+    "Failed to load my semester enrollments."
+  );
+
+  if (!response.ok || !payload.success || !payload.data) {
+    throw new Error(payload.message || "Failed to load my semester enrollments.");
+  }
+
+  return payload.data;
+}
+
 async function fetchSemesterEnrollmentCached(
   id: string,
   token: string | null
@@ -94,6 +124,13 @@ export async function getSemesterEnrollmentServer(
 ): Promise<SemesterEnrollment> {
   const token = await readAccessToken();
   return fetchSemesterEnrollmentCached(id, token);
+}
+
+export async function getMySemesterEnrollmentsServer(): Promise<
+  SemesterEnrollment[]
+> {
+  const token = await readAccessToken();
+  return fetchMySemesterEnrollmentsCached(token);
 }
 
 export async function createSemesterEnrollmentServer(

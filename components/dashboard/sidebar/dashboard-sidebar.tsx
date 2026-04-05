@@ -19,6 +19,7 @@ import {
   X
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { ThemeToggle } from "@/components/common/theme-toggle";
 
 type DashboardRole = "admin" | "superAdmin" | "instructor" | "student";
 
@@ -232,6 +233,9 @@ export function DashboardSidebar({
         </Link>
 
         <div className="flex items-center gap-2">
+          <ThemeToggle
+            className="h-8! w-8! min-h-0! min-w-0! rounded-lg! border-(--sidebar-border)! bg-transparent! text-(--sidebar-nav-text)! hover:bg-(--sidebar-nav-hover-bg)!"
+          />
           <button
             type="button"
             onClick={onClose}

@@ -1,4 +1,7 @@
-import type { ClassSession, ClassSessionStatus } from "@/lib/type/dashboard/class-session";
+import type {
+  ClassSession,
+  ClassSessionStatus,
+} from "@/lib/type/dashboard/class-session";
 import { resolveName } from "@/utils/dashboard/admin/utils";
 import type { SemesterRegistration } from "@/lib/type/dashboard/admin/semester-registration";
 
@@ -30,7 +33,7 @@ export function resolveClassSubjectTitle(subject: ClassSession["subject"]) {
   if (typeof subject === "string") {
     return subject;
   }
-  return [subject?.title, subject?.code].filter(Boolean).join(" · ") || "--";
+  return [subject?.title, subject?.code].filter(Boolean).join(" | ") || "--";
 }
 
 export function resolveClassInstructorName(instructor: ClassSession["instructor"]) {

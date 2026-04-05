@@ -25,7 +25,10 @@ export default async function NoticeDetailsRoute({ params }: PageProps) {
         Skip to main content
       </a>
       <PublicNavbar />
-      <main id="main-content" className="min-h-screen bg-(--bg) text-(--text)">
+      <main
+        id="main-content"
+        className="min-h-screen overflow-x-hidden bg-(--bg) text-(--text)"
+      >
         <NoticeDetailPage
           noticeId={decodeURIComponent(resolvedParams.id ?? "")}
           isAuthenticated={isAuthenticated}

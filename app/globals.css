@@ -137,6 +137,11 @@ body {
   min-height: 100%;
 }
 
+/* Reduces horizontal layout jump when toggling overflow (e.g. mobile drawer) */
+html {
+  scrollbar-gutter: stable;
+}
+
 body {
   background: var(--bg);
   color: var(--text);
@@ -1185,11 +1190,15 @@ a {
 .public-nav {
   position: sticky;
   top: 0;
-  z-index: 70;
+  /* Above mobile drawer (sibling); must stay visible when menu is open */
+  z-index: 120;
+  isolation: isolate;
   background: rgba(255, 255, 255, 0.92);
   border-bottom: 1px solid var(--line);
   box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
   backdrop-filter: blur(14px);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 [data-theme="dark"] .public-nav {
@@ -1198,6 +1207,8 @@ a {
 }
 
 .public-nav-inner {
+  position: relative;
+  z-index: 1;
   height: 72px;
   display: flex;
   align-items: center;
@@ -1249,20 +1260,50 @@ a {
 }
 
 .public-nav-actions {
+  position: relative;
+  z-index: 2;
   display: flex;
   align-items: center;
   gap: 0.75rem;
 }
 
+/* Mobile: match notice / bell / menu control size & rhythm */
+@media (max-width: 1023px) {
+  .public-nav-mobile-tools button[aria-label="Notice board"],
+  .public-nav-mobile-tools button[aria-label="Open notifications"] {
+    height: 2.75rem;
+    width: 2.75rem;
+    min-width: 2.75rem;
+    border-radius: 1rem;
+  }
+
+  .public-nav-mobile-tools button[aria-label="Open profile menu"] {
+    height: 2.75rem;
+    min-height: 2.75rem;
+  }
+}
+
 .public-nav-toggle {
   align-items: center;
   justify-content: center;
-  height: 40px;
-  width: 40px;
-  border-radius: 0.75rem;
+  height: 2.75rem;
+  width: 2.75rem;
+  border-radius: 1rem;
   border: 1px solid var(--line);
   background: var(--surface);
   color: var(--text);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    border-color 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.public-nav-toggle-active {
+  border-color: color-mix(in srgb, var(--accent) 42%, var(--line));
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+  box-shadow: 0 12px 28px color-mix(in srgb, var(--accent) 22%, transparent);
 }
 
 .home-editorial-kicker {
@@ -2281,6 +2322,8 @@ a {
 
 .notice-detail-page {
   position: relative;
+  overflow-x: clip;
+  max-width: 100%;
 }
 
 .notice-detail-page::before {
@@ -2808,9 +2851,13 @@ a {
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 80;
+  /* Below .public-nav (120) so bar stays visible; above page content */
+  z-index: 110;
   pointer-events: auto;
   height: calc(100dvh - var(--public-nav-height));
+  /* Panel slides with transform — without this, exit animation widens document and shows a horizontal scrollbar */
+  overflow: hidden;
+  overflow-x: clip;
 }
 
 .public-drawer-backdrop {
@@ -2827,11 +2874,14 @@ a {
 }
 
 .public-drawer-panel {
-  position: fixed;
-  top: var(--public-nav-height);
+  position: absolute;
+  top: 0;
   right: 0;
-  height: calc(100dvh - var(--public-nav-height));
+  bottom: 0;
+  height: 100%;
   width: min(85vw, 320px);
+  max-width: 100%;
+  overflow-x: hidden;
   background:
     radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 14%, transparent), transparent 32%),
     linear-gradient(
@@ -2859,6 +2909,10 @@ a {
   align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
+}
+
+.public-drawer-header--solo {
+  justify-content: flex-start;
 }
 
 .public-drawer-kicker {

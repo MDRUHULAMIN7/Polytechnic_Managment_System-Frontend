@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { LucideIcon } from "lucide-react";
@@ -13,7 +13,7 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { ThemeToggle } from "@/components/common/theme-toggle";
 import { RootNoticeDropdown } from "@/components/common/root-notice-dropdown";
 import { NotificationBell } from "@/components/notifications/notification-bell";
@@ -54,18 +54,23 @@ const navLinks: NavLink[] = [
   },
 ];
 
+/** Soft, slow deceleration — avoids a “snap” at the end */
+const easeDrawer: [number, number, number, number] = [0.22, 1, 0.36, 1];
+const easeDrawerClose: [number, number, number, number] = [0.45, 0.05, 0.55, 1];
+
 const drawerListVariants = {
   closed: {},
   open: {
     transition: {
-      staggerChildren: 0.06,
-      delayChildren: 0.08,
+      staggerChildren: 0.055,
+      delayChildren: 0.22,
     },
   },
   exit: {
     transition: {
-      staggerChildren: 0.03,
+      staggerChildren: 0.035,
       staggerDirection: -1,
+      delayChildren: 0,
     },
   },
 };
@@ -73,22 +78,22 @@ const drawerListVariants = {
 const drawerItemVariants = {
   closed: {
     opacity: 0,
-    x: 18,
+    x: 10,
   },
   open: {
     opacity: 1,
     x: 0,
     transition: {
-      duration: 0.28,
-      ease: [0.22, 1, 0.36, 1] as const,
+      duration: 0.52,
+      ease: easeDrawer,
     },
   },
   exit: {
     opacity: 0,
-    x: 12,
+    x: 8,
     transition: {
-      duration: 0.16,
-      ease: [0.4, 0, 1, 1] as const,
+      duration: 0.36,
+      ease: easeDrawerClose,
     },
   },
 };
@@ -126,6 +131,8 @@ function dashboardHref(role: DashboardRole | undefined) {
 
 export function PublicNavbar() {
   const pathname = usePathname();
+  const reduceMotion = useReducedMotion();
+  const scrollLockYRef = useRef(0);
   const [menuState, setMenuState] = useState(() => ({
     open: false,
     path: pathname,
@@ -171,18 +178,34 @@ export function PublicNavbar() {
       }
     };
 
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    scrollLockYRef.current = window.scrollY;
+    const y = scrollLockYRef.current;
+
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${y}px`;
+    document.body.style.left = "0";
+    document.body.style.right = "0";
+    /* No paddingRight: it narrows the layout and makes the navbar jump left.
+       `scrollbar-gutter: stable` on html (globals.css) already reserves scrollbar space. */
+
     window.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      document.body.style.overflow = previousOverflow;
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.left = "";
+      document.body.style.right = "";
+      window.scrollTo(0, scrollLockYRef.current);
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [closeMenu, isOpen]);
 
+  const drawerDuration = reduceMotion ? 0.01 : 0.82;
+  const backdropDuration = reduceMotion ? 0.01 : 0.68;
+
   return (
     <RealtimeProvider role={role}>
+      <>
       <header className="public-nav">
         <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8">
           <div className="public-nav-inner">
@@ -225,16 +248,23 @@ export function PublicNavbar() {
                 )}
               </div>
 
-              <div className="inline-flex items-center gap-2 lg:hidden">
-                <RootNoticeDropdown compact />
-                {role ? <NotificationBell /> : null}
-                {role ? <DashboardProfileMenu /> : null}
+              <div className="public-nav-mobile-tools inline-flex items-center gap-1.5 lg:hidden">
+                {!isOpen ? (
+                  <>
+                    <RootNoticeDropdown compact />
+                    {role ? <NotificationBell /> : null}
+                    {role ? <DashboardProfileMenu /> : null}
+                  </>
+                ) : null}
               </div>
 
               <button
                 type="button"
-                className="public-nav-toggle focus-ring inline-flex lg:hidden"
-                onClick={() => {
+                className={`public-nav-toggle focus-ring relative z-10 inline-flex shrink-0 overflow-hidden lg:hidden ${
+                  isOpen ? "public-nav-toggle-active" : ""
+                }`}
+                onClick={(event) => {
+                  event.stopPropagation();
                   if (!isOpen) {
                     openMenu();
                     return;
@@ -242,15 +272,47 @@ export function PublicNavbar() {
 
                   closeMenu();
                 }}
-                aria-label="Open menu"
+                onPointerDown={(event) => event.stopPropagation()}
+                aria-label={isOpen ? "Close menu" : "Open menu"}
                 aria-expanded={isOpen}
                 aria-controls="public-mobile-menu"
               >
-                <Menu size={18} />
+                <AnimatePresence mode="popLayout" initial={false}>
+                  {isOpen ? (
+                    <motion.span
+                      key="close-icon"
+                      className="inline-flex items-center justify-center"
+                      initial={{ opacity: 0, scale: 0.94 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.94 }}
+                      transition={{
+                        duration: reduceMotion ? 0.01 : 0.34,
+                        ease: easeDrawer,
+                      }}
+                    >
+                      <X size={18} />
+                    </motion.span>
+                  ) : (
+                    <motion.span
+                      key="menu-icon"
+                      className="inline-flex items-center justify-center"
+                      initial={{ opacity: 0, scale: 0.94 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.94 }}
+                      transition={{
+                        duration: reduceMotion ? 0.01 : 0.34,
+                        ease: easeDrawer,
+                      }}
+                    >
+                      <Menu size={18} />
+                    </motion.span>
+                  )}
+                </AnimatePresence>
               </button>
             </div>
           </div>
         </div>
+      </header>
 
         <AnimatePresence>
           {isOpen ? (
@@ -259,7 +321,7 @@ export function PublicNavbar() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.18 }}
+              transition={{ duration: backdropDuration, ease: easeDrawer }}
             >
               <motion.button
                 type="button"
@@ -269,7 +331,7 @@ export function PublicNavbar() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
+                transition={{ duration: backdropDuration, ease: easeDrawer }}
               />
               <motion.aside
                 id="public-mobile-menu"
@@ -277,13 +339,21 @@ export function PublicNavbar() {
                 role="dialog"
                 aria-modal="true"
                 aria-label="Navigation menu"
-                initial={{ x: "104%", opacity: 0.98, scale: 0.985 }}
-                animate={{ x: 0, opacity: 1, scale: 1 }}
-                exit={{ x: "106%", opacity: 0.98, scale: 0.985 }}
-                transition={{ type: "spring", stiffness: 360, damping: 34, mass: 0.9 }}
+                initial={reduceMotion ? { x: 0 } : { x: "100%" }}
+                animate={{ x: 0 }}
+                exit={reduceMotion ? { x: 0 } : { x: "100%" }}
+                transition={
+                  reduceMotion
+                    ? { duration: 0.01 }
+                    : {
+                        type: "tween",
+                        duration: drawerDuration,
+                        ease: easeDrawer,
+                      }
+                }
               >
                 <motion.div
-                  className="public-drawer-header"
+                  className="public-drawer-header public-drawer-header--solo"
                   variants={drawerItemVariants}
                   initial="closed"
                   animate="open"
@@ -293,14 +363,6 @@ export function PublicNavbar() {
                     <p className="public-drawer-kicker">Quick access</p>
                     <h2 className="public-drawer-title">Explore RPI</h2>
                   </div>
-                  <button
-                    type="button"
-                    onClick={closeMenu}
-                    className="public-nav-toggle focus-ring inline-flex"
-                    aria-label="Close menu"
-                  >
-                    <X size={18} />
-                  </button>
                 </motion.div>
 
                 <motion.nav
@@ -371,7 +433,7 @@ export function PublicNavbar() {
             </motion.div>
           ) : null}
         </AnimatePresence>
-      </header>
+      </>
     </RealtimeProvider>
   );
 }

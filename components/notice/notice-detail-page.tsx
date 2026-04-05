@@ -109,8 +109,8 @@ export function NoticeDetailPage({
   const notice = noticeQuery.data;
 
   return (
-    <section className="notice-detail-page px-4 py-10 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-screen-2xl">
+    <section className="notice-detail-page min-w-0 px-4 py-10 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-screen-2xl min-w-0">
       <div className="flex items-center justify-between gap-3">
         <Link
           href="/notices"
@@ -139,8 +139,8 @@ export function NoticeDetailPage({
       ) : (
         <article className="mt-6 space-y-8">
           <header className="notice-detail-hero overflow-hidden rounded-[2.5rem] p-8 sm:p-10 lg:p-12">
-            <div className="notice-detail-hero-grid grid gap-10 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
-              <div>
+            <div className="notice-detail-hero-grid grid min-w-0 gap-10 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
+              <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
               {notice.isPinned ? (
                 <span className="inline-flex items-center rounded-full border border-sky-200 bg-sky-50 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-sky-700 dark:border-sky-600/40 dark:bg-sky-950/45 dark:text-sky-200">
@@ -156,7 +156,7 @@ export function NoticeDetailPage({
               ) : null}
                 </div>
 
-                <h1 className="mt-6 font-display text-4xl font-bold tracking-[-0.05em] text-(--text) sm:text-5xl lg:text-6xl">
+                <h1 className="mt-6 wrap-break-word font-display text-4xl font-bold tracking-[-0.05em] text-(--text) sm:text-5xl lg:text-6xl">
                   {notice.title}
                 </h1>
 
@@ -180,7 +180,7 @@ export function NoticeDetailPage({
                 </div>
               </div>
 
-              <aside className="notice-detail-sidepanel rounded-[2rem] p-6">
+              <aside className="notice-detail-sidepanel min-w-0 rounded-[2rem] p-6">
                 <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-(--text-dim)">
                   Notice snapshot
                 </p>
