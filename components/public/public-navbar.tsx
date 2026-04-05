@@ -3,7 +3,16 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import {
+  ArrowRight,
+  CalendarDays,
+  CalendarRange,
+  GraduationCap,
+  Menu,
+  Users,
+  X,
+} from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ThemeToggle } from "@/components/common/theme-toggle";
 import { RootNoticeDropdown } from "@/components/common/root-notice-dropdown";
@@ -14,14 +23,75 @@ import { RealtimeProvider } from "@/components/providers/realtime-provider";
 type NavLink = {
   label: string;
   href: string;
+  description: string;
+  icon: LucideIcon;
 };
 
 const navLinks: NavLink[] = [
-  { label: "Events", href: "/events" },
-  { label: "Alumni", href: "/alumni" },
-  { label: "Calendar", href: "/academic-calendar" },
-  { label: "Instructors", href: "/academic-instructors" },
+  {
+    label: "Events",
+    href: "/events",
+    description: "Campus highlights and public updates.",
+    icon: CalendarDays,
+  },
+  {
+    label: "Alumni",
+    href: "/alumni",
+    description: "Graduate stories, network, and milestones.",
+    icon: Users,
+  },
+  {
+    label: "Calendar",
+    href: "/academic-calendar",
+    description: "Semester dates and planning essentials.",
+    icon: CalendarRange,
+  },
+  {
+    label: "Instructors",
+    href: "/academic-instructors",
+    description: "Faculty directory and profile pages.",
+    icon: GraduationCap,
+  },
 ];
+
+const drawerListVariants = {
+  closed: {},
+  open: {
+    transition: {
+      staggerChildren: 0.06,
+      delayChildren: 0.08,
+    },
+  },
+  exit: {
+    transition: {
+      staggerChildren: 0.03,
+      staggerDirection: -1,
+    },
+  },
+};
+
+const drawerItemVariants = {
+  closed: {
+    opacity: 0,
+    x: 18,
+  },
+  open: {
+    opacity: 1,
+    x: 0,
+    transition: {
+      duration: 0.28,
+      ease: [0.22, 1, 0.36, 1] as const,
+    },
+  },
+  exit: {
+    opacity: 0,
+    x: 12,
+    transition: {
+      duration: 0.16,
+      ease: [0.4, 0, 1, 1] as const,
+    },
+  },
+};
 
 type DashboardRole = "admin" | "superAdmin" | "instructor" | "student";
 
@@ -111,8 +181,6 @@ export function PublicNavbar() {
     };
   }, [closeMenu, isOpen]);
 
-
-
   return (
     <RealtimeProvider role={role}>
       <header className="public-nav">
@@ -140,7 +208,6 @@ export function PublicNavbar() {
 
             <div className="public-nav-actions">
               <div className="hidden items-center gap-2 lg:flex">
-              
                 <RootNoticeDropdown />
                 <ThemeToggle />
                 {role ? (
@@ -210,59 +277,96 @@ export function PublicNavbar() {
                 role="dialog"
                 aria-modal="true"
                 aria-label="Navigation menu"
-                initial={{ x: "100%" }}
-                animate={{ x: 0 }}
-                exit={{ x: "100%" }}
-                transition={{ type: "spring", stiffness: 420, damping: 40 }}
+                initial={{ x: "104%", opacity: 0.98, scale: 0.985 }}
+                animate={{ x: 0, opacity: 1, scale: 1 }}
+                exit={{ x: "106%", opacity: 0.98, scale: 0.985 }}
+                transition={{ type: "spring", stiffness: 360, damping: 34, mass: 0.9 }}
               >
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold text-(--text)">Menu</span>
-                <button
-                  type="button"
-                  onClick={closeMenu}
-                  className="public-nav-toggle focus-ring inline-flex"
-                  aria-label="Close menu"
+                <motion.div
+                  className="public-drawer-header"
+                  variants={drawerItemVariants}
+                  initial="closed"
+                  animate="open"
+                  exit="exit"
                 >
-                  <X size={18} />
-                </button>
-              </div>
-
-              <nav className="flex flex-col gap-3" aria-label="Mobile">
-                {navLinks.map((link) => {
-                  const isActive = pathname === link.href;
-                  return (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      className={`text-sm font-semibold ${
-                        isActive ? "text-(--accent)" : "text-(--text)"
-                      }`}
-                      onClick={closeMenu}
-                    >
-                      {link.label}
-                    </Link>
-                  );
-                })}
-              </nav>
-
-              <div className="mt-auto flex flex-col gap-3">
-                <ThemeToggle />
-                {role ? (
-                  <Link
-                    href={dashboardHref(role)}
-                    className="focus-ring inline-flex h-11 items-center justify-center rounded-2xl bg-(--accent) px-4 text-xs font-bold uppercase tracking-[0.16em] text-(--accent-ink) shadow-[0_16px_32px_color-mix(in_srgb,var(--accent)_26%,transparent)] transition hover:brightness-110"
+                  <div>
+                    <p className="public-drawer-kicker">Quick access</p>
+                    <h2 className="public-drawer-title">Explore RPI</h2>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={closeMenu}
+                    className="public-nav-toggle focus-ring inline-flex"
+                    aria-label="Close menu"
                   >
-                    Dashboard
-                  </Link>
-                ) : (
-                  <Link
-                    href="/login"
-                    className="focus-ring inline-flex h-11 items-center justify-center rounded-2xl bg-(--accent) px-4 text-xs font-bold uppercase tracking-[0.16em] text-(--accent-ink) shadow-[0_16px_32px_color-mix(in_srgb,var(--accent)_26%,transparent)] transition hover:brightness-110"
-                  >
-                    Portal Login
-                  </Link>
-                )}
-              </div>
+                    <X size={18} />
+                  </button>
+                </motion.div>
+
+                <motion.nav
+                  className="public-drawer-nav"
+                  aria-label="Mobile"
+                  variants={drawerListVariants}
+                  initial="closed"
+                  animate="open"
+                  exit="exit"
+                >
+                  {navLinks.map((link) => {
+                    const isActive = pathname === link.href;
+                    return (
+                      <motion.div key={link.href} variants={drawerItemVariants}>
+                        <Link
+                          href={link.href}
+                          className={`public-drawer-link ${
+                            isActive ? "public-drawer-link-active" : ""
+                          }`}
+                          aria-current={isActive ? "page" : undefined}
+                          onClick={closeMenu}
+                        >
+                          <span className="public-drawer-link-icon">
+                            <link.icon className="h-4 w-4" />
+                          </span>
+                          <span className="public-drawer-link-copy">
+                            <span className="public-drawer-link-label">{link.label}</span>
+                            <span className="public-drawer-link-description">
+                              {link.description}
+                            </span>
+                          </span>
+                          <ArrowRight className="public-drawer-link-arrow h-4 w-4" />
+                        </Link>
+                      </motion.div>
+                    );
+                  })}
+                </motion.nav>
+
+                <motion.div
+                  className="public-drawer-footer"
+                  variants={drawerItemVariants}
+                  initial="closed"
+                  animate="open"
+                  exit="exit"
+                >
+                  <div className="public-drawer-action-row">
+                    <ThemeToggle className="h-11 w-11 shrink-0 rounded-[1rem] border-[color:color-mix(in_srgb,var(--line)_82%,transparent)] bg-[color:color-mix(in_srgb,var(--surface)_88%,transparent)] shadow-[0_14px_28px_rgba(15,23,42,0.08)]" />
+                    {role ? (
+                      <Link
+                        href={dashboardHref(role)}
+                        onClick={closeMenu}
+                        className="focus-ring inline-flex h-11 items-center justify-center rounded-2xl bg-(--accent) px-4 text-xs font-bold uppercase tracking-[0.16em] text-(--accent-ink) shadow-[0_16px_32px_color-mix(in_srgb,var(--accent)_26%,transparent)] transition hover:brightness-110"
+                      >
+                        Dashboard
+                      </Link>
+                    ) : (
+                      <Link
+                        href="/login"
+                        onClick={closeMenu}
+                        className="focus-ring inline-flex h-11 items-center justify-center rounded-2xl bg-(--accent) px-4 text-xs font-bold uppercase tracking-[0.16em] text-(--accent-ink) shadow-[0_16px_32px_color-mix(in_srgb,var(--accent)_26%,transparent)] transition hover:brightness-110"
+                      >
+                        Portal Login
+                      </Link>
+                    )}
+                  </div>
+                </motion.div>
               </motion.aside>
             </motion.div>
           ) : null}

@@ -201,8 +201,8 @@ export function PublicAcademicInstructorsPage({
           </div>
         </header>
 
-        <section className="mb-12 sticky top-24 z-40">
-          <div className="glass-panel rounded-[2rem] border border-white/20 p-4 shadow-[0_24px_60px_rgba(15,23,42,0.1)]">
+        <section className="mb-10 lg:sticky lg:top-24 lg:z-40">
+          <div className="glass-panel rounded-[1.6rem] border border-white/20 p-3 shadow-[0_24px_60px_rgba(15,23,42,0.1)] sm:rounded-[2rem] sm:p-4">
             <div className="flex flex-col gap-4 xl:flex-row xl:items-center">
               <div className="relative min-w-0 flex-1">
                 <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-(--text-dim)" />
@@ -216,11 +216,11 @@ export function PublicAcademicInstructorsPage({
                     }))
                   }
                   placeholder="Search by name, designation, or faculty ID..."
-                  className="h-14 w-full rounded-[1.4rem] border border-[color:color-mix(in_srgb,var(--line)_75%,transparent)] bg-white/55 pl-12 pr-4 text-sm text-(--text) outline-none transition focus:border-(--accent) focus:bg-white dark:bg-slate-950/35 dark:focus:bg-slate-950/55"
+                  className="h-12 w-full rounded-[1.2rem] border border-[color:color-mix(in_srgb,var(--line)_75%,transparent)] bg-white/55 pl-12 pr-4 text-sm text-(--text) outline-none transition focus:border-(--accent) focus:bg-white sm:h-14 sm:rounded-[1.4rem] dark:bg-slate-950/35 dark:focus:bg-slate-950/55"
                 />
               </div>
 
-              <div className="flex flex-col gap-3 md:flex-row xl:w-auto">
+              <div className="grid grid-cols-2 gap-3 xl:flex xl:w-auto">
                 <select
                   value={draftFilters.department}
                   onChange={(event) =>
@@ -229,7 +229,7 @@ export function PublicAcademicInstructorsPage({
                       department: event.target.value,
                     }))
                   }
-                  className="h-14 min-w-[15rem] rounded-full border-none bg-[color:color-mix(in_srgb,var(--surface-muted)_72%,white)] px-6 text-sm font-medium text-(--text) outline-none"
+                  className="h-12 w-full min-w-0 rounded-[1.1rem] border-none bg-[color:color-mix(in_srgb,var(--surface-muted)_72%,white)] px-4 text-sm font-medium text-(--text) outline-none sm:h-14 sm:rounded-full sm:px-6 xl:min-w-[15rem]"
                 >
                   <option value="all">All Departments</option>
                   {departments.map((department) => (
@@ -247,7 +247,7 @@ export function PublicAcademicInstructorsPage({
                       designation: event.target.value,
                     }))
                   }
-                  className="h-14 min-w-[14rem] rounded-full border-none bg-[color:color-mix(in_srgb,var(--surface-muted)_72%,white)] px-6 text-sm font-medium text-(--text) outline-none"
+                  className="h-12 w-full min-w-0 rounded-[1.1rem] border-none bg-[color:color-mix(in_srgb,var(--surface-muted)_72%,white)] px-4 text-sm font-medium text-(--text) outline-none sm:h-14 sm:rounded-full sm:px-6 xl:min-w-[14rem]"
                 >
                   <option value="all">Academic Rank</option>
                   {designations.map((designation) => (
@@ -263,7 +263,7 @@ export function PublicAcademicInstructorsPage({
                     setActiveFilters(draftFilters);
                     setPage(1);
                   }}
-                  className="focus-ring inline-flex h-14 items-center justify-center gap-2 rounded-full bg-(--text) px-6 text-sm font-semibold uppercase tracking-[0.14em] text-white transition hover:brightness-110 dark:bg-(--accent) dark:text-(--accent-ink)"
+                  className="focus-ring col-span-2 inline-flex h-12 items-center justify-center gap-2 rounded-[1.1rem] bg-(--text) px-6 text-sm font-semibold uppercase tracking-[0.14em] text-white transition hover:brightness-110 sm:h-14 sm:rounded-full xl:col-span-1 dark:bg-(--accent) dark:text-(--accent-ink)"
                 >
                   <Filter className="h-4 w-4" />
                   Apply Filters
