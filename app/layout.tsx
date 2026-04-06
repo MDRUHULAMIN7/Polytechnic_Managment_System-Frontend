@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
+import { BackendWakeModal } from "@/components/common/backend-wake-modal";
 import { Manrope, Newsreader, Noto_Sans_Bengali } from "next/font/google";
 import { ToastRegion } from "@/components/common/toast-region";
 import { QueryProvider } from "@/components/providers/query-provider";
@@ -108,7 +109,7 @@ export default async function RootLayout({
         className={`${headingFont.variable} ${bodyFont.variable} ${bengaliFont.variable} antialiased`}
       >
         <QueryProvider>
-          
+          <BackendWakeModal />
           {children}
           <ToastRegion />
         </QueryProvider>
