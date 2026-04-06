@@ -50,6 +50,23 @@ export type AdminDashboardSemesterInsight = {
   href: string;
 };
 
+export type AdminDashboardAdminProfile = {
+  id: string;
+  name: string;
+  email: string;
+  designation: string;
+  status: "active" | "blocked";
+  href: string;
+};
+
+export type AdminDashboardSuperAdminOverview = {
+  totalUsers: number;
+  activeUsers: number;
+  blockedUsers: number;
+  userStatusData: AdminDashboardChartDatum[];
+  adminProfiles: AdminDashboardAdminProfile[];
+};
+
 export type AdminDashboardOverview = {
   cards: AdminDashboardCard[];
   quickMetrics: AdminDashboardMetric[];
@@ -59,4 +76,5 @@ export type AdminDashboardOverview = {
   recentActivity: AdminDashboardRecentActivityPoint[];
   semesterOfferings: AdminDashboardSemesterOfferingPoint[];
   semesterInsights: AdminDashboardSemesterInsight[];
+  superAdmin?: AdminDashboardSuperAdminOverview;
 };

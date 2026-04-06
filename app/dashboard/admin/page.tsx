@@ -13,15 +13,19 @@ import {
   getAdminClassSessionsServer,
   getDashboardSummaryServer,
 } from "@/lib/api/dashboard/class-session/server";
+import type { Admin } from "@/lib/type/dashboard/admin/admin";
+import type { Instructor } from "@/lib/type/dashboard/admin/instructor";
 import type { OfferedSubject } from "@/lib/type/dashboard/admin/offered-subject";
 import type {
   SemesterRegistration,
   SemesterRegistrationStatus,
 } from "@/lib/type/dashboard/admin/semester-registration";
+import type { Student } from "@/lib/type/dashboard/admin/student";
 import type {
   ClassSession,
   ClassSessionListParams,
 } from "@/lib/type/dashboard/class-session";
+import { resolveName } from "@/utils/dashboard/admin/utils";
 
 export const metadata: Metadata = {
   title: "Admin Dashboard",
@@ -156,6 +160,80 @@ async function fetchAllSemesterRegistrations() {
   return [...firstPage.result, ...remainingPages.flatMap((page) => page.result)];
 }
 
+async function fetchAllStudentsForSuperAdmin() {
+  const firstPage = await getStudentsServer({
+    page: 1,
+    limit: PAGE_SIZE,
+    fields: "id,name,email,user",
+  });
+
+  if (firstPage.meta.totalPage <= 1) {
+    return firstPage.result;
+  }
+
+  const remainingPages = await Promise.all(
+    Array.from({ length: firstPage.meta.totalPage - 1 }, (_, index) =>
+      getStudentsServer({
+        page: index + 2,
+        limit: PAGE_SIZE,
+        fields: "id,name,email,user",
+      }),
+    ),
+  );
+
+  return [...firstPage.result, ...remainingPages.flatMap((page) => page.result)];
+}
+
+async function fetchAllInstructorsForSuperAdmin() {
+  const firstPage = await getInstructorsServer({
+    page: 1,
+    limit: PAGE_SIZE,
+    fields: "id,name,email,designation,user",
+  });
+
+  if (firstPage.meta.totalPage <= 1) {
+    return firstPage.result;
+  }
+
+  const remainingPages = await Promise.all(
+    Array.from({ length: firstPage.meta.totalPage - 1 }, (_, index) =>
+      getInstructorsServer({
+        page: index + 2,
+        limit: PAGE_SIZE,
+        fields: "id,name,email,designation,user",
+      }),
+    ),
+  );
+
+  return [...firstPage.result, ...remainingPages.flatMap((page) => page.result)];
+}
+
+async function fetchAllAdminsForSuperAdmin() {
+  const firstPage = await getAdminsServer({
+    page: 1,
+    limit: PAGE_SIZE,
+    sort: "-createdAt",
+    fields: "id,name,email,designation,profileImg,user",
+  });
+
+  if (firstPage.meta.totalPage <= 1) {
+    return firstPage.result;
+  }
+
+  const remainingPages = await Promise.all(
+    Array.from({ length: firstPage.meta.totalPage - 1 }, (_, index) =>
+      getAdminsServer({
+        page: index + 2,
+        limit: PAGE_SIZE,
+        sort: "-createdAt",
+        fields: "id,name,email,designation,profileImg,user",
+      }),
+    ),
+  );
+
+  return [...firstPage.result, ...remainingPages.flatMap((page) => page.result)];
+}
+
 async function fetchAllClassSessions(
   params: Omit<ClassSessionListParams, "page" | "limit">,
 ) {
@@ -198,6 +276,13 @@ function decimalRatio(value: number) {
   return value.toFixed(1);
 }
 
+function countBlockedUsers(items: Array<{ user?: { status?: "active" | "blocked" } }>) {
+  return items.reduce(
+    (sum, item) => sum + (item.user?.status === "blocked" ? 1 : 0),
+    0,
+  );
+}
+
 export default async function AdminDashboardPage() {
   const cookieStore = await cookies();
   const role = cookieStore.get("pms_role")?.value;
@@ -209,13 +294,24 @@ export default async function AdminDashboardPage() {
   const recentStartDate = recentDateKeys[0] ?? formatApiDate(today);
   const recentEndDate = recentDateKeys[recentDateKeys.length - 1] ?? formatApiDate(today);
 
+  const countSummaryPromise = isSuperAdmin
+    ? Promise.resolve(null)
+    : Promise.all([
+        getStudentsServer({ page: 1, limit: 1 }),
+        getInstructorsServer({ page: 1, limit: 1 }),
+      ] as const);
+  const superAdminPeoplePromise = isSuperAdmin
+    ? Promise.all([
+        fetchAllStudentsForSuperAdmin(),
+        fetchAllInstructorsForSuperAdmin(),
+        fetchAllAdminsForSuperAdmin(),
+      ] as const)
+    : Promise.resolve(null);
+
   const [
     summary,
-    studentPayload,
-    instructorPayload,
     subjectPayload,
     academicSemesterPayload,
-    adminPayload,
     offeredSubjects,
     semesterRegistrations,
     scheduledPayload,
@@ -224,13 +320,12 @@ export default async function AdminDashboardPage() {
     cancelledPayload,
     missedPayload,
     recentSessions,
+    countSummaryData,
+    superAdminPeopleData,
   ] = await Promise.all([
     getDashboardSummaryServer(),
-    getStudentsServer({ page: 1, limit: 1 }),
-    getInstructorsServer({ page: 1, limit: 1 }),
     getSubjectsServer({ page: 1, limit: 1 }),
     getAcademicSemestersServer({ page: 1, limit: 1 }),
-    isSuperAdmin ? getAdminsServer({ page: 1, limit: 1 }) : Promise.resolve(null),
     fetchAllOfferedSubjects(),
     fetchAllSemesterRegistrations(),
     getAdminClassSessionsServer({ page: 1, limit: 1, status: "SCHEDULED" }),
@@ -242,13 +337,20 @@ export default async function AdminDashboardPage() {
       startDate: recentStartDate,
       endDate: recentEndDate,
     }),
+    countSummaryPromise,
+    superAdminPeoplePromise,
   ]);
 
-  const studentsTotal = studentPayload.meta.total;
-  const instructorsTotal = instructorPayload.meta.total;
+  const superAdminStudents = superAdminPeopleData?.[0] ?? null;
+  const superAdminInstructors = superAdminPeopleData?.[1] ?? null;
+  const superAdminAdmins = superAdminPeopleData?.[2] ?? null;
+
+  const studentsTotal = superAdminStudents?.length ?? countSummaryData?.[0].meta.total ?? 0;
+  const instructorsTotal =
+    superAdminInstructors?.length ?? countSummaryData?.[1].meta.total ?? 0;
   const subjectsTotal = subjectPayload.meta.total;
   const academicSemestersTotal = academicSemesterPayload.meta.total;
-  const adminsTotal = adminPayload?.meta.total ?? 0;
+  const adminsTotal = superAdminAdmins?.length ?? 0;
 
   const classStatusTotals = {
     scheduled: scheduledPayload.meta.total,
@@ -435,6 +537,44 @@ export default async function AdminDashboardPage() {
   ).length;
   const todayCompletionRate = percentage(summary.completed, summary.totalToday);
 
+  const superAdminOverview = isSuperAdmin
+    ? (() => {
+        const studentRecords: Student[] = superAdminStudents ?? [];
+        const instructorRecords: Instructor[] = superAdminInstructors ?? [];
+        const adminRecords: Admin[] = superAdminAdmins ?? [];
+        const totalUsers = studentRecords.length + instructorRecords.length + adminRecords.length;
+        const blockedUsers =
+          countBlockedUsers(studentRecords) +
+          countBlockedUsers(instructorRecords) +
+          countBlockedUsers(adminRecords);
+        const activeUsers = Math.max(totalUsers - blockedUsers, 0);
+
+        return {
+          totalUsers,
+          activeUsers,
+          blockedUsers,
+          userStatusData: [
+            { label: "Total Users", value: totalUsers },
+            { label: "Active Users", value: activeUsers },
+            { label: "Blocked Users", value: blockedUsers },
+          ],
+          adminProfiles: adminRecords.slice(0, 5).map((item) => {
+            const status: "active" | "blocked" =
+              item.user?.status === "blocked" ? "blocked" : "active";
+
+            return {
+              id: item.id,
+              name: resolveName(item.name),
+              email: item.email,
+              designation: item.designation || "Administrator",
+              status,
+              href: `/dashboard/admin/admins/${item._id}`,
+            };
+          }),
+        };
+      })()
+    : undefined;
+
   const overview: AdminDashboardOverview = {
     cards: [
       {
@@ -553,6 +693,7 @@ export default async function AdminDashboardPage() {
     recentActivity,
     semesterOfferings,
     semesterInsights,
+    superAdmin: superAdminOverview,
   };
 
   return <AdminDashboard summary={summary} overview={overview} />;

@@ -27,6 +27,23 @@ import {
   resolveClassSubjectTitle,
 } from "@/utils/dashboard/class-session";
 
+function initialsFromName(name: string) {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
+}
+
+function adminStatusPillClass(status: "active" | "blocked") {
+  if (status === "blocked") {
+    return "border border-rose-200/90 bg-rose-50 text-rose-800 dark:border-rose-800/50 dark:bg-rose-950/35 dark:text-rose-100";
+  }
+
+  return "border border-emerald-200/90 bg-emerald-50 text-emerald-800 dark:border-emerald-700/40 dark:bg-emerald-950/35 dark:text-emerald-100";
+}
+
 function formatCompactNumber(value: number) {
   return new Intl.NumberFormat("en-US", {
     notation: value >= 1000 ? "compact" : "standard",
@@ -168,20 +185,20 @@ export function AdminDashboard({
   const todayDisrupted = summary.sessions.filter(
     (item) => item.status === "CANCELLED" || item.status === "MISSED",
   ).length;
+  const isSuperAdminView = Boolean(overview.superAdmin);
 
   return (
     <div className="admin-overview-theme mx-auto max-w-7xl pb-10 font-(family-name:--font-body)">
       <header className="mb-10">
         <p className="admin-overview-accent text-xs font-bold uppercase tracking-[0.28em] text-(--accent)">
-          Admin Overview
+          {isSuperAdminView ? "Super Admin Overview" : "Admin Overview"}
         </p>
-        <h1 className="admin-overview-heading mt-3 text-3xl font-extrabold tracking-tight text-(--text) sm:text-4xl">
-          Platform command center for campus delivery, offerings, and operations.
+        <h1 className="admin-overview-heading mt-3 text-2xl font-bold tracking-tight text-(--text) sm:text-3xl capitalize">
+          {isSuperAdminView
+            ? "Centralize access, teams, and academic operations."
+            : "Platform command center for delivery, offerings, and operations."}
         </h1>
-        <p className="admin-overview-body mt-3 max-w-3xl text-base leading-7 text-(--text-dim) sm:text-lg">
-          Watch academic throughput, semester load, and today&apos;s teaching activity from a
-          single executive dashboard built for fast admin decisions.
-        </p>
+
       </header>
 
       <section className="admin-overview-panel-soft relative overflow-hidden rounded-4xl border border-(--line) px-6 py-7 shadow-sm sm:px-8 sm:py-8">
@@ -190,7 +207,7 @@ export function AdminDashboard({
             <span className="admin-overview-pill inline-flex rounded-full border border-(--line) bg-(--surface) px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.24em] text-(--text-dim)">
               Control Tower
             </span>
-            <h2 className="admin-overview-heading mt-5 text-2xl font-extrabold tracking-tight text-(--text) sm:text-3xl">
+            <h2 className="admin-overview-heading mt-5 text-xl font-bold tracking-tight text-(--text) sm:text-2xl">
               Live platform health, semester distribution, and teaching pulse.
             </h2>
             <p className="admin-overview-body mt-3 max-w-2xl text-sm leading-7 text-(--text-dim) sm:text-base">
@@ -311,6 +328,85 @@ export function AdminDashboard({
         <AdminDashboardCharts overview={overview} />
 
         <aside className="space-y-8">
+          {overview.superAdmin ? (
+            <div className="admin-overview-panel rounded-3xl border border-(--line) bg-(--surface) p-6 shadow-sm">
+              <div className="mb-6 flex items-start justify-between gap-4">
+                <div>
+                  <h2 className="admin-overview-heading text-xl font-bold tracking-tight text-(--text)">
+                    Admin Leadership
+                  </h2>
+                  <p className="admin-overview-body mt-1 text-sm text-(--text-dim)">
+                    Recent privileged accounts and their access state across the platform.
+                  </p>
+                </div>
+                <Link
+                  href="/dashboard/admin/admins"
+                  className="focus-ring inline-flex items-center justify-center rounded-full border border-(--line) px-4 py-2 text-xs font-bold text-(--text-dim) transition hover:bg-(--surface-muted)"
+                >
+                  Manage Admins
+                </Link>
+              </div>
+
+              <div className="mb-5 grid grid-cols-3 gap-2">
+                {[
+                  ["Users", overview.superAdmin.totalUsers],
+                  ["Active", overview.superAdmin.activeUsers],
+                  ["Blocked", overview.superAdmin.blockedUsers],
+                ].map(([label, value]) => (
+                  <div
+                    key={label}
+                    className="admin-overview-nested rounded-2xl border border-(--line) bg-(--surface-muted) px-3 py-3"
+                  >
+                    <p className="admin-overview-body text-[10px] font-bold uppercase tracking-[0.18em] text-(--text-dim)">
+                      {label}
+                    </p>
+                    <p className="admin-overview-value mt-1 text-xl font-extrabold tracking-tight text-(--text)">
+                      {value}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              {overview.superAdmin.adminProfiles.length === 0 ? (
+                <div className="admin-overview-nested rounded-2xl border border-dashed border-(--line) bg-(--surface-muted) px-5 py-10 text-center text-sm text-(--text-dim)">
+                  Admin profiles will appear here once privileged accounts are available.
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {overview.superAdmin.adminProfiles.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className="admin-overview-panel admin-overview-hover focus-ring flex items-center gap-4 rounded-2xl border border-(--line) px-4 py-4 transition-colors hover:bg-(--surface-muted)"
+                    >
+                      <div className="admin-overview-nested flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-(--line) bg-(--surface-muted) text-sm font-extrabold text-(--accent)">
+                        {initialsFromName(item.name) || "AD"}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="admin-overview-heading truncate font-bold text-(--text)">
+                          {item.name}
+                        </p>
+                        <p className="admin-overview-body mt-1 truncate text-xs text-(--text-dim)">
+                          {item.designation}
+                        </p>
+                        <p className="admin-overview-body truncate text-xs text-(--text-dim)">
+                          {item.email}
+                        </p>
+                      </div>
+                      <span
+                        className={`inline-flex shrink-0 rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-widest ${adminStatusPillClass(
+                          item.status,
+                        )}`}
+                      >
+                        {item.status}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : null}
+
           <div className="admin-overview-panel rounded-3xl border border-(--line) bg-(--surface) p-6 shadow-sm">
             <div className="mb-6 flex items-start justify-between gap-4">
               <div>

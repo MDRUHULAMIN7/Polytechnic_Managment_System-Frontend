@@ -163,6 +163,7 @@ export function AdminDashboardCharts({
     | "registrationStatusData"
     | "recentActivity"
     | "semesterOfferings"
+    | "superAdmin"
   >;
 }) {
   const palette = useChartPalette();
@@ -337,6 +338,25 @@ export function AdminDashboardCharts({
     [overview.registrationStatusData, palette],
   );
 
+  const superAdminUserStatusData = useMemo(
+    () =>
+      overview.superAdmin
+        ? {
+            labels: overview.superAdmin.userStatusData.map((item) => item.label),
+            datasets: [
+              {
+                label: "Accounts",
+                data: overview.superAdmin.userStatusData.map((item) => item.value),
+                backgroundColor: [palette.accent, palette.emerald, palette.rose],
+                borderRadius: 14,
+                maxBarThickness: compact ? 36 : 52,
+              },
+            ],
+          }
+        : null,
+    [compact, overview.superAdmin, palette.accent, palette.emerald, palette.rose],
+  );
+
   const recentActivityData = useMemo(
     () => ({
       labels: overview.recentActivity.map((item) => item.label),
@@ -401,9 +421,38 @@ export function AdminDashboardCharts({
   const hasSemesterOfferings = overview.semesterOfferings.some(
     (item) => item.sections > 0 || item.subjects > 0 || item.instructors > 0,
   );
+  const hasSuperAdminUserStatus = hasNonZeroValues(
+    overview.superAdmin?.userStatusData ?? [],
+  );
 
   return (
     <div className="grid min-w-0 gap-6">
+      {overview.superAdmin ? (
+        <ChartCard
+          title="User Access Health"
+          description="Role-based account volume across total, active, and blocked internal users."
+        >
+          {hasSuperAdminUserStatus && superAdminUserStatusData ? (
+            <div className="h-72 min-w-0 sm:h-80">
+              <Bar
+                data={superAdminUserStatusData}
+                options={{
+                  ...barOptions,
+                  plugins: {
+                    ...barOptions.plugins,
+                    legend: {
+                      display: false,
+                    },
+                  },
+                }}
+              />
+            </div>
+          ) : (
+            <EmptyChartState message="User status analytics will appear once internal accounts are available." />
+          )}
+        </ChartCard>
+      ) : null}
+
       <div className="grid min-w-0 gap-6 lg:grid-cols-2">
         <ChartCard
           title="7-Day Class Activity"
