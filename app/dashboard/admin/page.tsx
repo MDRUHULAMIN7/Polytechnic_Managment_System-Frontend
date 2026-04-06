@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { AdminDashboard } from "@/components/dashboard/admin/admin-dashboard";
 import type { AdminDashboardOverview } from "@/components/dashboard/admin/admin-dashboard-types";
 import { getAcademicSemestersServer } from "@/lib/api/dashboard/admin/academic-semester/server";
@@ -198,6 +199,9 @@ function decimalRatio(value: number) {
 }
 
 export default async function AdminDashboardPage() {
+  const cookieStore = await cookies();
+  const role = cookieStore.get("pms_role")?.value;
+  const isSuperAdmin = role === "superAdmin";
   const today = new Date();
   const recentDateKeys = Array.from({ length: 7 }, (_, index) =>
     formatApiDate(shiftDate(today, index - 6)),
@@ -226,7 +230,7 @@ export default async function AdminDashboardPage() {
     getInstructorsServer({ page: 1, limit: 1 }),
     getSubjectsServer({ page: 1, limit: 1 }),
     getAcademicSemestersServer({ page: 1, limit: 1 }),
-    getAdminsServer({ page: 1, limit: 1 }),
+    isSuperAdmin ? getAdminsServer({ page: 1, limit: 1 }) : Promise.resolve(null),
     fetchAllOfferedSubjects(),
     fetchAllSemesterRegistrations(),
     getAdminClassSessionsServer({ page: 1, limit: 1, status: "SCHEDULED" }),
@@ -244,7 +248,7 @@ export default async function AdminDashboardPage() {
   const instructorsTotal = instructorPayload.meta.total;
   const subjectsTotal = subjectPayload.meta.total;
   const academicSemestersTotal = academicSemesterPayload.meta.total;
-  const adminsTotal = adminPayload.meta.total;
+  const adminsTotal = adminPayload?.meta.total ?? 0;
 
   const classStatusTotals = {
     scheduled: scheduledPayload.meta.total,
@@ -499,11 +503,15 @@ export default async function AdminDashboardPage() {
       },
     ],
     websiteStats: [
-      {
-        label: "Admin Team",
-        value: adminsTotal.toLocaleString("en-US"),
-        helper: "Administrators with oversight across platform workflows.",
-      },
+      ...(isSuperAdmin
+        ? [
+            {
+              label: "Admin Team",
+              value: adminsTotal.toLocaleString("en-US"),
+              helper: "Administrators with oversight across platform workflows.",
+            },
+          ]
+        : []),
       {
         label: "Student : Instructor",
         value: `${studentInstructorRatio}:1`,

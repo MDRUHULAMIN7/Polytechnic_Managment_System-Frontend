@@ -7,6 +7,7 @@ import {
   BarElement,
   CategoryScale,
   Chart as ChartJS,
+  type ChartOptions,
   Legend,
   LinearScale,
   Tooltip,
@@ -96,6 +97,23 @@ function useChartPalette() {
   return palette;
 }
 
+function useCompactChartMode() {
+  const [compact, setCompact] = useState(false);
+
+  useEffect(() => {
+    const update = () => {
+      setCompact(window.innerWidth < 640);
+    };
+
+    update();
+    window.addEventListener("resize", update);
+
+    return () => window.removeEventListener("resize", update);
+  }, []);
+
+  return compact;
+}
+
 function ChartCard({
   title,
   description,
@@ -106,10 +124,10 @@ function ChartCard({
   children: ReactNode;
 }) {
   return (
-    <div className="rounded-3xl border border-(--line) bg-(--surface) p-6 shadow-sm">
+    <div className="admin-overview-panel min-w-0 overflow-hidden rounded-3xl border border-(--line) bg-(--surface) p-4 shadow-sm sm:p-6">
       <div className="mb-5">
-        <h3 className="text-lg font-bold tracking-tight text-(--text)">{title}</h3>
-        <p className="mt-1 text-sm text-(--text-dim)">{description}</p>
+        <h3 className="admin-overview-heading text-lg font-bold tracking-tight text-(--text)">{title}</h3>
+        <p className="admin-overview-body mt-1 text-sm text-(--text-dim)">{description}</p>
       </div>
       {children}
     </div>
@@ -118,7 +136,7 @@ function ChartCard({
 
 function EmptyChartState({ message }: { message: string }) {
   return (
-    <div className="flex h-72 items-center justify-center rounded-2xl border border-dashed border-(--line) bg-(--surface-muted) px-6 text-center text-sm text-(--text-dim)">
+    <div className="admin-overview-nested flex h-64 items-center justify-center rounded-2xl border border-dashed border-(--line) bg-(--surface-muted) px-6 text-center text-sm text-(--text-dim) sm:h-72">
       {message}
     </div>
   );
@@ -126,6 +144,14 @@ function EmptyChartState({ message }: { message: string }) {
 
 function hasNonZeroValues(items: AdminDashboardChartDatum[]) {
   return items.some((item) => item.value > 0);
+}
+
+function wrapAxisLabel(label: string, compact: boolean) {
+  if (!compact || !label.includes(" ")) {
+    return label;
+  }
+
+  return label.split(" ");
 }
 
 export function AdminDashboardCharts({
@@ -140,6 +166,7 @@ export function AdminDashboardCharts({
   >;
 }) {
   const palette = useChartPalette();
+  const compact = useCompactChartMode();
 
   const sharedLegend = useMemo(
     () => ({
@@ -147,37 +174,43 @@ export function AdminDashboardCharts({
       position: "bottom" as const,
       labels: {
         color: palette.textDim,
-        boxWidth: 12,
-        boxHeight: 12,
-        padding: 18,
+        boxWidth: compact ? 10 : 12,
+        boxHeight: compact ? 10 : 12,
+        padding: compact ? 12 : 18,
         usePointStyle: true,
         pointStyle: "circle" as const,
+        font: {
+          size: compact ? 10 : 12,
+        },
       },
     }),
-    [palette.textDim],
+    [compact, palette.textDim],
   );
 
   const doughnutOptions = useMemo(
-    () => ({
+    (): ChartOptions<"doughnut"> => ({
       responsive: true,
       maintainAspectRatio: false,
-      cutout: "72%",
+      cutout: compact ? "66%" : "72%",
+      layout: {
+        padding: compact ? 4 : 8,
+      },
       plugins: {
         legend: sharedLegend,
         tooltip: {
           backgroundColor: palette.text,
           titleColor: palette.accentInk,
           bodyColor: palette.accentInk,
-          padding: 12,
+          padding: compact ? 10 : 12,
           displayColors: true,
         },
       },
     }),
-    [palette.accentInk, palette.text, sharedLegend],
+    [compact, palette.accentInk, palette.text, sharedLegend],
   );
 
   const barOptions = useMemo(
-    () => ({
+    (): ChartOptions<"bar"> => ({
       responsive: true,
       maintainAspectRatio: false,
       interaction: {
@@ -193,17 +226,25 @@ export function AdminDashboardCharts({
           backgroundColor: palette.text,
           titleColor: palette.accentInk,
           bodyColor: palette.accentInk,
-          padding: 12,
+          padding: compact ? 10 : 12,
         },
+      },
+      layout: {
+        padding: compact ? { top: 4, right: 2, bottom: 2, left: 0 } : 8,
       },
       scales: {
         x: {
           ticks: {
             color: palette.textDim,
+            font: {
+              size: compact ? 10 : 12,
+            },
+            maxRotation: 0,
+            minRotation: 0,
+            autoSkipPadding: compact ? 14 : 20,
           },
           grid: {
-            color: palette.line,
-            drawBorder: false,
+            color: compact ? "transparent" : palette.line,
           },
         },
         y: {
@@ -211,23 +252,53 @@ export function AdminDashboardCharts({
           ticks: {
             color: palette.textDim,
             precision: 0,
+            font: {
+              size: compact ? 10 : 12,
+            },
           },
           grid: {
             color: palette.line,
-            drawBorder: false,
           },
         },
       },
     }),
-    [palette.accentInk, palette.line, palette.text, palette.textDim, sharedLegend],
+    [compact, palette.accentInk, palette.line, palette.text, palette.textDim, sharedLegend],
   );
 
   const horizontalBarOptions = useMemo(
-    () => ({
+    (): ChartOptions<"bar"> => ({
       ...barOptions,
-      indexAxis: "y" as const,
+      indexAxis: compact ? "x" : "y",
+      scales: compact
+        ? barOptions.scales
+        : {
+            x: {
+              beginAtZero: true,
+              ticks: {
+                color: palette.textDim,
+                precision: 0,
+                font: {
+                  size: 12,
+                },
+              },
+              grid: {
+                color: palette.line,
+              },
+            },
+            y: {
+              ticks: {
+                color: palette.textDim,
+                font: {
+                  size: 11,
+                },
+              },
+              grid: {
+                color: "transparent",
+              },
+            },
+          },
     }),
-    [barOptions],
+    [barOptions, compact, palette.line, palette.textDim],
   );
 
   const classStatusData = useMemo(
@@ -295,7 +366,9 @@ export function AdminDashboardCharts({
 
   const semesterOfferingsData = useMemo(
     () => ({
-      labels: overview.semesterOfferings.map((item) => item.label),
+      labels: overview.semesterOfferings.map((item) =>
+        wrapAxisLabel(item.label, compact),
+      ),
       datasets: [
         {
           label: "Sections",
@@ -317,7 +390,7 @@ export function AdminDashboardCharts({
         },
       ],
     }),
-    [overview.semesterOfferings, palette.accent, palette.sky, palette.slate],
+    [compact, overview.semesterOfferings, palette.accent, palette.sky, palette.slate],
   );
 
   const hasRecentActivity = overview.recentActivity.some(
@@ -330,14 +403,14 @@ export function AdminDashboardCharts({
   );
 
   return (
-    <div className="grid gap-6">
-      <div className="grid gap-6 lg:grid-cols-2">
+    <div className="grid min-w-0 gap-6">
+      <div className="grid min-w-0 gap-6 lg:grid-cols-2">
         <ChartCard
           title="7-Day Class Activity"
           description="Daily teaching load, completed delivery, and disrupted sessions over the last week."
         >
           {hasRecentActivity ? (
-            <div className="h-80">
+            <div className="h-72 min-w-0 sm:h-80">
               <Bar data={recentActivityData} options={barOptions} />
             </div>
           ) : (
@@ -350,7 +423,7 @@ export function AdminDashboardCharts({
           description="How the full class inventory is currently distributed across status buckets."
         >
           {hasClassStatus ? (
-            <div className="h-80">
+            <div className="h-72 min-w-0 sm:h-80">
               <Doughnut data={classStatusData} options={doughnutOptions} />
             </div>
           ) : (
@@ -359,13 +432,13 @@ export function AdminDashboardCharts({
         </ChartCard>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid min-w-0 gap-6 lg:grid-cols-2">
         <ChartCard
           title="Semester Offering Mix"
           description="Top academic semesters by active section count, subject breadth, and faculty load."
         >
           {hasSemesterOfferings ? (
-            <div className="h-80">
+            <div className="h-80 min-w-0 sm:h-80">
               <Bar data={semesterOfferingsData} options={horizontalBarOptions} />
             </div>
           ) : (
@@ -378,7 +451,7 @@ export function AdminDashboardCharts({
           description="Registration pipeline health across upcoming, ongoing, and closed semester windows."
         >
           {hasRegistrationStatus ? (
-            <div className="h-80">
+            <div className="h-72 min-w-0 sm:h-80">
               <Doughnut data={registrationStatusData} options={doughnutOptions} />
             </div>
           ) : (

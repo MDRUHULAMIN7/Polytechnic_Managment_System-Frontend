@@ -3670,3 +3670,64 @@ a {
   background: linear-gradient(135deg, #2563eb 0%, #60a5fa 100%);
   color: #eff6ff;
 }
+
+.admin-overview-panel-soft {
+  background:
+    radial-gradient(
+      circle at top right,
+      color-mix(in srgb, var(--accent) 18%, transparent),
+      transparent 32%
+    ),
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--surface-muted) 86%, var(--surface)) 0%,
+      color-mix(in srgb, var(--surface) 98%, transparent) 100%
+    );
+}
+
+[data-theme="light"] .admin-overview-panel,
+[data-theme="light"] .admin-overview-panel-soft {
+  border-color: color-mix(in srgb, var(--line) 84%, white);
+  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.05);
+}
+
+[data-theme="light"] .admin-overview-panel {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.94) 0%,
+    rgba(248, 250, 252, 0.92) 100%
+  );
+}
+
+[data-theme="light"] .admin-overview-panel-soft {
+  background:
+    radial-gradient(circle at top right, rgba(75, 125, 233, 0.08), transparent 36%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(247, 249, 253, 0.92) 100%);
+}
+
+[data-theme="light"] .admin-overview-nested {
+  border-color: rgba(226, 232, 240, 0.9);
+  background: rgba(248, 250, 252, 0.82);
+}
+
+[data-theme="light"] .admin-overview-pill {
+  border-color: rgba(226, 232, 240, 0.92);
+  background: rgba(255, 255, 255, 0.82);
+}
+
+[data-theme="light"] .admin-overview-heading,
+[data-theme="light"] .admin-overview-value {
+  color: #1e293b;
+}
+
+[data-theme="light"] .admin-overview-body {
+  color: #5a6678;
+}
+
+[data-theme="light"] .admin-overview-accent {
+  color: #3868d9;
+}
+
+[data-theme="light"] .admin-overview-hover:hover {
+  background: rgba(241, 245, 249, 0.9);
+}

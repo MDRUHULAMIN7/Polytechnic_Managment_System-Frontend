@@ -170,36 +170,30 @@ export function AdminDashboard({
   ).length;
 
   return (
-    <div className="mx-auto max-w-7xl pb-10 font-(family-name:--font-body)">
+    <div className="admin-overview-theme mx-auto max-w-7xl pb-10 font-(family-name:--font-body)">
       <header className="mb-10">
-        <p className="text-xs font-bold uppercase tracking-[0.28em] text-(--accent)">
+        <p className="admin-overview-accent text-xs font-bold uppercase tracking-[0.28em] text-(--accent)">
           Admin Overview
         </p>
-        <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-(--text) sm:text-4xl">
+        <h1 className="admin-overview-heading mt-3 text-3xl font-extrabold tracking-tight text-(--text) sm:text-4xl">
           Platform command center for campus delivery, offerings, and operations.
         </h1>
-        <p className="mt-3 max-w-3xl text-base leading-7 text-(--text-dim) sm:text-lg">
+        <p className="admin-overview-body mt-3 max-w-3xl text-base leading-7 text-(--text-dim) sm:text-lg">
           Watch academic throughput, semester load, and today&apos;s teaching activity from a
           single executive dashboard built for fast admin decisions.
         </p>
       </header>
 
-      <section
-        className="relative overflow-hidden rounded-[2rem] border border-(--line) px-6 py-7 shadow-sm sm:px-8 sm:py-8"
-        style={{
-          background:
-            "radial-gradient(circle at top right, color-mix(in srgb, var(--accent) 18%, transparent), transparent 32%), linear-gradient(135deg, color-mix(in srgb, var(--surface-muted) 86%, var(--surface)) 0%, color-mix(in srgb, var(--surface) 98%, transparent) 100%)",
-        }}
-      >
+      <section className="admin-overview-panel-soft relative overflow-hidden rounded-4xl border border-(--line) px-6 py-7 shadow-sm sm:px-8 sm:py-8">
         <div className="grid gap-8 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.8fr)]">
           <div>
-            <span className="inline-flex rounded-full border border-(--line) bg-(--surface) px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.24em] text-(--text-dim)">
+            <span className="admin-overview-pill inline-flex rounded-full border border-(--line) bg-(--surface) px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.24em] text-(--text-dim)">
               Control Tower
             </span>
-            <h2 className="mt-5 text-2xl font-extrabold tracking-tight text-(--text) sm:text-3xl">
+            <h2 className="admin-overview-heading mt-5 text-2xl font-extrabold tracking-tight text-(--text) sm:text-3xl">
               Live platform health, semester distribution, and teaching pulse.
             </h2>
-            <p className="mt-3 max-w-2xl text-sm leading-7 text-(--text-dim) sm:text-base">
+            <p className="admin-overview-body mt-3 max-w-2xl text-sm leading-7 text-(--text-dim) sm:text-base">
               The cards below capture platform inventory, while the charts and semester map help
               you spot delivery bottlenecks, registration pressure, and offering concentration.
             </p>
@@ -208,31 +202,31 @@ export function AdminDashboard({
               {overview.quickMetrics.map((item) => (
                 <div
                   key={item.label}
-                  className="rounded-2xl border border-(--line) bg-(--surface) px-4 py-4 shadow-sm"
+                  className="admin-overview-nested rounded-2xl border border-(--line) bg-(--surface) px-4 py-4 shadow-sm"
                 >
-                  <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-(--text-dim)">
+                  <p className="admin-overview-body text-[11px] font-bold uppercase tracking-[0.22em] text-(--text-dim)">
                     {item.label}
                   </p>
-                  <p className="mt-2 text-2xl font-extrabold tracking-tight text-(--text)">
+                  <p className="admin-overview-value mt-2 text-2xl font-extrabold tracking-tight text-(--text)">
                     {item.value}
                   </p>
-                  <p className="mt-2 text-xs text-(--text-dim)">{item.helper}</p>
+                  <p className="admin-overview-body mt-2 text-xs text-(--text-dim)">{item.helper}</p>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="rounded-[1.75rem] border border-(--line) bg-(--surface) p-5 shadow-sm sm:p-6">
+          <div className="admin-overview-panel rounded-[1.75rem] border border-(--line) bg-(--surface) p-5 shadow-sm sm:p-6">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.22em] text-(--accent)">
+                <p className="admin-overview-accent text-xs font-bold uppercase tracking-[0.22em] text-(--accent)">
                   Today Snapshot
                 </p>
-                <h3 className="mt-3 text-xl font-bold tracking-tight text-(--text)">
+                <h3 className="admin-overview-heading mt-3 text-xl font-bold tracking-tight text-(--text)">
                   Classroom operations for {todayHeading()}
                 </h3>
               </div>
-              <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-(--surface-muted) text-(--accent)">
+              <span className="admin-overview-nested admin-overview-accent inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-(--surface-muted) text-(--accent)">
                 <Radio className="h-5 w-5" strokeWidth={1.9} aria-hidden />
               </span>
             </div>
@@ -246,12 +240,12 @@ export function AdminDashboard({
               ].map(([label, value]) => (
                 <div
                   key={label}
-                  className="rounded-2xl border border-(--line) bg-(--surface-muted) px-4 py-4"
+                  className="admin-overview-nested rounded-2xl border border-(--line) bg-(--surface-muted) px-4 py-4"
                 >
-                  <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-(--text-dim)">
+                  <p className="admin-overview-body text-[11px] font-bold uppercase tracking-[0.18em] text-(--text-dim)">
                     {label}
                   </p>
-                  <p className="mt-2 text-3xl font-extrabold tracking-tight text-(--text)">
+                  <p className="admin-overview-value mt-2 text-3xl font-extrabold tracking-tight text-(--text)">
                     {value}
                   </p>
                 </div>
@@ -285,49 +279,49 @@ export function AdminDashboard({
             <Link
               key={item.label}
               href={item.href}
-              className={`focus-ring rounded-3xl border p-6 shadow-sm transition-transform hover:-translate-y-1 ${tone.wrapper}`}
+              className={`focus-ring rounded-3xl border p-6 shadow-sm transition-transform hover:-translate-y-1 ${item.tone === "primary" ? "" : "admin-overview-panel"} ${tone.wrapper}`}
               style={tone.style}
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
                   <p
-                    className={`text-xs font-bold uppercase tracking-[0.18em] ${
+                    className={`admin-overview-body text-xs font-bold uppercase tracking-[0.18em] ${
                       item.tone === "primary" ? "text-white/80" : "text-(--text-dim)"
                     }`}
                   >
                     {item.label}
                   </p>
-                  <p className="mt-3 text-4xl font-extrabold tracking-tight">
+                  <p className={`mt-3 text-4xl font-extrabold tracking-tight ${item.tone === "primary" ? "" : "admin-overview-value"}`}>
                     {formatCompactNumber(item.value)}
                   </p>
                 </div>
                 <span
-                  className={`inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${tone.iconClass}`}
+                  className={`inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${item.tone === "primary" ? "" : "admin-overview-nested"} ${tone.iconClass}`}
                 >
                   <Icon className="h-5 w-5" strokeWidth={1.8} aria-hidden />
                 </span>
               </div>
-              <p className={`mt-4 text-sm leading-6 ${tone.helperClass}`}>{item.helper}</p>
+              <p className={`mt-4 text-sm leading-6 ${item.tone === "primary" ? "" : "admin-overview-body"} ${tone.helperClass}`}>{item.helper}</p>
             </Link>
           );
         })}
       </section>
 
-      <section className="mt-12 grid gap-8 xl:grid-cols-[minmax(0,1.75fr)_minmax(320px,0.95fr)]">
+      <section className="mt-12 grid min-w-0 gap-8 xl:grid-cols-[minmax(0,1.75fr)_minmax(320px,0.95fr)]">
         <AdminDashboardCharts overview={overview} />
 
         <aside className="space-y-8">
-          <div className="rounded-3xl border border-(--line) bg-(--surface) p-6 shadow-sm">
+          <div className="admin-overview-panel rounded-3xl border border-(--line) bg-(--surface) p-6 shadow-sm">
             <div className="mb-6 flex items-start justify-between gap-4">
               <div>
-                <h2 className="text-xl font-bold tracking-tight text-(--text)">
+                <h2 className="admin-overview-heading text-xl font-bold tracking-tight text-(--text)">
                   Website Statistics
                 </h2>
-                <p className="mt-1 text-sm text-(--text-dim)">
+                <p className="admin-overview-body mt-1 text-sm text-(--text-dim)">
                   Ratios and operational indicators for executive tracking.
                 </p>
               </div>
-              <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-(--surface-muted) text-(--accent)">
+              <span className="admin-overview-nested admin-overview-accent inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-(--surface-muted) text-(--accent)">
                 <ShieldCheck className="h-5 w-5" strokeWidth={1.8} aria-hidden />
               </span>
             </div>
@@ -336,14 +330,14 @@ export function AdminDashboard({
               {overview.websiteStats.map((item) => (
                 <div
                   key={item.label}
-                  className="rounded-2xl border border-(--line) bg-(--surface-muted) px-4 py-4"
+                  className="admin-overview-nested rounded-2xl border border-(--line) bg-(--surface-muted) px-4 py-4"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold text-(--text)">{item.label}</p>
-                      <p className="mt-1 text-xs leading-5 text-(--text-dim)">{item.helper}</p>
+                      <p className="admin-overview-heading text-sm font-semibold text-(--text)">{item.label}</p>
+                      <p className="admin-overview-body mt-1 text-xs leading-5 text-(--text-dim)">{item.helper}</p>
                     </div>
-                    <span className="shrink-0 text-lg font-extrabold tracking-tight text-(--accent)">
+                    <span className="admin-overview-accent shrink-0 text-lg font-extrabold tracking-tight text-(--accent)">
                       {item.value}
                     </span>
                   </div>
@@ -352,18 +346,18 @@ export function AdminDashboard({
             </div>
           </div>
 
-          <div className="rounded-3xl border border-(--line) bg-(--surface) p-6 shadow-sm">
+          <div className="admin-overview-panel rounded-3xl border border-(--line) bg-(--surface) p-6 shadow-sm">
             <div className="mb-6">
-              <h2 className="text-xl font-bold tracking-tight text-(--text)">
+              <h2 className="admin-overview-heading text-xl font-bold tracking-tight text-(--text)">
                 Semester Coverage
               </h2>
-              <p className="mt-1 text-sm text-(--text-dim)">
+              <p className="admin-overview-body mt-1 text-sm text-(--text-dim)">
                 The busiest academic semesters by section volume and faculty distribution.
               </p>
             </div>
 
             {overview.semesterInsights.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-(--line) bg-(--surface-muted) px-5 py-10 text-center text-sm text-(--text-dim)">
+              <div className="admin-overview-nested rounded-2xl border border-dashed border-(--line) bg-(--surface-muted) px-5 py-10 text-center text-sm text-(--text-dim)">
                 Semester coverage will appear once offered subjects are available.
               </div>
             ) : (
@@ -372,12 +366,12 @@ export function AdminDashboard({
                   <Link
                     key={item.label}
                     href={item.href}
-                    className="focus-ring block rounded-2xl border border-(--line) bg-(--surface-muted) p-4 transition hover:bg-(--surface)"
+                    className="admin-overview-nested admin-overview-hover focus-ring block rounded-2xl border border-(--line) bg-(--surface-muted) p-4 transition hover:bg-(--surface)"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <p className="font-bold text-(--text)">{item.label}</p>
-                        <p className="mt-1 text-xs leading-5 text-(--text-dim)">{item.meta}</p>
+                        <p className="admin-overview-heading font-bold text-(--text)">{item.label}</p>
+                        <p className="admin-overview-body mt-1 text-xs leading-5 text-(--text-dim)">{item.meta}</p>
                       </div>
                       {item.currentWindows > 0 ? (
                         <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300">
@@ -394,12 +388,12 @@ export function AdminDashboard({
                       ].map(([label, value]) => (
                         <div
                           key={label}
-                          className="rounded-xl border border-(--line) bg-(--surface) px-3 py-3"
+                          className="admin-overview-panel rounded-xl border border-(--line) bg-(--surface) px-3 py-3"
                         >
-                          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-(--text-dim)">
+                          <p className="admin-overview-body text-[10px] font-bold uppercase tracking-[0.16em] text-(--text-dim)">
                             {label}
                           </p>
-                          <p className="mt-1 text-lg font-extrabold tracking-tight text-(--text)">
+                          <p className="admin-overview-value mt-1 text-lg font-extrabold tracking-tight text-(--text)">
                             {value}
                           </p>
                         </div>
@@ -413,13 +407,13 @@ export function AdminDashboard({
         </aside>
       </section>
 
-      <section className="mt-12 rounded-3xl border border-(--line) bg-(--surface) p-6 shadow-sm sm:p-8">
+      <section className="admin-overview-panel mt-12 rounded-3xl border border-(--line) bg-(--surface) p-6 shadow-sm sm:p-8">
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-2xl font-bold tracking-tight text-(--text)">
+            <h2 className="admin-overview-heading text-2xl font-bold tracking-tight text-(--text)">
               Today&apos;s Class Monitor
             </h2>
-            <p className="mt-1 text-sm text-(--text-dim)">
+            <p className="admin-overview-body mt-1 text-sm text-(--text-dim)">
               Jump into attendance and delivery details for the day&apos;s active schedule.
             </p>
           </div>
@@ -433,7 +427,7 @@ export function AdminDashboard({
 
         <div className="space-y-3">
           {summary.sessions.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-(--line) bg-(--surface-muted) px-5 py-12 text-center text-sm text-(--text-dim)">
+            <div className="admin-overview-nested rounded-2xl border border-dashed border-(--line) bg-(--surface-muted) px-5 py-12 text-center text-sm text-(--text-dim)">
               No classes are scheduled for today.
             </div>
           ) : (
@@ -444,14 +438,14 @@ export function AdminDashboard({
                 <Link
                   key={item._id}
                   href={`/dashboard/admin/classes/${item._id}`}
-                  className="focus-ring group flex flex-col gap-3 rounded-2xl border border-(--line) px-4 py-4 transition-colors hover:bg-(--surface-muted) sm:px-5"
+                  className="admin-overview-panel admin-overview-hover focus-ring group flex flex-col gap-3 rounded-2xl border border-(--line) px-4 py-4 transition-colors hover:bg-(--surface-muted) sm:px-5"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="font-bold text-(--text) transition-colors group-hover:text-(--accent)">
+                      <p className="admin-overview-heading font-bold text-(--text) transition-colors group-hover:text-(--accent)">
                         {resolveClassSubjectTitle(item.subject)}
                       </p>
-                      <p className="mt-1 text-sm text-(--text-dim)">
+                      <p className="admin-overview-body mt-1 text-sm text-(--text-dim)">
                         {resolveClassInstructorName(item.instructor)}
                       </p>
                     </div>
@@ -472,7 +466,7 @@ export function AdminDashboard({
                     </div>
                   </div>
 
-                  <p className="text-sm text-(--text-dim)">
+                  <p className="admin-overview-body text-sm text-(--text-dim)">
                     {formatClassDate(item.date)} | {formatTimeRange(item.startTime, item.endTime)}
                   </p>
                 </Link>
