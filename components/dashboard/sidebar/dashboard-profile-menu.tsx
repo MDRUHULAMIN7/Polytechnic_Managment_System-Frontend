@@ -93,16 +93,30 @@ export function DashboardProfileMenu() {
   useEffect(() => {
     let active = true;
 
-    void getCurrentUserProfile()
-      .then((result) => {
+    const loadProfile = async () => {
+      try {
+        const result = await getCurrentUserProfile();
         if (active) {
           setProfile(result);
         }
-      })
-      .catch(() => undefined);
+      } catch {
+        if (active) {
+          setProfile(null);
+        }
+      }
+    };
+
+    void loadProfile();
+
+    const handleProfileUpdated = () => {
+      void loadProfile();
+    };
+
+    window.addEventListener("profile-updated", handleProfileUpdated);
 
     return () => {
       active = false;
+      window.removeEventListener("profile-updated", handleProfileUpdated);
     };
   }, []);
 

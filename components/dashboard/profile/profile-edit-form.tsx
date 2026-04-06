@@ -1,9 +1,9 @@
 "use client";
 
 import type { ChangeEvent, FormEvent } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle, LoaderCircle, Save } from "lucide-react";
+import { AlertCircle, LoaderCircle, Save, UserRound } from "lucide-react";
 import { updateCurrentUserProfile } from "@/lib/api/auth/profile";
 import type {
   CurrentUserProfile,
@@ -14,6 +14,7 @@ import { showToast } from "@/utils/common/toast";
 type ProfileEditFormProps = {
   profile: CurrentUserProfile;
   variant?: "panel" | "modal";
+  onSaved?: () => void;
 };
 
 
@@ -69,10 +70,13 @@ function initialState(profile: CurrentUserProfile) {
 export function ProfileEditForm({
   profile,
   variant = "panel",
+  onSaved,
 }: ProfileEditFormProps) {
   const router = useRouter();
   const role = resolveRole(profile);
   const [form, setForm] = useState(() => initialState(profile));
+  const [file, setFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -80,11 +84,63 @@ export function ProfileEditForm({
   const canEdit = role === "student" || role === "instructor" || role === "admin";
   const isModal = variant === "modal";
 
+  useEffect(() => {
+    setForm(initialState(profile));
+    setFile(null);
+    setPreviewUrl(null);
+  }, [profile]);
+
+  useEffect(() => {
+    if (!file) {
+      setPreviewUrl(null);
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(file);
+    setPreviewUrl(objectUrl);
+
+    return () => {
+      URL.revokeObjectURL(objectUrl);
+    };
+  }, [file]);
+
   function updateField(
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
   ) {
     const { name, value } = event.target;
     setForm((current) => ({ ...current, [name]: value }));
+  }
+
+  function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
+    const nextFile = event.target.files?.[0] ?? null;
+
+    if (!nextFile) {
+      setFile(null);
+      return;
+    }
+
+    if (!nextFile.type.startsWith("image/")) {
+      showToast({
+        variant: "error",
+        title: "Invalid image",
+        description: "Please choose a JPG, PNG, or another image file.",
+      });
+      event.target.value = "";
+      return;
+    }
+
+    if (nextFile.size > 5 * 1024 * 1024) {
+      showToast({
+        variant: "error",
+        title: "Image too large",
+        description: "Please upload an image smaller than 5MB.",
+      });
+      event.target.value = "";
+      return;
+    }
+
+    setFile(nextFile);
+    setError(null);
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -133,12 +189,14 @@ export function ProfileEditForm({
     setError(null);
 
     try {
-      await updateCurrentUserProfile(payload);
+      await updateCurrentUserProfile(payload, file);
       showToast({
         variant: "success",
         title: "Profile updated",
         description: "Your editable profile details have been saved.",
       });
+      onSaved?.();
+      window.dispatchEvent(new Event("profile-updated"));
       router.refresh();
     } catch (submitError) {
       const message =
@@ -183,6 +241,54 @@ export function ProfileEditForm({
 
 
       <form className="mt-5 space-y-5" onSubmit={handleSubmit}>
+        <div className="rounded-2xl border border-(--line) bg-(--surface-muted)/40 p-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+            <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-(--line) bg-(--surface)">
+              {previewUrl || profile.profileImg ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={previewUrl ?? profile.profileImg ?? ""}
+                  alt="Profile preview"
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <UserRound size={28} className="text-(--text-dim)" />
+              )}
+            </div>
+
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-semibold tracking-tight text-(--text)">
+                Profile Image
+              </p>
+              <p className="mt-1 text-xs text-(--text-dim)">
+                Upload a JPG or PNG using the same file-based pattern used in user creation.
+              </p>
+
+              <label className="mt-3 flex cursor-pointer items-center justify-between gap-3 rounded-2xl border border-dashed border-(--line) bg-(--surface) px-4 py-3 text-sm text-(--text) transition hover:border-(--accent) hover:bg-(--surface-muted)">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold">
+                    {file ? file.name : "Choose a new profile image"}
+                  </p>
+                  <p className="mt-1 text-xs text-(--text-dim)">
+                    {file
+                      ? "Selected image will replace your current profile photo."
+                      : "PNG, JPG, or WebP up to 5MB. Leave it unchanged to keep the current image."}
+                  </p>
+                </div>
+                <span className="rounded-full bg-(--accent) px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-(--accent-ink)">
+                  Browse
+                </span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="sr-only"
+                />
+              </label>
+            </div>
+          </div>
+        </div>
+
         <div className="grid gap-4 md:grid-cols-3">
           <label className="text-sm font-medium">
             First Name

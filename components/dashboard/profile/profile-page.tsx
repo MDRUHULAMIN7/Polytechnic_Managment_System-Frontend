@@ -412,7 +412,11 @@ export function ProfilePage({ profile, error }: ProfilePageProps) {
             onClose={() => setUpdateModalOpen(false)}
            
           >
-            <ProfileEditForm profile={profile} variant="modal" />
+            <ProfileEditForm
+              profile={profile}
+              variant="modal"
+              onSaved={() => setUpdateModalOpen(false)}
+            />
           </ProfileModal>
 
           <ProfileModal

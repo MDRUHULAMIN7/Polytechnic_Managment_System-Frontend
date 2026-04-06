@@ -12,16 +12,31 @@ import {
 
 export async function updateCurrentUserProfile(
   profile: CurrentUserProfileUpdate,
+  file?: File | null,
 ): Promise<CurrentUserProfile> {
   ensureApiBaseUrl();
 
+  const authHeaderValues = authHeadersFromCookie();
+  let headers: HeadersInit = authHeaderValues;
+  let body: BodyInit;
+
+  if (file) {
+    const formData = new FormData();
+    formData.append("data", JSON.stringify({ profile }));
+    formData.append("file", file);
+    body = formData;
+  } else {
+    headers = {
+      "Content-Type": "application/json",
+      ...authHeaderValues,
+    };
+    body = JSON.stringify({ profile });
+  }
+
   const response = await fetch(`${API_BASE_URL}/users/me`, {
     method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-      ...authHeadersFromCookie(),
-    },
-    body: JSON.stringify({ profile }),
+    headers,
+    body,
   });
 
   const payload = await parseJsonResponse<CurrentUserProfileResponse>(
