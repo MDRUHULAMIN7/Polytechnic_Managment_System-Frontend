@@ -44,7 +44,9 @@ The frontend was not only about adding pages. A big part of the work was solving
 
 ## Project Screenshots
 
-The following screenshots were captured from the live deployment of this frontend:
+The following screenshots were captured from the live deployment of this frontend.
+
+### Public Website Views
 
 | Home Page | Notices |
 | --- | --- |
@@ -53,6 +55,16 @@ The following screenshots were captured from the live deployment of this fronten
 | Academic Instructors | Login Page |
 | --- | --- |
 | <img src="./docs/screenshots/faculty-directory.jpg" alt="PMS academic instructors page preview" width="100%" /> | <img src="./docs/screenshots/login-page.jpg" alt="PMS login page preview" width="100%" /> |
+
+### Dashboard and Workspace Views
+
+| Student Profile | Instructor Class Details |
+| --- | --- |
+| <img src="./docs/screenshots/student-profile-dashboard.png" alt="Student profile dashboard preview" width="100%" /> | <img src="./docs/screenshots/instructor-class-details.png" alt="Instructor class details dashboard preview" width="100%" /> |
+
+| Admin Dashboard Overview |
+| --- |
+| <img src="./docs/screenshots/admin-dashboard-overview.png" alt="Admin dashboard overview preview" width="100%" /> |
 
 ## Features by User Type
 
