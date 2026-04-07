@@ -1,11 +1,12 @@
 # Polytechnic Management System 
 
-Team 
-1.Mahafujur Rahman
-2.Ruhul Amin
-3.Foysal Ahmed 
-4. Sadat Rahman
-5. Toha khan
+## 👨‍💻 Our Team
+
+- 👤 **Mahafujur Rahman**  
+- 👤 **Ruhul Amin**  
+- 👤 **Foysal Ahmed**  
+- 👤 **Sadat Rahman**  
+- 👤 **Toha Khan**
 
 
 Production-ready Academic ERP the Polytechnic Management System. This repository brings together a public institutional website and role-based dashboard experiences for `student`, `instructor`, `admin`, and `superAdmin` users in one interface.
