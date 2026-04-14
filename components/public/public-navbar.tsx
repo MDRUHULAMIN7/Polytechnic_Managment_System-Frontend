@@ -409,7 +409,7 @@ export function PublicNavbar() {
                   exit="exit"
                 >
                   <div className="public-drawer-action-row">
-                    <ThemeToggle className="h-11 w-11 shrink-0 rounded-[1rem] border-[color:color-mix(in_srgb,var(--line)_82%,transparent)] bg-[color:color-mix(in_srgb,var(--surface)_88%,transparent)] shadow-[0_14px_28px_rgba(15,23,42,0.08)]" />
+                    <ThemeToggle className="h-11 w-11 shrink-0 rounded-2xl border-[color-mix(in_srgb,var(--line)_82%,transparent)] bg-[color-mix(in_srgb,var(--surface)_88%,transparent)] shadow-[0_14px_28px_rgba(15,23,42,0.08)]" />
                     {role ? (
                       <Link
                         href={dashboardHref(role)}

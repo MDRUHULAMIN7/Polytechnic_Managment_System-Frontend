@@ -132,7 +132,7 @@ The following screenshots were captured from the live deployment of this fronten
 
 ## Key Environment Variables
 
-Create `frontend/.env` with values that match your deployment:
+Copy `frontend/.env.example` to `frontend/.env`, then use values that match your deployment:
 
 ```env
 NEXT_PUBLIC_API_BASE_URL=https://your-backend-host/api/v1
@@ -205,6 +205,12 @@ This frontend is structured for ongoing growth:
 - Responsive, theme-safe UI patterns.
 - Dedicated providers for query state and realtime communication.
 - Test coverage across unit, component, and e2e levels.
+
+## Current Engineering Priorities
+
+- expand end-to-end coverage for more role-based dashboard flows
+- keep improving accessibility, empty states, and loading-state polish
+- tighten deployment and onboarding documentation so the repo is easier to review quickly
 
 ## Demo Access
 

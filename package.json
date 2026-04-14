@@ -1,7 +1,18 @@
 {
   "name": "pms-frontend",
   "version": "0.1.0",
+  "description": "Next.js frontend for the Polytechnic Management System public site and role-based dashboards.",
   "private": true,
+  "keywords": [
+    "polytechnic",
+    "management-system",
+    "nextjs",
+    "react",
+    "dashboard"
+  ],
+  "engines": {
+    "node": ">=20.9.0"
+  },
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
