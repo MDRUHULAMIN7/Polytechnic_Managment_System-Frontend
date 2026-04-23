@@ -30,7 +30,8 @@ export function SubjectTable({
               <th className="px-5 py-4 font-semibold">Title</th>
               <th className="px-5 py-4 font-semibold">Code</th>
               <th className="px-5 py-4 font-semibold">Credits</th>
-              <th className="px-5 py-4 font-semibold">Regulation</th>
+              <th className="px-5 py-4 font-semibold">Type</th>
+              <th className="px-5 py-4 font-semibold">Marks</th>
               <th className="px-5 py-4 font-semibold text-right">{actionsLabel}</th>
             </tr>
           </thead>
@@ -42,7 +43,13 @@ export function SubjectTable({
                       <div className="h-4 w-40 animate-pulse rounded bg-(--surface-muted)" />
                     </td>
                     <td className="px-5 py-4">
-                      <div className="h-4 w-20 animate-pulse rounded bg-(--surface-muted)" />
+                      <div className="h-4 w-16 animate-pulse rounded bg-(--surface-muted)" />
+                    </td>
+                    <td className="px-5 py-4">
+                      <div className="h-4 w-24 animate-pulse rounded bg-(--surface-muted)" />
+                    </td>
+                    <td className="px-5 py-4">
+                      <div className="h-4 w-16 animate-pulse rounded bg-(--surface-muted)" />
                     </td>
                     <td className="px-5 py-4">
                       <div className="h-4 w-20 animate-pulse rounded bg-(--surface-muted)" />
@@ -59,7 +66,7 @@ export function SubjectTable({
 
             {!loading && items.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-5 py-8 text-center text-(--text-dim)">
+                <td colSpan={6} className="px-5 py-8 text-center text-(--text-dim)">
                   {error ? "Failed to load subjects." : "No subjects found."}
                 </td>
               </tr>
@@ -74,8 +81,11 @@ export function SubjectTable({
                   <td className="px-5 py-4 text-(--text-dim)">
                     {renderCode(item.code)}
                   </td>
-                  <td className="px-5 py-4 text-(--text-dim)">{item.credits}</td>
-                  <td className="px-5 py-4 text-(--text-dim)">{item.regulation}</td>
+                  <td className="px-5 py-4 text-(--text-dim)">{item.credits ?? "--"}</td>
+                  <td className="px-5 py-4 text-(--text-dim)">{item.subjectType ?? "--"}</td>
+                  <td className="px-5 py-4 text-(--text-dim)">
+                    {item.markingScheme?.totalMarks ?? "--"}
+                  </td>
                   <td className="px-5 py-4 text-right">
                     <div className="inline-flex flex-wrap items-center justify-end gap-2">
                       <Link

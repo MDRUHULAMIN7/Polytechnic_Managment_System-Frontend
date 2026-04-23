@@ -4,7 +4,7 @@ import type { EnrolledSubject } from "@/lib/type/dashboard/admin/enrolled-subjec
 import { resolveName } from "@/utils/dashboard/admin/utils";
 import { Modal } from "@/components/dashboard/admin/semester-enrollment/modal";
 
-function formatShortDate(value?: string) {
+function formatShortDate(value?: string | null) {
   if (!value) {
     return "--";
   }
@@ -90,46 +90,27 @@ function renderAcademicSemester(value?: EnrolledSubject["academicSemester"]) {
 
 function renderSchedule(value?: EnrolledSubject["offeredSubject"]) {
   if (!value) {
-    return { days: "--", time: "--", section: "--" };
+    return { days: "--", time: "--", section: "--", released: 0, status: "--" };
   }
   if (typeof value === "string") {
-    return { days: value, time: "--", section: "--" };
+    return { days: value, time: "--", section: "--", released: 0, status: "--" };
   }
   return {
     days: value.days?.length ? value.days.join(", ") : "--",
     time:
       value.startTime && value.endTime ? `${value.startTime} - ${value.endTime}` : "--",
     section: value.section ? `Sec ${value.section}` : "--",
+    released: value.releasedComponentCodes?.length ?? 0,
+    status: value.markingStatus ?? "--",
   };
 }
 
-function buildMarksBreakdown(value?: EnrolledSubject["subjectMarks"]) {
-  const toNumber = (input?: number) =>
-    typeof input === "number" && Number.isFinite(input) ? input : null;
-
-  const classTest1 = toNumber(value?.classTest1);
-  const classTest2 = toNumber(value?.classTest2);
-  const midTerm = toNumber(value?.midTerm);
-  const finalTerm = toNumber(value?.finalTerm);
-
-  const total = [classTest1, classTest2, midTerm, finalTerm]
-    .filter((item): item is number => item !== null)
-    .reduce((sum, item) => sum + item, 0);
-
-  const hasAny =
-    classTest1 !== null ||
-    classTest2 !== null ||
-    midTerm !== null ||
-    finalTerm !== null;
-
-  return {
-    classTest1: classTest1 ?? "--",
-    classTest2: classTest2 ?? "--",
-    midTerm: midTerm ?? "--",
-    finalTerm: finalTerm ?? "--",
-    total: hasAny ? total : "--",
-  };
-}
+const bucketLabels: Record<string, string> = {
+  THEORY_CONTINUOUS: "Theory Continuous",
+  THEORY_FINAL: "Theory Final",
+  PRACTICAL_CONTINUOUS: "Practical Continuous",
+  PRACTICAL_FINAL: "Practical Final",
+};
 
 export function EnrolledSubjectDetailsModal({
   open,
@@ -143,13 +124,9 @@ export function EnrolledSubjectDetailsModal({
   const registration = renderRegistration(subject?.semesterRegistration);
   const schedule = renderSchedule(subject?.offeredSubject);
   const instructorMeta = renderInstructorMeta(subject?.instructor);
-  const marks = buildMarksBreakdown(subject?.subjectMarks);
   const academicSemester = renderAcademicSemester(subject?.academicSemester);
-  const status = subject?.isCompleted
-    ? "Completed"
-    : subject?.isEnrolled
-      ? "Enrolled"
-      : "--";
+  const markEntries = subject?.markEntries ?? [];
+  const markSummary = subject?.markSummary;
 
   return (
     <Modal
@@ -174,7 +151,7 @@ export function EnrolledSubjectDetailsModal({
             <span className="font-medium">{renderRegulation(subject?.subject)}</span>
           </p>
           <p className="mt-1 text-xs text-(--text-dim)">
-            Status: <span className="font-medium">{status}</span>
+            Result Status: <span className="font-medium">{subject?.resultStatus ?? "--"}</span>
           </p>
         </div>
 
@@ -209,43 +186,94 @@ export function EnrolledSubjectDetailsModal({
           <p className="mt-1 text-xs text-(--text-dim)">
             Section: <span className="font-medium">{schedule.section}</span>
           </p>
+          <p className="mt-1 text-xs text-(--text-dim)">
+            Released Components: <span className="font-medium">{schedule.released}</span>
+          </p>
         </div>
       </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-3">
         <div className="rounded-xl border border-(--line) bg-(--surface-muted) px-4 py-3 lg:col-span-2">
           <p className="text-xs uppercase tracking-[0.18em] text-(--text-dim)">
-            Marks Breakdown
+            Visible Marks
           </p>
+          {markEntries.length ? (
+            <div className="mt-3 space-y-3">
+              {markEntries
+                .slice()
+                .sort((left, right) => left.order - right.order)
+                .map((entry) => (
+                  <div
+                    key={entry.componentCode}
+                    className="rounded-lg border border-(--line) bg-(--surface) px-3 py-3"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div>
+                        <p className="font-semibold">{entry.componentTitle}</p>
+                        <p className="text-xs text-(--text-dim)">
+                          {bucketLabels[entry.bucket] ?? entry.bucket} / {entry.componentType}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold">
+                          {typeof entry.obtainedMarks === "number" ? entry.obtainedMarks : "--"} /{" "}
+                          {entry.fullMarks}
+                        </p>
+                        <p className="text-xs text-(--text-dim)">
+                          {entry.isReleased ? "Released" : "Hidden"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          ) : (
+            <p className="mt-2 text-sm text-(--text-dim)">
+              No released marks yet. Your instructor will release components as they are
+              finalized.
+            </p>
+          )}
+
           <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <div className="rounded-lg border border-(--line) bg-(--surface) px-3 py-2">
               <p className="text-[11px] uppercase tracking-[0.18em] text-(--text-dim)">
-                Class Test 1
+                Theory Continuous
               </p>
-              <p className="mt-1 text-sm font-semibold">{marks.classTest1}</p>
+              <p className="mt-1 text-sm font-semibold">
+                {markSummary?.releasedTheoryContinuous ?? 0}
+              </p>
             </div>
             <div className="rounded-lg border border-(--line) bg-(--surface) px-3 py-2">
               <p className="text-[11px] uppercase tracking-[0.18em] text-(--text-dim)">
-                Class Test 2
+                Theory Final
               </p>
-              <p className="mt-1 text-sm font-semibold">{marks.classTest2}</p>
+              <p className="mt-1 text-sm font-semibold">
+                {markSummary?.releasedTheoryFinal ?? 0}
+              </p>
             </div>
             <div className="rounded-lg border border-(--line) bg-(--surface) px-3 py-2">
               <p className="text-[11px] uppercase tracking-[0.18em] text-(--text-dim)">
-                Mid Term
+                Practical Continuous
               </p>
-              <p className="mt-1 text-sm font-semibold">{marks.midTerm}</p>
+              <p className="mt-1 text-sm font-semibold">
+                {markSummary?.releasedPracticalContinuous ?? 0}
+              </p>
             </div>
             <div className="rounded-lg border border-(--line) bg-(--surface) px-3 py-2">
               <p className="text-[11px] uppercase tracking-[0.18em] text-(--text-dim)">
-                Final Term
+                Practical Final
               </p>
-              <p className="mt-1 text-sm font-semibold">{marks.finalTerm}</p>
+              <p className="mt-1 text-sm font-semibold">
+                {markSummary?.releasedPracticalFinal ?? 0}
+              </p>
             </div>
           </div>
+
           <div className="mt-3 flex items-center justify-between rounded-lg border border-(--line) bg-(--surface) px-3 py-2 text-sm">
-            <span className="text-(--text-dim)">Total</span>
-            <span className="font-semibold">{marks.total}</span>
+            <span className="text-(--text-dim)">Released Total</span>
+            <span className="font-semibold">
+              {markSummary?.releasedTotal ?? 0} / {markSummary?.releasedMarks ?? 0}
+            </span>
           </div>
         </div>
 
@@ -263,14 +291,25 @@ export function EnrolledSubjectDetailsModal({
           <p className="mt-1 text-xs text-(--text-dim)">
             Email: <span className="font-medium">{instructorMeta.email}</span>
           </p>
+
           <div className="mt-3 rounded-lg border border-(--line) bg-(--surface) px-3 py-2 text-sm">
-            <p className="text-(--text-dim)">Grade</p>
+            <p className="text-(--text-dim)">Final Grade</p>
             <p className="mt-1 font-semibold">
-              {subject?.grade ?? "--"}{" "}
-              {typeof subject?.gradePoints === "number"
+              {subject?.finalResultPublishedAt ? subject?.grade ?? "--" : "Pending publish"}{" "}
+              {subject?.finalResultPublishedAt && typeof subject?.gradePoints === "number"
                 ? `(${subject.gradePoints})`
                 : ""}
             </p>
+          </div>
+
+          <div className="mt-3 rounded-lg border border-(--line) bg-(--surface) px-3 py-2 text-sm">
+            <p className="text-(--text-dim)">Published</p>
+            <p className="mt-1 font-semibold">{formatShortDate(subject?.finalResultPublishedAt)}</p>
+          </div>
+
+          <div className="mt-3 rounded-lg border border-(--line) bg-(--surface) px-3 py-2 text-sm">
+            <p className="text-(--text-dim)">Section Marking Status</p>
+            <p className="mt-1 font-semibold">{schedule.status}</p>
           </div>
         </div>
       </div>

@@ -9,7 +9,7 @@ export async function SubjectPageServer({
   limit,
   sort,
 }: SubjectServerProps) {
-  const listFields = "title,prefix,code,credits,regulation";
+  const listFields = "title,code,credits,subjectType,markingScheme";
 
   const fallbackMeta: PaginationMeta = {
     page,

@@ -20,6 +20,7 @@ import {
   ensureApiBaseUrl,
   parseJsonResponse,
 } from "@/lib/api/dashboard/api";
+import { getSafeApiErrorMessage } from "@/utils/common/api-error";
 
 async function readAccessToken(): Promise<string | null> {
   const cookieStore = await cookies();
@@ -49,7 +50,7 @@ async function fetchSubjectsCached(
   );
 
   if (!response.ok || !payload.success || !payload.data) {
-    throw new Error(payload.message || "Failed to load subjects.");
+    throw new Error(getSafeApiErrorMessage(payload, "Failed to load subjects."));
   }
 
   return payload.data;
@@ -74,7 +75,7 @@ async function fetchSubjectCached(id: string, token: string | null): Promise<Sub
   );
 
   if (!response.ok || !payload.success || !payload.data) {
-    throw new Error(payload.message || "Failed to load subject.");
+    throw new Error(getSafeApiErrorMessage(payload, "Failed to load subject."));
   }
 
   return payload.data;
@@ -114,7 +115,7 @@ export async function updateSubjectServer(
   );
 
   if (!response.ok || !payload.success || !payload.data) {
-    throw new Error(payload.message || "Failed to update subject.");
+    throw new Error(getSafeApiErrorMessage(payload, "Failed to update subject."));
   }
 
   return payload.data;
@@ -141,14 +142,7 @@ export async function createSubjectServer(
   );
 
   if (!response.ok || !payload.success || !payload.data) {
-    const errorSources = (
-      payload as { errorSources?: Array<{ message?: string }> }
-    ).errorSources;
-    const errorMessage = errorSources
-      ?.map((source) => source.message)
-      .filter((message): message is string => Boolean(message))
-      .join(", ");
-    throw new Error(errorMessage || payload.message || "Failed to create subject.");
+    throw new Error(getSafeApiErrorMessage(payload, "Failed to create subject."));
   }
 
   return payload.data;
@@ -172,7 +166,7 @@ export async function deleteSubjectServer(id: string): Promise<Subject> {
   );
 
   if (!response.ok || !payload.success) {
-    throw new Error(payload.message || "Failed to delete subject.");
+    throw new Error(getSafeApiErrorMessage(payload, "Failed to delete subject."));
   }
 
   return payload.data ?? ({} as Subject);
@@ -203,7 +197,7 @@ export async function assignInstructorsServer(
   );
 
   if (!response.ok || !payload.success) {
-    throw new Error(payload.message || "Failed to assign instructors.");
+    throw new Error(getSafeApiErrorMessage(payload, "Failed to assign instructors."));
   }
 
   return payload.data ?? ({ instructors: [] } as SubjectInstructor);
@@ -234,7 +228,7 @@ export async function removeInstructorsServer(
   );
 
   if (!response.ok || !payload.success) {
-    throw new Error(payload.message || "Failed to remove instructors.");
+    throw new Error(getSafeApiErrorMessage(payload, "Failed to remove instructors."));
   }
 
   return payload.data ?? ({ instructors: [] } as SubjectInstructor);
@@ -265,7 +259,7 @@ export async function getSubjectInstructorsServer(
   );
 
   if (!response.ok || !payload.success) {
-    throw new Error(payload.message || "Failed to load subject instructors.");
+    throw new Error(getSafeApiErrorMessage(payload, "Failed to load subject instructors."));
   }
 
   if (!payload.data) {
@@ -276,4 +270,3 @@ export async function getSubjectInstructorsServer(
 }
 
 export { SUBJECTS_TAG, subjectInstructorTag, subjectTag };
-

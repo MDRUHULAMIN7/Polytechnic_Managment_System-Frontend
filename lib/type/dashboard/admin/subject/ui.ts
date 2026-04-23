@@ -1,9 +1,12 @@
 import type { ReactNode } from "react";
 import type {
+  AssessmentBucket,
+  AssessmentComponentType,
   PaginationMeta,
   Subject,
   SubjectScopeOption,
   SubjectSortOption,
+  SubjectType,
 } from "./index";
 import type { Instructor } from "@/lib/type/dashboard/admin/instructor";
 
@@ -98,7 +101,23 @@ export type SubjectFormState = {
   code: string;
   credits: string;
   regulation: string;
+  subjectType: SubjectType;
+  theoryContinuous: string;
+  theoryFinal: string;
+  practicalContinuous: string;
+  practicalFinal: string;
+  totalMarks: string;
+  assessmentComponents: SubjectFormAssessmentComponentState[];
   preRequisiteIds: string[];
+};
+
+export type SubjectFormAssessmentComponentState = {
+  code: string;
+  title: string;
+  bucket: AssessmentBucket;
+  componentType: AssessmentComponentType;
+  fullMarks: string;
+  isRequired: boolean;
 };
 
 export type SubjectAssignState = {

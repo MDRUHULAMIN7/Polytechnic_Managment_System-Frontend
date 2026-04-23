@@ -56,7 +56,7 @@ export async function parseJsonResponse<T>(
       window.location.assign("/dashboard/forbidden");
     }
 
-    throw new Error("You are not authorized!");
+    throw new Error("You do not have permission to perform this action.");
   }
 
   const text = await response.text();
@@ -64,11 +64,6 @@ export async function parseJsonResponse<T>(
   try {
     return JSON.parse(text) as T;
   } catch {
-    const preview = text.slice(0, 180).replace(/\s+/g, " ").trim();
-    throw new Error(
-      preview
-        ? `${fallbackMessage} Received: ${preview}`
-        : `${fallbackMessage} Invalid JSON response.`
-    );
+    throw new Error(`${fallbackMessage} Please try again later.`);
   }
 }

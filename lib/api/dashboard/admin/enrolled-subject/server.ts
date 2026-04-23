@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import type {
   ApiResponse,
   EnrolledSubject,
+  OfferedSubjectMarkSheet,
 } from "@/lib/type/dashboard/admin/enrolled-subject";
 import { ENROLLED_SUBJECTS_TAG } from "@/lib/api/dashboard/admin/enrolled-subject/tags";
 import {
@@ -47,8 +48,45 @@ async function fetchMyEnrolledSubjectsCached(
   return payload.data;
 }
 
+async function fetchOfferedSubjectMarkSheetCached(
+  offeredSubjectId: string,
+  token: string | null
+): Promise<OfferedSubjectMarkSheet> {
+  ensureApiBaseUrl();
+
+  const response = await fetch(
+    `${API_BASE_URL}/enrolled-subjects/offered-subject/${offeredSubjectId}/mark-sheet`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        ...authHeaders(token),
+      },
+      next: {
+        tags: [ENROLLED_SUBJECTS_TAG, `offered-mark-sheet-${offeredSubjectId}`],
+      },
+    }
+  );
+
+  const payload = await parseJsonResponse<ApiResponse<OfferedSubjectMarkSheet>>(
+    response,
+    "Failed to load offered subject mark sheet."
+  );
+
+  if (!response.ok || !payload.success || !payload.data) {
+    throw new Error(payload.message || "Failed to load offered subject mark sheet.");
+  }
+
+  return payload.data;
+}
+
 export async function getMyEnrolledSubjectsServer(): Promise<EnrolledSubject[]> {
   const token = await readAccessToken();
   return fetchMyEnrolledSubjectsCached(token);
 }
 
+export async function getOfferedSubjectMarkSheetServer(
+  offeredSubjectId: string
+): Promise<OfferedSubjectMarkSheet> {
+  const token = await readAccessToken();
+  return fetchOfferedSubjectMarkSheetCached(offeredSubjectId, token);
+}

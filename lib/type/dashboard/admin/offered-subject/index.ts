@@ -2,7 +2,11 @@ import type { AcademicDepartment } from "@/lib/type/dashboard/admin/academic-dep
 import type { AcademicInstructor } from "@/lib/type/dashboard/admin/academic-instructor";
 import type { AcademicSemester } from "@/lib/type/dashboard/admin/academic-semester";
 import type { Instructor } from "@/lib/type/dashboard/admin/instructor";
-import type { Subject } from "@/lib/type/dashboard/admin/subject";
+import type {
+  AssessmentComponent,
+  Subject,
+  SubjectMarkingScheme,
+} from "@/lib/type/dashboard/admin/subject";
 import type { SemesterRegistration } from "@/lib/type/dashboard/admin/semester-registration";
 
 export type OfferedSubjectDay =
@@ -13,6 +17,12 @@ export type OfferedSubjectDay =
   | "Wed"
   | "Thu"
   | "Fri";
+
+export type OfferedSubjectMarkingStatus =
+  | "NOT_STARTED"
+  | "ONGOING"
+  | "PARTIALLY_RELEASED"
+  | "FINAL_PUBLISHED";
 
 export type OfferedSubject = {
   _id: string;
@@ -27,6 +37,11 @@ export type OfferedSubject = {
   days: OfferedSubjectDay[];
   startTime: string;
   endTime: string;
+  markingSchemeSnapshot?: SubjectMarkingScheme;
+  assessmentComponentsSnapshot?: AssessmentComponent[];
+  releasedComponentCodes?: string[];
+  finalResultPublishedAt?: string | null;
+  markingStatus?: OfferedSubjectMarkingStatus;
   createdAt?: string;
   updatedAt?: string;
 };

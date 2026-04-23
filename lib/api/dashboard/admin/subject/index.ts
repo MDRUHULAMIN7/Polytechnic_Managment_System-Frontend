@@ -11,7 +11,9 @@ import {
   API_BASE_URL,
   authHeadersFromCookie,
   ensureApiBaseUrl,
+  parseJsonResponse,
 } from "@/lib/api/dashboard/api";
+import { getSafeApiErrorMessage } from "@/utils/common/api-error";
 
 export async function getSubjects(
   params: SubjectListParams
@@ -27,10 +29,13 @@ export async function getSubjects(
     credentials: "include",
   });
 
-  const payload = (await response.json()) as ApiResponse<SubjectListPayload>;
+  const payload = await parseJsonResponse<ApiResponse<SubjectListPayload>>(
+    response,
+    "Failed to load subjects.",
+  );
 
   if (!response.ok || !payload.success || !payload.data) {
-    throw new Error(payload.message || "Failed to load subjects.");
+    throw new Error(getSafeApiErrorMessage(payload, "Failed to load subjects."));
   }
 
   return payload.data;
@@ -47,10 +52,13 @@ export async function getSubject(id: string): Promise<Subject> {
     credentials: "include",
   });
 
-  const payload = (await response.json()) as ApiResponse<Subject>;
+  const payload = await parseJsonResponse<ApiResponse<Subject>>(
+    response,
+    "Failed to load subject.",
+  );
 
   if (!response.ok || !payload.success || !payload.data) {
-    throw new Error(payload.message || "Failed to load subject.");
+    throw new Error(getSafeApiErrorMessage(payload, "Failed to load subject."));
   }
 
   return payload.data;
@@ -72,10 +80,13 @@ export async function updateSubject(
     body: JSON.stringify(input),
   });
 
-  const payload = (await response.json()) as ApiResponse<Subject>;
+  const payload = await parseJsonResponse<ApiResponse<Subject>>(
+    response,
+    "Failed to update subject.",
+  );
 
   if (!response.ok || !payload.success || !payload.data) {
-    throw new Error(payload.message || "Failed to update subject.");
+    throw new Error(getSafeApiErrorMessage(payload, "Failed to update subject."));
   }
 
   return payload.data;
@@ -93,10 +104,13 @@ export async function deleteSubject(id: string): Promise<Subject> {
     credentials: "include",
   });
 
-  const payload = (await response.json()) as ApiResponse<Subject>;
+  const payload = await parseJsonResponse<ApiResponse<Subject>>(
+    response,
+    "Failed to delete subject.",
+  );
 
   if (!response.ok || !payload.success) {
-    throw new Error(payload.message || "Failed to delete subject.");
+    throw new Error(getSafeApiErrorMessage(payload, "Failed to delete subject."));
   }
 
   return payload.data ?? ({} as Subject);
@@ -121,10 +135,13 @@ export async function assignInstructors(
     }
   );
 
-  const payload = (await response.json()) as ApiResponse<SubjectInstructor>;
+  const payload = await parseJsonResponse<ApiResponse<SubjectInstructor>>(
+    response,
+    "Failed to assign instructors.",
+  );
 
   if (!response.ok || !payload.success) {
-    throw new Error(payload.message || "Failed to assign instructors.");
+    throw new Error(getSafeApiErrorMessage(payload, "Failed to assign instructors."));
   }
 
   return payload.data ?? ({ instructors: [] } as SubjectInstructor);
@@ -149,10 +166,13 @@ export async function removeInstructors(
     }
   );
 
-  const payload = (await response.json()) as ApiResponse<SubjectInstructor>;
+  const payload = await parseJsonResponse<ApiResponse<SubjectInstructor>>(
+    response,
+    "Failed to remove instructors.",
+  );
 
   if (!response.ok || !payload.success) {
-    throw new Error(payload.message || "Failed to remove instructors.");
+    throw new Error(getSafeApiErrorMessage(payload, "Failed to remove instructors."));
   }
 
   return payload.data ?? ({ instructors: [] } as SubjectInstructor);
@@ -174,10 +194,13 @@ export async function getSubjectInstructors(
     }
   );
 
-  const payload = (await response.json()) as ApiResponse<SubjectInstructor>;
+  const payload = await parseJsonResponse<ApiResponse<SubjectInstructor>>(
+    response,
+    "Failed to load subject instructors.",
+  );
 
   if (!response.ok || !payload.success) {
-    throw new Error(payload.message || "Failed to load subject instructors.");
+    throw new Error(getSafeApiErrorMessage(payload, "Failed to load subject instructors."));
   }
 
   if (!payload.data) {
@@ -200,15 +223,13 @@ export async function createSubject(input: SubjectInput): Promise<Subject> {
     body: JSON.stringify(input),
   });
 
-  const payload = (await response.json()) as ApiResponse<Subject>;
+  const payload = await parseJsonResponse<ApiResponse<Subject>>(
+    response,
+    "Failed to create subject.",
+  );
 
   if (!response.ok || !payload.success || !payload.data) {
-    const errorSources = (payload as { errorSources?: Array<{ message?: string }> }).errorSources;
-    const errorMessage = errorSources
-      ?.map((source) => source.message)
-      .filter((message): message is string => Boolean(message))
-      .join(", ");
-    throw new Error(errorMessage || payload.message || "Failed to create subject.");
+    throw new Error(getSafeApiErrorMessage(payload, "Failed to create subject."));
   }
 
   return payload.data;
