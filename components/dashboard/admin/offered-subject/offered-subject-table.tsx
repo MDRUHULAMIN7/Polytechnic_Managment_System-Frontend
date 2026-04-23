@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { OfferedSubject } from "@/lib/type/dashboard/admin/offered-subject";
 import type { OfferedSubjectTableProps } from "@/lib/type/dashboard/admin/offered-subject/ui";
+import { formatOfferedSubjectSchedule } from "@/utils/dashboard/admin/offered-subject";
 import { resolveName } from "@/utils/dashboard/admin/utils";
 
 function renderSubject(value: OfferedSubject["subject"]) {
@@ -109,10 +110,7 @@ export function OfferedSubjectTable({
                     {renderSemester(item.academicSemester)}
                   </td>
                   <td className="px-5 py-4 text-(--text-dim)">
-                    {item.days?.length ? item.days.join(", ") : "--"}{" "}
-                    {item.startTime && item.endTime
-                      ? `(${item.startTime} - ${item.endTime})`
-                      : ""}
+                    {formatOfferedSubjectSchedule(item)}
                   </td>
                   <td className="px-5 py-4 text-(--text-dim)">{item.maxCapacity}</td>
                   <td className="px-5 py-4 text-(--text-dim)">{item.section}</td>

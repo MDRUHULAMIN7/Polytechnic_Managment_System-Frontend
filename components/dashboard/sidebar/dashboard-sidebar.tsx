@@ -36,6 +36,8 @@ const adminItems: SidebarItem[] = [
   { href: "/dashboard/admin/academic-semesters", label: "Academic Semesters", icon: CalendarDays },
   { href: "/dashboard/admin/semester-registrations", label: "Semester Registrations", icon: ClipboardList },
   { href: "/dashboard/admin/offered-subjects", label: "Offered Subjects", icon: BookOpen },
+  { href: "/dashboard/admin/rooms", label: "Rooms", icon: Building2 },
+  { href: "/dashboard/admin/period-configs", label: "Period Configs", icon: CalendarDays },
   { href: "/dashboard/admin/classes", label: "Classes", icon: ClipboardCheck },
   { href: "/dashboard/admin/curriculums", label: "Curriculums", icon: Layers },
   { href: "/dashboard/admin/semester-enrollments", label: "Semester Enrollments", icon: ClipboardCheck },

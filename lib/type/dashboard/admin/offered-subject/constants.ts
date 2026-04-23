@@ -1,4 +1,5 @@
 import type { OfferedSubjectDay } from "./index";
+import type { OfferedSubjectClassType } from "./index";
 
 export const OFFERED_SUBJECT_DAYS: OfferedSubjectDay[] = [
   "Sat",
@@ -8,4 +9,10 @@ export const OFFERED_SUBJECT_DAYS: OfferedSubjectDay[] = [
   "Wed",
   "Thu",
   "Fri",
+];
+
+export const OFFERED_SUBJECT_CLASS_TYPES: OfferedSubjectClassType[] = [
+  "theory",
+  "practical",
+  "tutorial",
 ];

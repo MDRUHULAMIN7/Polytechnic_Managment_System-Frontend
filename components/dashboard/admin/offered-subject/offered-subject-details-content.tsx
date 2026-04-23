@@ -1,9 +1,11 @@
+import { DashboardErrorBanner } from "@/components/dashboard/shared/dashboard-error-banner";
 import type { OfferedSubjectDetailsContentProps } from "@/lib/type/dashboard/admin/offered-subject/ui";
-import { renderValue } from "@/utils/dashboard/admin/offered-subject";
+import {
+  formatOfferedSubjectSchedule,
+  formatScheduleBlock,
+  renderValue,
+} from "@/utils/dashboard/admin/offered-subject";
 import { resolveName } from "@/utils/dashboard/admin/utils";
-
-
-
 
 export function OfferedSubjectDetailsContent({
   details,
@@ -190,15 +192,21 @@ export function OfferedSubjectDetailsContent({
           <p className="text-xs uppercase tracking-[0.18em] text-(--text-dim)">
             Schedule
           </p>
-          <p className="mt-2 font-medium">
-            {details.days?.length ? details.days.join(", ") : "--"}{" "}
-            {details.startTime && details.endTime
-              ? `(${details.startTime} - ${details.endTime})`
-              : ""}
-          </p>
+          <p className="mt-2 font-medium">{formatOfferedSubjectSchedule(details)}</p>
+          {details.scheduleBlocks?.length ? (
+            <div className="mt-3 space-y-2">
+              {details.scheduleBlocks.map((block, index) => (
+                <div
+                  key={`${block.day}-${block.startPeriod}-${index}`}
+                  className="rounded-lg border border-(--line) bg-(--surface-muted) px-3 py-2 text-sm text-(--text-dim)"
+                >
+                  {formatScheduleBlock(block)}
+                </div>
+              ))}
+            </div>
+          ) : null}
         </div>
       </div>
     </div>
   );
 }
-import { DashboardErrorBanner } from "@/components/dashboard/shared/dashboard-error-banner";

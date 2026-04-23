@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type {
   OfferedSubject,
+  OfferedSubjectClassType,
   OfferedSubjectDay,
   OfferedSubjectInput,
   OfferedSubjectScopeOption,
@@ -113,17 +114,22 @@ export type OfferedSubjectFormState = {
   instructor: string;
   section: string;
   maxCapacity: string;
-  days: OfferedSubjectDay[];
-  startTime: string;
-  endTime: string;
+  scheduleBlocks: OfferedSubjectEditableScheduleBlock[];
 };
 
 export type OfferedSubjectUpdateState = {
   instructor: string;
   maxCapacity: string;
-  days: OfferedSubjectDay[];
-  startTime: string;
-  endTime: string;
+  scheduleBlocks: OfferedSubjectEditableScheduleBlock[];
 };
 
 export type OfferedSubjectInputPayload = OfferedSubjectInput;
+
+export type OfferedSubjectEditableScheduleBlock = {
+  id: string;
+  classType: OfferedSubjectClassType;
+  day: OfferedSubjectDay | "";
+  room: string;
+  startPeriod: string;
+  periodCount: string;
+};

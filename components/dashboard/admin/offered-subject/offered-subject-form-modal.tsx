@@ -1,40 +1,259 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
+import {
+  createOfferedSubjectAction,
+  updateOfferedSubjectAction,
+} from "@/actions/dashboard/admin/offered-subject";
+import { getOfferedSubjects } from "@/lib/api/dashboard/admin/offered-subject";
+import { getActivePeriodConfig } from "@/lib/api/dashboard/admin/period-config";
+import { getRooms } from "@/lib/api/dashboard/admin/room";
 import type {
-  OfferedSubjectDay,
+  OfferedSubjectClassType,
   OfferedSubjectInput,
+  OfferedSubjectScheduleBlock,
+  OfferedSubjectScheduleBlockInput,
   OfferedSubjectUpdateInput,
 } from "@/lib/type/dashboard/admin/offered-subject";
+import {
+  OFFERED_SUBJECT_CLASS_TYPES,
+  OFFERED_SUBJECT_DAYS,
+} from "@/lib/type/dashboard/admin/offered-subject/constants";
 import type {
+  OfferedSubjectEditableScheduleBlock,
   OfferedSubjectFormModalProps,
   OfferedSubjectFormState,
 } from "@/lib/type/dashboard/admin/offered-subject/ui";
-import { OFFERED_SUBJECT_DAYS } from "@/lib/type/dashboard/admin/offered-subject/constants";
+import type { PeriodConfig, PeriodConfigItem } from "@/lib/type/dashboard/admin/period-config";
+import type { Room } from "@/lib/type/dashboard/admin/room";
 import { isObjectId, resolveName } from "@/utils/dashboard/admin/utils";
-import { updateOfferedSubjectAction } from "@/actions/dashboard/admin/offered-subject";
 import {
-  createOfferedSubject,
-  getOfferedSubjects,
-} from "@/lib/api/dashboard/admin/offered-subject";
+  formatOfferedSubjectSchedule,
+  parseTimeToMinutes,
+} from "@/utils/dashboard/admin/offered-subject";
 import { showToast } from "@/utils/common/toast";
 import { Modal } from "./modal";
 import { useInstructorBusySlots } from "@/hooks/dashboard/admin/offered-subject/use-instructor-busy-slots";
 import { useOfferedSubjectOptions } from "@/hooks/dashboard/admin/offered-subject/use-offered-subject-options";
-import { parseTimeToMinutes } from "@/utils/dashboard/admin/offered-subject";
 
-const initialState: OfferedSubjectFormState = {
-  semesterRegistration: "",
-  academicInstructor: "",
-  academicDepartment: "",
-  subject: "",
-  instructor: "",
-  section: "",
-  maxCapacity: "",
-  days: [],
-  startTime: "",
-  endTime: "",
-};
+function createBlockId() {
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function createEmptyScheduleBlock(): OfferedSubjectEditableScheduleBlock {
+  return {
+    id: createBlockId(),
+    classType: "theory",
+    day: "",
+    room: "",
+    startPeriod: "",
+    periodCount: "1",
+  };
+}
+
+function createInitialState(): OfferedSubjectFormState {
+  return {
+    semesterRegistration: "",
+    academicInstructor: "",
+    academicDepartment: "",
+    subject: "",
+    instructor: "",
+    section: "",
+    maxCapacity: "",
+    scheduleBlocks: [createEmptyScheduleBlock()],
+  };
+}
+
+function resolveSchedulablePeriods(config: PeriodConfig | null) {
+  return [...(config?.periods ?? [])]
+    .filter((period) => period.isActive !== false && period.isBreak !== true)
+    .sort((left, right) => left.periodNo - right.periodNo);
+}
+
+function resolveRoomId(room: OfferedSubjectScheduleBlock["room"]) {
+  if (typeof room === "string") {
+    return room;
+  }
+
+  return room?._id ?? "";
+}
+
+function resolveRoomLabel(room: Room) {
+  return `${room.roomName} | Building ${room.buildingNumber} | Room ${room.roomNumber} | Cap ${room.capacity}`;
+}
+
+function resolveSelectedPeriods(
+  block: Pick<OfferedSubjectEditableScheduleBlock, "startPeriod" | "periodCount">,
+  periods: PeriodConfigItem[],
+) {
+  const startPeriod = Number(block.startPeriod);
+  const periodCount = Number(block.periodCount);
+
+  if (
+    !Number.isFinite(startPeriod) ||
+    startPeriod <= 0 ||
+    !Number.isFinite(periodCount) ||
+    periodCount <= 0
+  ) {
+    return [] as PeriodConfigItem[];
+  }
+
+  const selected = periods.filter(
+    (period) =>
+      period.periodNo >= startPeriod &&
+      period.periodNo < startPeriod + periodCount,
+  );
+
+  if (selected.length !== periodCount) {
+    return [] as PeriodConfigItem[];
+  }
+
+  for (let index = 1; index < selected.length; index += 1) {
+    if (selected[index].periodNo !== selected[index - 1].periodNo + 1) {
+      return [] as PeriodConfigItem[];
+    }
+  }
+
+  return selected;
+}
+
+function resolveMaxContiguousCount(periods: PeriodConfigItem[], startPeriodValue: string) {
+  const startPeriod = Number(startPeriodValue);
+
+  if (!Number.isFinite(startPeriod) || startPeriod <= 0) {
+    return 0;
+  }
+
+  const startIndex = periods.findIndex((period) => period.periodNo === startPeriod);
+  if (startIndex === -1) {
+    return 0;
+  }
+
+  let total = 1;
+  for (let index = startIndex + 1; index < periods.length; index += 1) {
+    if (periods[index].periodNo !== periods[index - 1].periodNo + 1) {
+      break;
+    }
+    total += 1;
+  }
+
+  return total;
+}
+
+function doTimeRangesOverlap(
+  firstStart: string,
+  firstEnd: string,
+  secondStart: string,
+  secondEnd: string,
+) {
+  const firstStartMinutes = parseTimeToMinutes(firstStart);
+  const firstEndMinutes = parseTimeToMinutes(firstEnd);
+  const secondStartMinutes = parseTimeToMinutes(secondStart);
+  const secondEndMinutes = parseTimeToMinutes(secondEnd);
+
+  if (
+    firstStartMinutes === null ||
+    firstEndMinutes === null ||
+    secondStartMinutes === null ||
+    secondEndMinutes === null
+  ) {
+    return false;
+  }
+
+  return (
+    firstStartMinutes < secondEndMinutes && firstEndMinutes > secondStartMinutes
+  );
+}
+
+function buildScheduleBlocksOrThrow(args: {
+  blocks: OfferedSubjectEditableScheduleBlock[];
+  periods: PeriodConfigItem[];
+  roomsById: Map<string, Room>;
+  maxCapacity: number;
+}) {
+  const resolved = args.blocks.map((block, index) => {
+    if (!block.day) {
+      throw new Error(`Schedule block ${index + 1} needs a day.`);
+    }
+
+    if (!OFFERED_SUBJECT_CLASS_TYPES.includes(block.classType)) {
+      throw new Error(`Schedule block ${index + 1} needs a valid class type.`);
+    }
+
+    if (!isObjectId(block.room)) {
+      throw new Error(`Schedule block ${index + 1} needs a valid room.`);
+    }
+
+    const startPeriod = Number(block.startPeriod);
+    const periodCount = Number(block.periodCount);
+
+    if (!Number.isFinite(startPeriod) || startPeriod <= 0) {
+      throw new Error(`Schedule block ${index + 1} needs a valid start period.`);
+    }
+
+    if (!Number.isFinite(periodCount) || periodCount <= 0) {
+      throw new Error(`Schedule block ${index + 1} needs a valid period count.`);
+    }
+
+    const selectedPeriods = resolveSelectedPeriods(block, args.periods);
+    if (!selectedPeriods.length) {
+      throw new Error(
+        `Schedule block ${index + 1} does not match the active period configuration.`,
+      );
+    }
+
+    const room = args.roomsById.get(block.room);
+    if (!room) {
+      throw new Error(`Room for schedule block ${index + 1} was not found.`);
+    }
+
+    if (room.capacity < args.maxCapacity) {
+      throw new Error(
+        `${room.roomName} capacity is lower than the offered subject capacity.`,
+      );
+    }
+
+    return {
+      input: {
+        classType: block.classType as OfferedSubjectClassType,
+        day: block.day,
+        room: block.room,
+        startPeriod,
+        periodCount,
+      } satisfies OfferedSubjectScheduleBlockInput,
+      startTime: selectedPeriods[0].startTime,
+      endTime: selectedPeriods[selectedPeriods.length - 1].endTime,
+      day: block.day,
+    };
+  });
+
+  for (let leftIndex = 0; leftIndex < resolved.length; leftIndex += 1) {
+    for (let rightIndex = leftIndex + 1; rightIndex < resolved.length; rightIndex += 1) {
+      const left = resolved[leftIndex];
+      const right = resolved[rightIndex];
+
+      if (left.day !== right.day) {
+        continue;
+      }
+
+      if (
+        doTimeRangesOverlap(
+          left.startTime,
+          left.endTime,
+          right.startTime,
+          right.endTime,
+        )
+      ) {
+        throw new Error(
+          `Schedule blocks ${leftIndex + 1} and ${rightIndex + 1} overlap on ${left.day}.`,
+        );
+      }
+    }
+  }
+
+  return resolved.map((item) => item.input);
+}
 
 export function OfferedSubjectFormModal({
   open,
@@ -47,8 +266,14 @@ export function OfferedSubjectFormModal({
   onClose,
   onSaved,
 }: OfferedSubjectFormModalProps) {
-  const [form, setForm] = useState<OfferedSubjectFormState>(initialState);
+  const [form, setForm] = useState<OfferedSubjectFormState>(createInitialState);
   const [submitting, setSubmitting] = useState(false);
+  const [supportLoading, setSupportLoading] = useState(false);
+  const [supportError, setSupportError] = useState<string | null>(null);
+  const [activePeriodConfig, setActivePeriodConfig] = useState<PeriodConfig | null>(
+    null,
+  );
+  const [rooms, setRooms] = useState<Room[]>([]);
   const isEdit = Boolean(offeredSubject?._id);
   const {
     subjectQuery,
@@ -93,6 +318,15 @@ export function OfferedSubjectFormModal({
     semesterRegistrationId: form.semesterRegistration,
   });
 
+  const schedulablePeriods = useMemo(
+    () => resolveSchedulablePeriods(activePeriodConfig),
+    [activePeriodConfig],
+  );
+  const roomsById = useMemo(
+    () => new Map(rooms.map((room) => [room._id, room])),
+    [rooms],
+  );
+
   useEffect(() => {
     if (!open) {
       return;
@@ -127,17 +361,124 @@ export function OfferedSubjectFormModal({
         offeredSubject?.maxCapacity !== undefined
           ? String(offeredSubject.maxCapacity)
           : "",
-      days: offeredSubject?.days ?? [],
-      startTime: offeredSubject?.startTime ?? "",
-      endTime: offeredSubject?.endTime ?? "",
+      scheduleBlocks:
+        offeredSubject?.scheduleBlocks?.length
+          ? offeredSubject.scheduleBlocks.map((block) => ({
+              id: createBlockId(),
+              classType: block.classType ?? "theory",
+              day: block.day ?? "",
+              room: resolveRoomId(block.room),
+              startPeriod:
+                block.startPeriod !== undefined ? String(block.startPeriod) : "",
+              periodCount:
+                block.periodCount !== undefined ? String(block.periodCount) : "1",
+            }))
+          : offeredSubject?.days?.length
+            ? offeredSubject.days.map((day) => ({
+                ...createEmptyScheduleBlock(),
+                day,
+              }))
+            : [createEmptyScheduleBlock()],
     });
   }, [open, offeredSubject]);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    let active = true;
+    setSupportLoading(true);
+    setSupportError(null);
+
+    Promise.allSettled([
+      getActivePeriodConfig(),
+      getRooms({
+        page: 1,
+        limit: 1000,
+        sort: "roomName",
+        isActive: "true",
+      }),
+    ])
+      .then(([periodConfigResult, roomResult]) => {
+        if (!active) {
+          return;
+        }
+
+        const errors: string[] = [];
+
+        if (periodConfigResult.status === "fulfilled") {
+          setActivePeriodConfig(periodConfigResult.value);
+        } else {
+          setActivePeriodConfig(null);
+          errors.push(
+            periodConfigResult.reason instanceof Error
+              ? periodConfigResult.reason.message
+              : "Unable to load active period configuration.",
+          );
+        }
+
+        if (roomResult.status === "fulfilled") {
+          setRooms(roomResult.value.result ?? []);
+        } else {
+          setRooms([]);
+          errors.push(
+            roomResult.reason instanceof Error
+              ? roomResult.reason.message
+              : "Unable to load active rooms.",
+          );
+        }
+
+        setSupportError(errors.length ? errors.join(" ") : null);
+      })
+      .finally(() => {
+        if (!active) {
+          return;
+        }
+        setSupportLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [open]);
 
   function updateField<T extends keyof OfferedSubjectFormState>(
     key: T,
     value: OfferedSubjectFormState[T],
   ) {
     setForm((prev) => ({ ...prev, [key]: value }));
+  }
+
+  function updateScheduleBlock(
+    blockId: string,
+    updater: (
+      current: OfferedSubjectEditableScheduleBlock,
+    ) => OfferedSubjectEditableScheduleBlock,
+  ) {
+    setForm((current) => ({
+      ...current,
+      scheduleBlocks: current.scheduleBlocks.map((block) =>
+        block.id === blockId ? updater(block) : block,
+      ),
+    }));
+  }
+
+  function addScheduleBlock() {
+    setForm((current) => ({
+      ...current,
+      scheduleBlocks: [...current.scheduleBlocks, createEmptyScheduleBlock()],
+    }));
+  }
+
+  function removeScheduleBlock(blockId: string) {
+    setForm((current) => ({
+      ...current,
+      scheduleBlocks:
+        current.scheduleBlocks.length === 1
+          ? current.scheduleBlocks
+          : current.scheduleBlocks.filter((block) => block.id !== blockId),
+    }));
   }
 
   useEffect(() => {
@@ -235,26 +576,22 @@ export function OfferedSubjectFormModal({
       page: 1,
       limit: 1000,
       semesterRegistration: form.semesterRegistration,
-      fields: "subject,section,days,startTime,endTime",
+      fields: "subject,section,days,startTime,endTime,scheduleBlocks",
     })
       .then((payload) => {
         if (!active) return;
         const labels: string[] = [];
         for (const item of payload.result ?? []) {
-          const subj = item.subject;
-          const sec = Number(item.section);
-          const base =
-            typeof subj === "string"
-              ? subj
-              : subj && typeof subj.title === "string"
-                ? subj.title
-                : "Subject";
-          const daysLabel = item.days?.length ? item.days.join(", ") : "";
-          const timeLabel =
-            item.startTime && item.endTime ? `${item.startTime}-${item.endTime}` : "";
-          const schedule = [daysLabel, timeLabel].filter(Boolean).join(" ");
-          const sectionLabel = sec && sec > 0 ? `${base} (Sec ${sec})` : base;
-          labels.push(schedule ? `${sectionLabel} · ${schedule}` : sectionLabel);
+          const subjectTitle =
+            typeof item.subject === "string"
+              ? item.subject
+              : item.subject?.title ?? "Subject";
+          const sectionLabel =
+            Number(item.section) > 0
+              ? `${subjectTitle} (Sec ${item.section})`
+              : subjectTitle;
+          const schedule = formatOfferedSubjectSchedule(item);
+          labels.push(schedule ? `${sectionLabel} - ${schedule}` : sectionLabel);
         }
         setOfferedLabels(labels);
       })
@@ -276,24 +613,10 @@ export function OfferedSubjectFormModal({
     };
   }, [open, form.semesterRegistration]);
 
-  function toggleDay(day: OfferedSubjectDay, checked: boolean) {
-    updateField(
-      "days",
-      checked
-        ? Array.from(new Set([...form.days, day]))
-        : form.days.filter((item) => item !== day),
-    );
-  }
-
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (
-      !form.instructor ||
-      !form.maxCapacity ||
-      !form.startTime ||
-      !form.endTime
-    ) {
+    if (!form.instructor || !form.maxCapacity) {
       showToast({
         variant: "error",
         title: "Missing fields",
@@ -302,17 +625,30 @@ export function OfferedSubjectFormModal({
       return;
     }
 
-    const startMinutes = parseTimeToMinutes(form.startTime);
-    const endMinutes = parseTimeToMinutes(form.endTime);
-    if (
-      startMinutes === null ||
-      endMinutes === null ||
-      endMinutes <= startMinutes
-    ) {
+    if (!activePeriodConfig || !schedulablePeriods.length) {
       showToast({
         variant: "error",
-        title: "Invalid time range",
-        description: "End time must be after start time.",
+        title: "Period configuration unavailable",
+        description:
+          "An active period configuration is required before scheduling offered subjects.",
+      });
+      return;
+    }
+
+    if (!rooms.length) {
+      showToast({
+        variant: "error",
+        title: "No active rooms found",
+        description: "Create at least one active room before scheduling.",
+      });
+      return;
+    }
+
+    if (form.scheduleBlocks.length === 0) {
+      showToast({
+        variant: "error",
+        title: "Add schedule blocks",
+        description: "Please create at least one schedule block.",
       });
       return;
     }
@@ -336,24 +672,20 @@ export function OfferedSubjectFormModal({
       return;
     }
 
-    if (form.days.length === 0) {
-      showToast({
-        variant: "error",
-        title: "Select days",
-        description: "Please select at least one day.",
-      });
-      return;
-    }
-
     setSubmitting(true);
     try {
+      const scheduleBlocks = buildScheduleBlocksOrThrow({
+        blocks: form.scheduleBlocks,
+        periods: schedulablePeriods,
+        roomsById,
+        maxCapacity,
+      });
+
       if (isEdit && offeredSubject?._id) {
         const payload: OfferedSubjectUpdateInput = {
           instructor: form.instructor,
           maxCapacity,
-          days: form.days,
-          startTime: form.startTime,
-          endTime: form.endTime,
+          scheduleBlocks,
         };
         await updateOfferedSubjectAction(offeredSubject._id, payload);
       } else {
@@ -411,19 +743,17 @@ export function OfferedSubjectFormModal({
           instructor: form.instructor,
           section,
           maxCapacity,
-          days: form.days,
-          startTime: form.startTime,
-          endTime: form.endTime,
+          scheduleBlocks,
         };
 
-        await createOfferedSubject(payload);
+        await createOfferedSubjectAction(payload);
       }
 
       showToast({
         variant: "success",
         title: isEdit ? "Offered subject updated" : "Offered subject created",
         description: isEdit
-          ? "Offered subject updated successfully."
+          ? "Schedule and room assignment updated successfully."
           : "Offered subject created successfully.",
       });
       onSaved();
@@ -451,8 +781,8 @@ export function OfferedSubjectFormModal({
       title={isEdit ? "Update Offered Subject" : "Create Offered Subject"}
       description={
         isEdit
-          ? "Update instructor, capacity, schedule, and days."
-          : "Create a new offered subject."
+          ? "Update instructor, capacity, and schedule blocks."
+          : "Create a new offered subject using rooms and active periods."
       }
     >
       <form onSubmit={handleSubmit} className="space-y-5">
@@ -644,9 +974,7 @@ export function OfferedSubjectFormModal({
               ) : offeredLabels.length > 0 ? (
                 <p className="text-(--text-dim)">
                   Offered subjects ({offeredLabels.length}):{" "}
-                  <span className="text-(--text)">
-                    {offeredLabels.join(", ")}
-                  </span>
+                  <span className="text-(--text)">{offeredLabels.join(", ")}</span>
                 </p>
               ) : (
                 <p className="text-(--text-dim)">
@@ -729,6 +1057,72 @@ export function OfferedSubjectFormModal({
         </div>
 
         <div className="rounded-xl border border-(--line) bg-(--surface) p-4 text-sm">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-(--text-dim)">
+                Scheduling Support
+              </p>
+              <p className="mt-1 text-(--text-dim)">
+                Offered subjects now use room-based schedule blocks from the active period configuration.
+              </p>
+            </div>
+            <div className="text-xs text-(--text-dim)">
+              <Link
+                href="/dashboard/admin/period-configs"
+                className="font-medium text-(--accent) underline-offset-4 hover:underline"
+              >
+                Manage period configs
+              </Link>
+              {" | "}
+              <Link
+                href="/dashboard/admin/rooms"
+                className="font-medium text-(--accent) underline-offset-4 hover:underline"
+              >
+                Manage rooms
+              </Link>
+            </div>
+          </div>
+
+          {supportLoading ? (
+            <p className="mt-3 text-(--text-dim)">Loading rooms and active periods...</p>
+          ) : supportError ? (
+            <p className="mt-3 text-red-400">{supportError}</p>
+          ) : (
+            <div className="mt-3 space-y-3">
+              <div className="rounded-xl border border-(--line) bg-(--surface-muted) px-4 py-3">
+                <p className="font-medium">
+                  Active Config: {activePeriodConfig?.label ?? "--"}
+                </p>
+                <p className="mt-1 text-xs text-(--text-dim)">
+                  Effective from{" "}
+                  {activePeriodConfig?.effectiveFrom
+                    ? activePeriodConfig.effectiveFrom.slice(0, 10)
+                    : "--"}{" "}
+                  | {rooms.length} active room{rooms.length === 1 ? "" : "s"} available
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {schedulablePeriods.length ? (
+                  schedulablePeriods.map((period) => (
+                    <span
+                      key={period.periodNo}
+                      className="rounded-full border border-(--line) bg-(--surface) px-3 py-1 text-xs text-(--text-dim)"
+                    >
+                      P{period.periodNo}: {period.startTime}-{period.endTime}
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-xs text-(--text-dim)">
+                    No teachable periods found in the active configuration.
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="rounded-xl border border-(--line) bg-(--surface) p-4 text-sm">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-(--text-dim)">
             Instructor Availability
           </p>
@@ -781,54 +1175,223 @@ export function OfferedSubjectFormModal({
         </div>
 
         <div className="space-y-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-(--text-dim)">
-            Days
-          </p>
-          <div className="grid gap-2 sm:grid-cols-4">
-            {OFFERED_SUBJECT_DAYS.map((day) => {
-              const checked = form.days.includes(day);
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-(--text-dim)">
+                Schedule Blocks
+              </p>
+              <p className="mt-1 text-sm text-(--text-dim)">
+                Add separate blocks for theory, practical, or tutorial sessions with assigned rooms.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={addScheduleBlock}
+              className="focus-ring inline-flex h-10 items-center justify-center rounded-xl border border-(--line) px-4 text-sm font-semibold text-(--text) transition hover:bg-(--surface-muted)"
+            >
+              Add Block
+            </button>
+          </div>
+
+          <div className="space-y-3">
+            {form.scheduleBlocks.map((block, index) => {
+              const selectedPeriods = resolveSelectedPeriods(
+                block,
+                schedulablePeriods,
+              );
+              const selectedRoom = roomsById.get(block.room);
+              const maxCount = resolveMaxContiguousCount(
+                schedulablePeriods,
+                block.startPeriod,
+              );
+              const periodCountOptions =
+                maxCount > 0
+                  ? Array.from({ length: maxCount }, (_, optionIndex) => optionIndex + 1)
+                  : [1];
+
               return (
-                <label
-                  key={day}
-                  className={`flex cursor-pointer items-center gap-2 rounded-lg border border-(--line) px-3 py-2 text-sm transition hover:border-(--accent)/50 ${
-                    checked ? "bg-(--surface-muted)" : ""
-                  }`}
+                <div
+                  key={block.id}
+                  className="rounded-2xl border border-(--line) bg-(--surface) p-4"
                 >
-                  <input
-                    type="checkbox"
-                    checked={checked}
-                    onChange={(event) => toggleDay(day, event.target.checked)}
-                    className="h-4 w-4 accent-(--accent)"
-                  />
-                  <span className="font-medium">{day}</span>
-                </label>
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <p className="font-medium">Block {index + 1}</p>
+                      <p className="mt-1 text-xs text-(--text-dim)">
+                        {selectedPeriods.length
+                          ? `${selectedPeriods[0].startTime}-${selectedPeriods[selectedPeriods.length - 1].endTime} | Periods ${selectedPeriods
+                              .map((period) => period.periodNo)
+                              .join(", ")}`
+                          : "Select room and contiguous periods from the active config."}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeScheduleBlock(block.id)}
+                      disabled={form.scheduleBlocks.length === 1}
+                      className="focus-ring inline-flex h-9 items-center justify-center rounded-lg border border-red-500/40 px-3 text-xs font-semibold text-red-300 transition hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      Remove
+                    </button>
+                  </div>
+
+                  <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_1fr_1.6fr_1fr_1fr]">
+                    <div>
+                      <label className="text-xs font-semibold uppercase tracking-[0.16em] text-(--text-dim)">
+                        Class Type
+                      </label>
+                      <select
+                        value={block.classType}
+                        onChange={(event) =>
+                          updateScheduleBlock(block.id, (current) => ({
+                            ...current,
+                            classType: event.target.value as OfferedSubjectClassType,
+                          }))
+                        }
+                        className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-(--surface) px-3 text-sm text-(--text)"
+                      >
+                        {OFFERED_SUBJECT_CLASS_TYPES.map((type) => (
+                          <option key={type} value={type}>
+                            {type}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-semibold uppercase tracking-[0.16em] text-(--text-dim)">
+                        Day
+                      </label>
+                      <select
+                        value={block.day}
+                        onChange={(event) =>
+                          updateScheduleBlock(block.id, (current) => ({
+                            ...current,
+                            day: event.target.value as OfferedSubjectEditableScheduleBlock["day"],
+                          }))
+                        }
+                        className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-(--surface) px-3 text-sm text-(--text)"
+                      >
+                        <option value="">Select day</option>
+                        {OFFERED_SUBJECT_DAYS.map((day) => (
+                          <option key={day} value={day}>
+                            {day}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-semibold uppercase tracking-[0.16em] text-(--text-dim)">
+                        Room
+                      </label>
+                      <select
+                        value={block.room}
+                        onChange={(event) =>
+                          updateScheduleBlock(block.id, (current) => ({
+                            ...current,
+                            room: event.target.value,
+                          }))
+                        }
+                        disabled={supportLoading || !rooms.length}
+                        className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-(--surface) px-3 text-sm text-(--text) disabled:opacity-70"
+                      >
+                        <option value="">Select room</option>
+                        {rooms.map((room) => (
+                          <option key={room._id} value={room._id}>
+                            {resolveRoomLabel(room)}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-semibold uppercase tracking-[0.16em] text-(--text-dim)">
+                        Start Period
+                      </label>
+                      <select
+                        value={block.startPeriod}
+                        onChange={(event) =>
+                          updateScheduleBlock(block.id, (current) => {
+                            const nextStartPeriod = event.target.value;
+                            const nextMaxCount = resolveMaxContiguousCount(
+                              schedulablePeriods,
+                              nextStartPeriod,
+                            );
+                            const currentCount = Number(current.periodCount);
+                            return {
+                              ...current,
+                              startPeriod: nextStartPeriod,
+                              periodCount:
+                                currentCount > 0 && currentCount <= nextMaxCount
+                                  ? current.periodCount
+                                  : nextMaxCount > 0
+                                    ? "1"
+                                    : "",
+                            };
+                          })
+                        }
+                        disabled={!schedulablePeriods.length}
+                        className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-(--surface) px-3 text-sm text-(--text) disabled:opacity-70"
+                      >
+                        <option value="">Select period</option>
+                        {schedulablePeriods.map((period) => (
+                          <option key={period.periodNo} value={period.periodNo}>
+                            P{period.periodNo} ({period.startTime}-{period.endTime})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-semibold uppercase tracking-[0.16em] text-(--text-dim)">
+                        Period Count
+                      </label>
+                      <select
+                        value={block.periodCount}
+                        onChange={(event) =>
+                          updateScheduleBlock(block.id, (current) => ({
+                            ...current,
+                            periodCount: event.target.value,
+                          }))
+                        }
+                        disabled={!block.startPeriod || !schedulablePeriods.length}
+                        className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-(--surface) px-3 text-sm text-(--text) disabled:opacity-70"
+                      >
+                        {!block.startPeriod ? (
+                          <option value="">Select start period first</option>
+                        ) : null}
+                        {periodCountOptions.map((count) => (
+                          <option key={count} value={count}>
+                            {count}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 rounded-xl border border-(--line) bg-(--surface-muted) px-4 py-3 text-sm">
+                    <p className="font-medium">
+                      {selectedPeriods.length
+                        ? `${selectedPeriods[0].startTime} to ${selectedPeriods[selectedPeriods.length - 1].endTime}`
+                        : "Waiting for a valid contiguous period selection"}
+                    </p>
+                    <p className="mt-1 text-xs text-(--text-dim)">
+                      {selectedRoom
+                        ? `${selectedRoom.roomName} capacity ${selectedRoom.capacity}`
+                        : "Select a room to validate capacity."}
+                    </p>
+                    {selectedRoom &&
+                    form.maxCapacity &&
+                    Number(form.maxCapacity) > selectedRoom.capacity ? (
+                      <p className="mt-2 text-xs text-amber-300">
+                        Room capacity is below the current max capacity.
+                      </p>
+                    ) : null}
+                  </div>
+                </div>
               );
             })}
-          </div>
-        </div>
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label className="text-xs font-semibold uppercase tracking-[0.18em] text-(--text-dim)">
-              Start Time
-            </label>
-            <input
-              type="time"
-              value={form.startTime}
-              onChange={(event) => updateField("startTime", event.target.value)}
-              className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-transparent px-3 text-sm"
-            />
-          </div>
-          <div>
-            <label className="text-xs font-semibold uppercase tracking-[0.18em] text-(--text-dim)">
-              End Time
-            </label>
-            <input
-              type="time"
-              value={form.endTime}
-              onChange={(event) => updateField("endTime", event.target.value)}
-              className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-transparent px-3 text-sm"
-            />
           </div>
         </div>
 

@@ -2,6 +2,7 @@ import type { AcademicDepartment } from "@/lib/type/dashboard/admin/academic-dep
 import type { AcademicInstructor } from "@/lib/type/dashboard/admin/academic-instructor";
 import type { AcademicSemester } from "@/lib/type/dashboard/admin/academic-semester";
 import type { Instructor } from "@/lib/type/dashboard/admin/instructor";
+import type { Room } from "@/lib/type/dashboard/admin/room";
 import type {
   AssessmentComponent,
   Subject,
@@ -17,6 +18,8 @@ export type OfferedSubjectDay =
   | "Wed"
   | "Thu"
   | "Fri";
+
+export type OfferedSubjectClassType = "theory" | "practical" | "tutorial";
 
 export type OfferedSubjectMarkingStatus =
   | "NOT_STARTED"
@@ -37,6 +40,7 @@ export type OfferedSubject = {
   days: OfferedSubjectDay[];
   startTime: string;
   endTime: string;
+  scheduleBlocks?: OfferedSubjectScheduleBlock[];
   markingSchemeSnapshot?: SubjectMarkingScheme;
   assessmentComponentsSnapshot?: AssessmentComponent[];
   releasedComponentCodes?: string[];
@@ -44,6 +48,17 @@ export type OfferedSubject = {
   markingStatus?: OfferedSubjectMarkingStatus;
   createdAt?: string;
   updatedAt?: string;
+};
+
+export type OfferedSubjectScheduleBlock = {
+  classType: OfferedSubjectClassType;
+  day: OfferedSubjectDay;
+  room: Room | string;
+  startPeriod: number;
+  periodCount: number;
+  periodNumbers?: number[];
+  startTimeSnapshot?: string;
+  endTimeSnapshot?: string;
 };
 
 export type OfferedSubjectSortOption = "-createdAt" | "createdAt";
@@ -88,17 +103,21 @@ export type OfferedSubjectInput = {
   instructor: string;
   section: number;
   maxCapacity: number;
-  days: OfferedSubjectDay[];
-  startTime: string;
-  endTime: string;
+  scheduleBlocks: OfferedSubjectScheduleBlockInput[];
 };
 
 export type OfferedSubjectUpdateInput = {
   instructor: string;
   maxCapacity: number;
-  days: OfferedSubjectDay[];
-  startTime: string;
-  endTime: string;
+  scheduleBlocks: OfferedSubjectScheduleBlockInput[];
+};
+
+export type OfferedSubjectScheduleBlockInput = {
+  classType: OfferedSubjectClassType;
+  day: OfferedSubjectDay;
+  room: string;
+  startPeriod: number;
+  periodCount: number;
 };
 
 export type ApiResponse<T> = {
