@@ -41,7 +41,7 @@ export async function getPeriodConfigsServer(
     },
   });
 
-  const payload = await parseJsonResponse<ApiResponse<PeriodConfigListPayload>>(
+  const payload = await parseJsonResponse<ApiResponse<PeriodConfig[]>>(
     response,
     "Failed to load period configurations.",
   );
@@ -50,7 +50,15 @@ export async function getPeriodConfigsServer(
     throw new Error(payload.message || "Failed to load period configurations.");
   }
 
-  return payload.data;
+  return {
+    meta: payload.meta ?? {
+      page: params.page ?? 1,
+      limit: params.limit ?? 10,
+      total: payload.data.length,
+      totalPage: 1,
+    },
+    result: payload.data,
+  };
 }
 
 export async function getActivePeriodConfigServer(): Promise<PeriodConfig> {

@@ -26,7 +26,7 @@ export async function getRooms(params: RoomListParams): Promise<RoomListPayload>
     credentials: "include",
   });
 
-  const payload = await parseJsonResponse<ApiResponse<RoomListPayload>>(
+  const payload = await parseJsonResponse<ApiResponse<Room[]>>(
     response,
     "Failed to load rooms.",
   );
@@ -35,7 +35,15 @@ export async function getRooms(params: RoomListParams): Promise<RoomListPayload>
     throw new Error(payload.message || "Failed to load rooms.");
   }
 
-  return payload.data;
+  return {
+    meta: payload.meta ?? {
+      page: params.page ?? 1,
+      limit: params.limit ?? 10,
+      total: payload.data.length,
+      totalPage: 1,
+    },
+    result: payload.data,
+  };
 }
 
 export async function createRoom(input: RoomInput): Promise<Room> {

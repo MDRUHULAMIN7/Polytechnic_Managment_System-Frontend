@@ -38,7 +38,7 @@ export async function getRoomsServer(
     },
   });
 
-  const payload = await parseJsonResponse<ApiResponse<RoomListPayload>>(
+  const payload = await parseJsonResponse<ApiResponse<Room[]>>(
     response,
     "Failed to load rooms.",
   );
@@ -47,7 +47,15 @@ export async function getRoomsServer(
     throw new Error(payload.message || "Failed to load rooms.");
   }
 
-  return payload.data;
+  return {
+    meta: payload.meta ?? {
+      page: params.page ?? 1,
+      limit: params.limit ?? 10,
+      total: payload.data.length,
+      totalPage: 1,
+    },
+    result: payload.data,
+  };
 }
 
 export async function createRoomServer(input: RoomInput): Promise<Room> {
