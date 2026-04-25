@@ -16,7 +16,6 @@ import {
 import {
   formatClassDate,
   formatTimeRange,
-  resolveClassSection,
   statusBadgeClass,
 } from "@/utils/dashboard/class-session";
 
@@ -120,7 +119,7 @@ export default async function InstructorClassesPage({ searchParams }: PageProps)
                         : `${item.subject?.title ?? "--"}${item.subject?.code ? ` (${item.subject.code})` : ""}`}
                     </p>
                     <p className="mt-1 text-sm text-(--text-dim)">
-                      {resolveClassSection(item.offeredSubject)}
+                      {item.day}
                     </p>
                   </div>
                   <span
@@ -172,7 +171,6 @@ export default async function InstructorClassesPage({ searchParams }: PageProps)
                   <th className="px-4 py-3">Subject</th>
                   <th className="px-4 py-3">Date</th>
                   <th className="px-4 py-3">Time</th>
-                  <th className="px-4 py-3">Section</th>
                   <th className="px-4 py-3">Students</th>
                   <th className="px-4 py-3">Status</th>
                   <th className="px-4 py-3">Action</th>
@@ -189,9 +187,6 @@ export default async function InstructorClassesPage({ searchParams }: PageProps)
                     <td className="px-4 py-3 text-(--text-dim)">{formatClassDate(item.date)}</td>
                     <td className="px-4 py-3 text-(--text-dim)">
                       {formatTimeRange(item.startTime, item.endTime)}
-                    </td>
-                    <td className="px-4 py-3 text-(--text-dim)">
-                      {resolveClassSection(item.offeredSubject)}
                     </td>
                     <td className="px-4 py-3 text-(--text-dim)">{item.totalStudents}</td>
                     <td className="px-4 py-3">
@@ -213,7 +208,7 @@ export default async function InstructorClassesPage({ searchParams }: PageProps)
                 ))}
                 {payload.result.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-4 py-8 text-center text-(--text-dim)">
+                    <td colSpan={6} className="px-4 py-8 text-center text-(--text-dim)">
                       No classes matched the selected semester filters.
                     </td>
                   </tr>

@@ -3,7 +3,6 @@
 import Link from "next/link";
 import type { OfferedSubject } from "@/lib/type/dashboard/admin/offered-subject";
 import type { OfferedSubjectTableProps } from "@/lib/type/dashboard/admin/offered-subject/ui";
-import { formatOfferedSubjectSchedule } from "@/utils/dashboard/admin/offered-subject";
 import { resolveName } from "@/utils/dashboard/admin/utils";
 
 function renderSubject(value: OfferedSubject["subject"]) {
@@ -44,6 +43,7 @@ export function OfferedSubjectTable({
   showEdit = true,
   showDelete = true,
   actionsLabel = "Actions",
+  viewLabel = "View",
 }: OfferedSubjectTableProps) {
   return (
     <div className="rounded-2xl border border-(--line) bg-(--surface)">
@@ -54,9 +54,7 @@ export function OfferedSubjectTable({
               <th className="px-5 py-4 font-semibold">Subject</th>
               <th className="px-5 py-4 font-semibold">Instructor</th>
               <th className="px-5 py-4 font-semibold">Semester</th>
-              <th className="px-5 py-4 font-semibold">Schedule</th>
               <th className="px-5 py-4 font-semibold">Capacity</th>
-              <th className="px-5 py-4 font-semibold">Section</th>
               <th className="px-5 py-4 font-semibold text-right">{actionsLabel}</th>
             </tr>
           </thead>
@@ -74,12 +72,6 @@ export function OfferedSubjectTable({
                       <div className="h-4 w-24 animate-pulse rounded bg-(--surface-muted)" />
                     </td>
                     <td className="px-5 py-4">
-                      <div className="h-4 w-32 animate-pulse rounded bg-(--surface-muted)" />
-                    </td>
-                    <td className="px-5 py-4">
-                      <div className="h-4 w-16 animate-pulse rounded bg-(--surface-muted)" />
-                    </td>
-                    <td className="px-5 py-4">
                       <div className="h-4 w-16 animate-pulse rounded bg-(--surface-muted)" />
                     </td>
                     <td className="px-5 py-4 text-right">
@@ -91,7 +83,7 @@ export function OfferedSubjectTable({
 
             {!loading && items.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-5 py-8 text-center text-(--text-dim)">
+                <td colSpan={5} className="px-5 py-8 text-center text-(--text-dim)">
                   {error ? "Failed to load offered subjects." : "No offered subjects found."}
                 </td>
               </tr>
@@ -109,11 +101,7 @@ export function OfferedSubjectTable({
                   <td className="px-5 py-4 text-(--text-dim)">
                     {renderSemester(item.academicSemester)}
                   </td>
-                  <td className="px-5 py-4 text-(--text-dim)">
-                    {formatOfferedSubjectSchedule(item)}
-                  </td>
                   <td className="px-5 py-4 text-(--text-dim)">{item.maxCapacity}</td>
-                  <td className="px-5 py-4 text-(--text-dim)">{item.section}</td>
                   <td className="px-5 py-4 text-right">
                     <div className="inline-flex flex-wrap items-center justify-end gap-2">
                       <Link
@@ -121,7 +109,7 @@ export function OfferedSubjectTable({
                         scroll={false}
                         className="focus-ring inline-flex h-9 min-w-20 items-center justify-center rounded-lg border border-(--line) px-3 text-xs font-semibold text-(--text-dim) transition hover:bg-(--surface-muted)"
                       >
-                        View
+                        {viewLabel}
                       </Link>
                       {showEdit && onEdit ? (
                         <button

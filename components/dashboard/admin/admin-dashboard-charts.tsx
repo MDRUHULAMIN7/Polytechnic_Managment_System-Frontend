@@ -391,8 +391,8 @@ export function AdminDashboardCharts({
       ),
       datasets: [
         {
-          label: "Sections",
-          data: overview.semesterOfferings.map((item) => item.sections),
+          label: "Offerings",
+          data: overview.semesterOfferings.map((item) => item.offerings),
           backgroundColor: palette.accent,
           borderRadius: 10,
         },
@@ -419,7 +419,7 @@ export function AdminDashboardCharts({
   const hasClassStatus = hasNonZeroValues(overview.classStatusData);
   const hasRegistrationStatus = hasNonZeroValues(overview.registrationStatusData);
   const hasSemesterOfferings = overview.semesterOfferings.some(
-    (item) => item.sections > 0 || item.subjects > 0 || item.instructors > 0,
+    (item) => item.offerings > 0 || item.subjects > 0 || item.instructors > 0,
   );
   const hasSuperAdminUserStatus = hasNonZeroValues(
     overview.superAdmin?.userStatusData ?? [],
@@ -484,7 +484,7 @@ export function AdminDashboardCharts({
       <div className="grid min-w-0 gap-6 lg:grid-cols-2">
         <ChartCard
           title="Semester Offering Mix"
-          description="Top academic semesters by active section count, subject breadth, and faculty load."
+          description="Top academic semesters by active offering count, subject breadth, and faculty load."
         >
           {hasSemesterOfferings ? (
             <div className="h-80 min-w-0 sm:h-80">

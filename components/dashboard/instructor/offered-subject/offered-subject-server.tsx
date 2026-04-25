@@ -6,6 +6,9 @@ import type {
 import type { OfferedSubjectServerProps } from "@/lib/type/dashboard/admin/offered-subject/ui";
 import { OfferedSubjectPage } from "./offered-subject-page";
 
+const OFFERED_SUBJECT_TABLE_FIELDS =
+  "subject,instructor,academicSemester,maxCapacity";
+
 export async function OfferedSubjectPageServer({
   searchTerm,
   page,
@@ -31,6 +34,7 @@ export async function OfferedSubjectPageServer({
       limit,
       sort,
       scope,
+      fields: OFFERED_SUBJECT_TABLE_FIELDS,
     });
     items = data.result ?? [];
     meta = data.meta ?? fallbackMeta;

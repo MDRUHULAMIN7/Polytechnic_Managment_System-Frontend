@@ -77,12 +77,12 @@ describe("LoginForm", () => {
   });
 
   it("locks the login screen while authentication is pending", async () => {
-    let resolveLogin: ((value: { role: "admin"; needsPasswordChange: false }) => void) | null =
-      null;
+    let resolveLogin: (value: { role: "admin"; needsPasswordChange: false }) => void =
+      () => undefined;
 
     vi.mocked(loginUser).mockImplementation(
       () =>
-        new Promise((resolve) => {
+        new Promise<{ role: "admin"; needsPasswordChange: false }>((resolve) => {
           resolveLogin = resolve;
         }),
     );
@@ -99,7 +99,7 @@ describe("LoginForm", () => {
     expect(screen.getByLabelText("Password")).toBeDisabled();
     expect(screen.getByRole("button", { name: "Signing in..." })).toBeDisabled();
 
-    resolveLogin?.({ role: "admin", needsPasswordChange: false });
+    resolveLogin({ role: "admin", needsPasswordChange: false });
 
     await waitFor(() => {
       expect(pushMock).toHaveBeenCalledWith("/dashboard/admin");

@@ -59,7 +59,6 @@ function createInitialState(): OfferedSubjectFormState {
     academicDepartment: "",
     subject: "",
     instructor: "",
-    section: "",
     maxCapacity: "",
     scheduleBlocks: [createEmptyScheduleBlock()],
   };
@@ -353,10 +352,6 @@ export function OfferedSubjectFormModal({
         typeof offeredSubject?.instructor === "string"
           ? offeredSubject.instructor
           : (offeredSubject?.instructor?._id ?? ""),
-      section:
-        offeredSubject?.section !== undefined
-          ? String(offeredSubject.section)
-          : "",
       maxCapacity:
         offeredSubject?.maxCapacity !== undefined
           ? String(offeredSubject.maxCapacity)
@@ -576,7 +571,7 @@ export function OfferedSubjectFormModal({
       page: 1,
       limit: 1000,
       semesterRegistration: form.semesterRegistration,
-      fields: "subject,section,days,startTime,endTime,scheduleBlocks",
+      fields: "subject,days,startTime,endTime,scheduleBlocks",
     })
       .then((payload) => {
         if (!active) return;
@@ -586,12 +581,8 @@ export function OfferedSubjectFormModal({
             typeof item.subject === "string"
               ? item.subject
               : item.subject?.title ?? "Subject";
-          const sectionLabel =
-            Number(item.section) > 0
-              ? `${subjectTitle} (Sec ${item.section})`
-              : subjectTitle;
           const schedule = formatOfferedSubjectSchedule(item);
-          labels.push(schedule ? `${sectionLabel} - ${schedule}` : sectionLabel);
+          labels.push(schedule ? `${subjectTitle} - ${schedule}` : subjectTitle);
         }
         setOfferedLabels(labels);
       })
@@ -693,8 +684,7 @@ export function OfferedSubjectFormModal({
           !form.semesterRegistration ||
           !form.academicInstructor ||
           !form.academicDepartment ||
-          !form.subject ||
-          !form.section
+          !form.subject
         ) {
           showToast({
             variant: "error",
@@ -724,24 +714,12 @@ export function OfferedSubjectFormModal({
           }
         }
 
-        const section = Number(form.section);
-        if (!Number.isFinite(section) || section <= 0) {
-          showToast({
-            variant: "error",
-            title: "Invalid section",
-            description: "Section must be a positive number.",
-          });
-          setSubmitting(false);
-          return;
-        }
-
         const payload: OfferedSubjectInput = {
           semesterRegistration: form.semesterRegistration,
           academicInstructor: form.academicInstructor,
           academicDepartment: form.academicDepartment,
           subject: form.subject,
           instructor: form.instructor,
-          section,
           maxCapacity,
           scheduleBlocks,
         };
@@ -1026,19 +1004,6 @@ export function OfferedSubjectFormModal({
                 Showing up to 50 results. Type to search.
               </p>
             )}
-          </div>
-
-          <div>
-            <label className="text-xs font-semibold uppercase tracking-[0.18em] text-(--text-dim)">
-              Section
-            </label>
-            <input
-              value={form.section}
-              onChange={(event) => updateField("section", event.target.value)}
-              className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-transparent px-3 text-sm disabled:opacity-70"
-              inputMode="numeric"
-              disabled={isEdit}
-            />
           </div>
 
           <div>

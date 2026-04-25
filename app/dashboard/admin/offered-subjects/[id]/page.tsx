@@ -33,11 +33,11 @@ export default async function OfferedSubjectDetailsPage({ params }: PageProps) {
     <section className="space-y-6">
       <DashboardPageHeader
         title="Offered Subject Details"
-        description="Overview of offered subject details and final result controls."
+        description="Overview of offered subject details and read-only student marks."
       />
 
       <OfferedSubjectDetailsContent details={details} error={error} />
-      {markSheet ? <OfferedSubjectMarkingPanel initialData={markSheet} role="admin" /> : null}
+      {markSheet ? <OfferedSubjectMarkingPanel initialData={markSheet} mode="view" /> : null}
     </section>
   );
 }

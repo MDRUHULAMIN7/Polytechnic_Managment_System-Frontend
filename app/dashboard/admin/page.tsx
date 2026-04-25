@@ -457,7 +457,7 @@ export default async function AdminDashboardPage() {
     .slice(0, 6)
     .map((item) => ({
       label: item.label,
-      sections: item.offeredSubjects,
+      offerings: item.offeredSubjects,
       subjects: item.subjectIds.size,
       instructors: item.instructorIds.size,
     }));
@@ -518,11 +518,11 @@ export default async function AdminDashboardPage() {
 
   const ongoingRegistrations = registrationStatusCounts.ONGOING;
   const coveredSemesterCount = semesterGroups.size;
-  const currentSections = Array.from(semesterGroups.values()).reduce(
+  const currentOfferings = Array.from(semesterGroups.values()).reduce(
     (sum, item) => sum + (item.currentWindows > 0 ? item.offeredSubjects : 0),
     0,
   );
-  const averageSectionsPerSubject = decimalRatio(
+  const averageOfferingsPerSubject = decimalRatio(
     uniqueOfferedSubjectIds.size === 0
       ? 0
       : offeredSubjects.length / uniqueOfferedSubjectIds.size,
@@ -601,7 +601,7 @@ export default async function AdminDashboardPage() {
       {
         label: "Offered Subjects",
         value: offeredSubjects.length,
-        helper: "Live section offerings distributed across current registrations.",
+        helper: "Active offered subjects distributed across current registrations.",
         href: "/dashboard/admin/offered-subjects",
         tone: "amber",
       },
@@ -658,19 +658,19 @@ export default async function AdminDashboardPage() {
         helper: "Enrollment-to-faculty ratio based on registered profiles.",
       },
       {
-        label: "Sections per Subject",
-        value: `${averageSectionsPerSubject}x`,
-        helper: "Average section count generated for each offered subject family.",
+        label: "Offerings per Subject",
+        value: `${averageOfferingsPerSubject}x`,
+        helper: "Average offered-subject count generated for each subject.",
       },
       {
         label: "Semester Coverage",
         value: `${coveredSemesterCount}/${academicSemestersTotal}`,
-        helper: "Academic semesters currently carrying live teaching sections.",
+        helper: "Academic semesters currently carrying live teaching offerings.",
       },
       {
         label: "Current Teaching Load",
-        value: currentSections.toLocaleString("en-US"),
-        helper: "Sections linked to ongoing semester registration windows.",
+        value: currentOfferings.toLocaleString("en-US"),
+        helper: "Offered subjects linked to ongoing semester registration windows.",
       },
       {
         label: "Today Delivery Rate",

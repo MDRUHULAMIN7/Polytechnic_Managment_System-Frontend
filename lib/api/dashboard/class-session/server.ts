@@ -177,9 +177,15 @@ export async function getStudentClassDetailsServer(id: string) {
   );
 }
 
-export async function getAdminClassDetailsServer(id: string) {
+export async function getAdminClassDetailsServer(
+  id: string,
+  options?: { includeAttendance?: boolean },
+) {
+  const query =
+    options?.includeAttendance === false ? "?includeAttendance=false" : "";
+
   return fetchJson<AdminClassDetails>(
-    `/class-sessions/${id}`,
+    `/class-sessions/${id}${query}`,
     "Failed to load class details.",
     [classSessionTag(id)],
   );

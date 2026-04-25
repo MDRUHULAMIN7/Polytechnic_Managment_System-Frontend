@@ -15,7 +15,6 @@ import { showToast } from "@/utils/common/toast";
 import {
   formatClassDate,
   formatTimeRange,
-  resolveClassSection,
   resolveClassSubjectTitle,
   statusBadgeClass,
 } from "@/utils/dashboard/class-session";
@@ -27,6 +26,57 @@ type InstructorClassDetailProps = {
 
 const attendanceOptions: AttendanceStatus[] = ["PRESENT", "ABSENT", "LEAVE"];
 type AttendanceDraftStatus = AttendanceStatus | "";
+type AttendanceBadgeStatus = AttendanceStatus | "NOT_MARKED";
+
+const attendanceStatusMeta: Record<
+  AttendanceBadgeStatus,
+  { label: string; className: string; dotClassName: string }
+> = {
+  PRESENT: {
+    label: "Present",
+    className: "border-emerald-500/40 bg-emerald-500/10 text-emerald-300",
+    dotClassName: "bg-emerald-400",
+  },
+  ABSENT: {
+    label: "Absent",
+    className: "border-red-500/40 bg-red-500/10 text-red-300",
+    dotClassName: "bg-red-400",
+  },
+  LEAVE: {
+    label: "Leave",
+    className: "border-amber-500/40 bg-amber-500/10 text-amber-300",
+    dotClassName: "bg-amber-400",
+  },
+  NOT_MARKED: {
+    label: "Not marked",
+    className: "border-(--line) bg-(--surface-muted) text-(--text-dim)",
+    dotClassName: "bg-(--text-dim)",
+  },
+};
+
+function resolveAttendanceStatus(
+  status: AttendanceDraftStatus,
+): AttendanceBadgeStatus {
+  return status || "NOT_MARKED";
+}
+
+function AttendanceStatusBadge({
+  status,
+}: {
+  status: AttendanceDraftStatus;
+}) {
+  const resolvedStatus = resolveAttendanceStatus(status);
+  const meta = attendanceStatusMeta[resolvedStatus];
+
+  return (
+    <span
+      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold ${meta.className}`}
+    >
+      <span className={`h-2 w-2 rounded-full ${meta.dotClassName}`} />
+      {meta.label}
+    </span>
+  );
+}
 
 export function InstructorClassDetail({ details }: InstructorClassDetailProps) {
   const router = useRouter();
@@ -61,9 +111,7 @@ export function InstructorClassDetail({ details }: InstructorClassDetailProps) {
   const canStart = details.classSession.status === "SCHEDULED";
   const canComplete =
     details.classSession.status === "ONGOING" && attendanceCounts.pending === 0;
-  const canSubmit =
-    details.classSession.status === "ONGOING" ||
-    details.classSession.status === "COMPLETED";
+  const canSubmit = details.classSession.status === "ONGOING";
 
   function updateAttendance(studentId: string, status: AttendanceDraftStatus) {
     setAttendanceMap((prev) => ({
@@ -123,7 +171,7 @@ export function InstructorClassDetail({ details }: InstructorClassDetailProps) {
         showToast({
           variant: "success",
           title: "Attendance submitted",
-          description: "Attendance saved. Use Complete Class to finish the class.",
+          description: "Attendance saved. You can now complete the class.",
         });
         router.refresh();
       } catch (error) {
@@ -146,7 +194,7 @@ export function InstructorClassDetail({ details }: InstructorClassDetailProps) {
         showToast({
           variant: "success",
           title: "Class completed",
-          description: "You can still update attendance after completion.",
+          description: "Class finished and attendance is now locked.",
         });
         router.refresh();
       } catch (error) {
@@ -169,12 +217,12 @@ export function InstructorClassDetail({ details }: InstructorClassDetailProps) {
               {resolveClassSubjectTitle(details.classSession.subject)}
             </h2>
             <p className="mt-2 text-sm text-(--text-dim)">
-              {formatClassDate(details.classSession.date)} ·{" "}
+              {formatClassDate(details.classSession.date)} |{" "}
               {formatTimeRange(
                 details.classSession.startTime,
                 details.classSession.endTime,
               )}{" "}
-              · {resolveClassSection(details.classSession.offeredSubject)}
+              | {details.classSession.day}
             </p>
           </div>
           <span
@@ -275,58 +323,82 @@ export function InstructorClassDetail({ details }: InstructorClassDetailProps) {
                 Attendance Sheet
               </h2>
               <p className="mt-1 text-sm text-(--text-dim)">
-                Only the assigned instructor can submit and update attendance.
+                Only the assigned instructor can mark attendance while the class is
+                ongoing.
               </p>
             </div>
             <div className="flex flex-wrap gap-2 text-xs">
               {attendanceOptions.map((status) => (
                 <span
                   key={status}
-                  className="rounded-full border border-(--line) bg-(--surface-muted) px-3 py-1 font-semibold"
+                  className={`rounded-full border px-3 py-1 font-semibold ${
+                    attendanceStatusMeta[status].className
+                  }`}
                 >
-                  {status}: {attendanceCounts[status]}
+                  {attendanceStatusMeta[status].label}: {attendanceCounts[status]}
                 </span>
               ))}
               <span className="rounded-full border border-(--line) bg-(--surface-muted) px-3 py-1 font-semibold">
-                Pending: {attendanceCounts.pending}
+                Not marked: {attendanceCounts.pending}
               </span>
             </div>
           </div>
 
+          <div className="mt-4 rounded-xl border border-(--line) bg-(--surface-muted) px-4 py-3 text-sm text-(--text-dim)">
+            {details.classSession.status === "SCHEDULED"
+              ? "Start the class first to unlock the attendance dropdowns."
+              : details.classSession.status === "ONGOING"
+                ? "Use the dropdown and colored status badge to mark every student before completing the class."
+                : details.classSession.status === "COMPLETED"
+                  ? "This class is completed. Attendance is locked and can no longer be changed."
+                  : "Attendance is unavailable for this class status."}
+          </div>
+
           <div className="mt-4 space-y-3 md:hidden">
-            {details.students.map((student) => (
-              <article
-                key={student.studentId}
-                className="rounded-xl border border-(--line) bg-(--surface-muted) p-4"
-              >
-                <div className="flex flex-col gap-1">
-                  <p className="font-medium">{resolveName(student.name)}</p>
-                  <p className="text-xs text-(--text-dim)">{student.studentCode}</p>
-                </div>
-                <div className="mt-3 space-y-1 text-sm text-(--text-dim)">
-                  <p>{student.email || "--"}</p>
-                  <p>{student.contactNo || "--"}</p>
-                </div>
-                <select
-                  value={attendanceMap[student.studentId]}
-                  onChange={(event) =>
-                    updateAttendance(
-                      student.studentId,
-                      event.target.value as AttendanceDraftStatus,
-                    )
-                  }
-                  disabled={!canSubmit || isPending}
-                  className="focus-ring mt-4 h-10 w-full rounded-xl border border-(--line) bg-(--surface) px-3 text-sm disabled:opacity-60"
+            {details.students.map((student) => {
+              const currentStatus = attendanceMap[student.studentId];
+
+              return (
+                <article
+                  key={student.studentId}
+                  className="rounded-xl border border-(--line) bg-(--surface-muted) p-4"
                 >
-                  <option value="">Select status</option>
-                  {attendanceOptions.map((status) => (
-                    <option key={status} value={status}>
-                      {status}
-                    </option>
-                  ))}
-                </select>
-              </article>
-            ))}
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex flex-col gap-1">
+                        <p className="font-medium">{resolveName(student.name)}</p>
+                        <p className="text-xs text-(--text-dim)">
+                          {student.studentCode}
+                        </p>
+                      </div>
+                      <AttendanceStatusBadge status={currentStatus} />
+                    </div>
+                    <div className="space-y-1 text-sm text-(--text-dim)">
+                      <p>{student.email || "--"}</p>
+                      <p>{student.contactNo || "--"}</p>
+                    </div>
+                  </div>
+                  <select
+                    value={currentStatus}
+                    onChange={(event) =>
+                      updateAttendance(
+                        student.studentId,
+                        event.target.value as AttendanceDraftStatus,
+                      )
+                    }
+                    disabled={!canSubmit || isPending}
+                    className="focus-ring mt-4 h-10 w-full rounded-xl border border-(--line) bg-(--surface) px-3 text-sm disabled:opacity-60"
+                  >
+                    <option value="">Select status</option>
+                    {attendanceOptions.map((status) => (
+                      <option key={status} value={status}>
+                        {attendanceStatusMeta[status].label}
+                      </option>
+                    ))}
+                  </select>
+                </article>
+              );
+            })}
           </div>
 
           <div className="mt-4 hidden overflow-x-auto md:block">
@@ -339,40 +411,47 @@ export function InstructorClassDetail({ details }: InstructorClassDetailProps) {
                 </tr>
               </thead>
               <tbody>
-                {details.students.map((student) => (
-                  <tr key={student.studentId} className="border-b border-(--line)/70">
-                    <td className="px-3 py-3">
-                      <p className="font-medium">{resolveName(student.name)}</p>
-                      <p className="text-xs text-(--text-dim)">
-                        {student.studentCode}
-                      </p>
-                    </td>
-                    <td className="px-3 py-3 text-(--text-dim)">
-                      <p>{student.email || "--"}</p>
-                      <p className="text-xs">{student.contactNo || "--"}</p>
-                    </td>
-                    <td className="px-3 py-3">
-                      <select
-                        value={attendanceMap[student.studentId]}
-                        onChange={(event) =>
-                          updateAttendance(
-                            student.studentId,
-                            event.target.value as AttendanceDraftStatus,
-                          )
-                        }
-                        disabled={!canSubmit || isPending}
-                        className="focus-ring h-10 rounded-xl border border-(--line) bg-(--surface) px-3 text-sm disabled:opacity-60"
-                      >
-                        <option value="">Select status</option>
-                        {attendanceOptions.map((status) => (
-                          <option key={status} value={status}>
-                            {status}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
-                  </tr>
-                ))}
+                {details.students.map((student) => {
+                  const currentStatus = attendanceMap[student.studentId];
+
+                  return (
+                    <tr key={student.studentId} className="border-b border-(--line)/70">
+                      <td className="px-3 py-3">
+                        <p className="font-medium">{resolveName(student.name)}</p>
+                        <p className="text-xs text-(--text-dim)">
+                          {student.studentCode}
+                        </p>
+                      </td>
+                      <td className="px-3 py-3 text-(--text-dim)">
+                        <p>{student.email || "--"}</p>
+                        <p className="text-xs">{student.contactNo || "--"}</p>
+                      </td>
+                      <td className="px-3 py-3">
+                        <div className="flex flex-wrap items-center gap-3">
+                          <AttendanceStatusBadge status={currentStatus} />
+                          <select
+                            value={currentStatus}
+                            onChange={(event) =>
+                              updateAttendance(
+                                student.studentId,
+                                event.target.value as AttendanceDraftStatus,
+                              )
+                            }
+                            disabled={!canSubmit || isPending}
+                            className="focus-ring h-10 rounded-xl border border-(--line) bg-(--surface) px-3 text-sm disabled:opacity-60"
+                          >
+                            <option value="">Select status</option>
+                            {attendanceOptions.map((status) => (
+                              <option key={status} value={status}>
+                                {attendanceStatusMeta[status].label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -384,16 +463,17 @@ export function InstructorClassDetail({ details }: InstructorClassDetailProps) {
               onClick={handleSubmitAttendance}
               className="focus-ring inline-flex h-11 items-center justify-center rounded-xl bg-(--accent) px-4 text-sm font-semibold text-(--accent-ink) transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isPending && canSubmit
-                ? "Saving..."
-                : details.classSession.status === "COMPLETED"
-                  ? "Update Attendance"
-                  : "Submit Attendance"}
+              {isPending && canSubmit ? "Saving..." : "Save Attendance"}
             </button>
           </div>
           {details.classSession.status === "ONGOING" && attendanceCounts.pending > 0 ? (
             <p className="mt-3 text-sm text-(--text-dim)">
               Complete Class stays locked until attendance is submitted for every student.
+            </p>
+          ) : null}
+          {details.classSession.status === "COMPLETED" ? (
+            <p className="mt-3 text-sm text-sky-300">
+              Class completed successfully. Attendance is now locked for this session.
             </p>
           ) : null}
         </section>

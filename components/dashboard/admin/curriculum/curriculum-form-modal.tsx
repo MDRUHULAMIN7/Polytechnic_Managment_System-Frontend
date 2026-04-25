@@ -78,6 +78,10 @@ function subjectLabel(subject: { title: string; prefix?: string; code?: number }
   return code ? `${subject.title} (${code})` : subject.title;
 }
 
+function creditsAreEqual(left: number, right: number) {
+  return Math.abs(left - right) < 0.0001;
+}
+
 export function CurriculumFormModal({
   open,
   curriculum,
@@ -92,6 +96,9 @@ export function CurriculumFormModal({
   const [submitting, setSubmitting] = useState(false);
   const [existingSubjectIds, setExistingSubjectIds] = useState<string[]>([]);
   const isEdit = Boolean(curriculum?._id);
+  const currentCurriculumRegistrationId = resolveId(curriculum?.semisterRegistration) ?? "";
+  const currentCurriculumRegulation =
+    typeof curriculum?.regulation === "number" ? curriculum.regulation : null;
 
   useEffect(() => {
     if (!open) {
@@ -230,6 +237,47 @@ export function CurriculumFormModal({
     return filtered.filter((item) => !existingSubjectIds.includes(item._id));
   }, [subjects, existingSubjectIds, regulationFilter, offeredSubjectIds, canShowSubjects]);
 
+  const subjectCreditMap = useMemo(
+    () => new Map(subjects.map((item) => [item._id, item.credits ?? 0])),
+    [subjects]
+  );
+
+  const selectedSubjectIds = useMemo(
+    () =>
+      isEdit
+        ? Array.from(new Set([...existingSubjectIds, ...form.subjects]))
+        : form.subjects,
+    [existingSubjectIds, form.subjects, isEdit]
+  );
+
+  const selectedTotalCredit = useMemo(
+    () =>
+      selectedSubjectIds.reduce(
+        (sum, id) => sum + (subjectCreditMap.get(id) ?? 0),
+        0
+      ),
+    [selectedSubjectIds, subjectCreditMap]
+  );
+
+  const registrationTotalCredit =
+    typeof selectedRegistration?.totalCredit === "number"
+      ? selectedRegistration.totalCredit
+      : null;
+
+  const hasRegistrationChanged =
+    isEdit && currentCurriculumRegistrationId !== form.semisterRegistration;
+  const hasRegulationChanged =
+    isEdit &&
+    currentCurriculumRegulation !== null &&
+    Number.isFinite(regulationNumber) &&
+    regulationNumber !== currentCurriculumRegulation;
+  const shouldEnforceCreditMatch =
+    !isEdit || form.subjects.length > 0 || hasRegistrationChanged || hasRegulationChanged;
+  const isCreditMatched =
+    registrationTotalCredit === null
+      ? null
+      : creditsAreEqual(selectedTotalCredit, registrationTotalCredit);
+
   function toggleSubject(id: string, checked: boolean) {
     updateField(
       "subjects",
@@ -276,6 +324,19 @@ export function CurriculumFormModal({
         variant: "error",
         title: "Select subjects",
         description: "Please select at least one subject.",
+      });
+      return;
+    }
+
+    if (
+      shouldEnforceCreditMatch &&
+      registrationTotalCredit !== null &&
+      !creditsAreEqual(selectedTotalCredit, registrationTotalCredit)
+    ) {
+      showToast({
+        variant: "error",
+        title: "Credit mismatch",
+        description: `Selected subjects total credit (${selectedTotalCredit}) must exactly match semester registration total credit (${registrationTotalCredit}).`,
       });
       return;
     }
@@ -524,6 +585,39 @@ export function CurriculumFormModal({
             <p className="text-xs text-(--text-dim)">
               Showing subjects for regulation {regulationFilter}.
             </p>
+          ) : null}
+          {selectedRegistration ? (
+            <div
+              className={`rounded-xl border px-3 py-2 text-xs ${
+                isCreditMatched === false
+                  ? "border-amber-500/50 bg-amber-500/10 text-amber-200"
+                  : "border-(--line) bg-(--surface-muted) text-(--text-dim)"
+              }`}
+            >
+              <p>
+                Selected subjects:{" "}
+                <span className="font-medium text-(--text)">
+                  {selectedSubjectIds.length}
+                </span>
+              </p>
+              <p>
+                Selected total credit:{" "}
+                <span className="font-medium text-(--text)">
+                  {selectedTotalCredit}
+                </span>
+              </p>
+              <p>
+                Semester registration total credit:{" "}
+                <span className="font-medium text-(--text)">
+                  {registrationTotalCredit ?? "--"}
+                </span>
+              </p>
+              {shouldEnforceCreditMatch && isCreditMatched === false ? (
+                <p className="mt-1">
+                  Selected subjects total credit must be exactly equal before saving.
+                </p>
+              ) : null}
+            </div>
           ) : null}
         </div>
 

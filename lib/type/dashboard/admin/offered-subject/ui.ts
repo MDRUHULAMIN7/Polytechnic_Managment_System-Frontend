@@ -41,6 +41,7 @@ export type OfferedSubjectTableProps = {
   showEdit?: boolean;
   showDelete?: boolean;
   actionsLabel?: string;
+  viewLabel?: string;
 };
 
 export type OfferedSubjectPageProps = {
@@ -112,7 +113,6 @@ export type OfferedSubjectFormState = {
   academicDepartment: string;
   subject: string;
   instructor: string;
-  section: string;
   maxCapacity: string;
   scheduleBlocks: OfferedSubjectEditableScheduleBlock[];
 };

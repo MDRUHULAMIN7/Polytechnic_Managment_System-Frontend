@@ -34,7 +34,7 @@ export type AdminDashboardRecentActivityPoint = {
 
 export type AdminDashboardSemesterOfferingPoint = {
   label: string;
-  sections: number;
+  offerings: number;
   subjects: number;
   instructors: number;
 };

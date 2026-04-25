@@ -448,7 +448,7 @@ export function AdminDashboard({
                 Semester Coverage
               </h2>
               <p className="admin-overview-body mt-1 text-sm text-(--text-dim)">
-                The busiest academic semesters by section volume and faculty distribution.
+                The busiest academic semesters by offered subject volume and faculty distribution.
               </p>
             </div>
 
@@ -478,7 +478,7 @@ export function AdminDashboard({
 
                     <div className="mt-4 grid grid-cols-3 gap-2">
                       {[
-                        ["Sections", item.offeredSubjects],
+                        ["Offerings", item.offeredSubjects],
                         ["Subjects", item.uniqueSubjects],
                         ["Faculty", item.uniqueInstructors],
                       ].map(([label, value]) => (

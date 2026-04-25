@@ -90,16 +90,15 @@ function renderAcademicSemester(value?: EnrolledSubject["academicSemester"]) {
 
 function renderSchedule(value?: EnrolledSubject["offeredSubject"]) {
   if (!value) {
-    return { days: "--", time: "--", section: "--", released: 0, status: "--" };
+    return { days: "--", time: "--", released: 0, status: "--" };
   }
   if (typeof value === "string") {
-    return { days: value, time: "--", section: "--", released: 0, status: "--" };
+    return { days: value, time: "--", released: 0, status: "--" };
   }
   return {
     days: value.days?.length ? value.days.join(", ") : "--",
     time:
       value.startTime && value.endTime ? `${value.startTime} - ${value.endTime}` : "--",
-    section: value.section ? `Sec ${value.section}` : "--",
     released: value.releasedComponentCodes?.length ?? 0,
     status: value.markingStatus ?? "--",
   };
@@ -132,8 +131,8 @@ export function EnrolledSubjectDetailsModal({
     <Modal
       open={open}
       onClose={onClose}
-      title="Enrolled Subject Details"
-      description="Full details for your enrolled subject."
+      title="Subject Details & Marks"
+      description="Full subject information, released marks, and final result."
     >
       <div className="grid gap-4 lg:grid-cols-3">
         <div className="rounded-xl border border-(--line) bg-(--surface-muted) px-4 py-3">
@@ -182,9 +181,6 @@ export function EnrolledSubjectDetailsModal({
           <p className="mt-2 text-sm font-semibold">{schedule.days}</p>
           <p className="mt-1 text-xs text-(--text-dim)">
             Time: <span className="font-medium">{schedule.time}</span>
-          </p>
-          <p className="mt-1 text-xs text-(--text-dim)">
-            Section: <span className="font-medium">{schedule.section}</span>
           </p>
           <p className="mt-1 text-xs text-(--text-dim)">
             Released Components: <span className="font-medium">{schedule.released}</span>
@@ -308,7 +304,7 @@ export function EnrolledSubjectDetailsModal({
           </div>
 
           <div className="mt-3 rounded-lg border border-(--line) bg-(--surface) px-3 py-2 text-sm">
-            <p className="text-(--text-dim)">Section Marking Status</p>
+            <p className="text-(--text-dim)">Marking Status</p>
             <p className="mt-1 font-semibold">{schedule.status}</p>
           </div>
         </div>

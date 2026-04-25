@@ -1,6 +1,7 @@
 import type { Instructor } from "@/lib/type/dashboard/admin/instructor";
 import type { AcademicSemester } from "@/lib/type/dashboard/admin/academic-semester";
 import type { SemesterRegistration } from "@/lib/type/dashboard/admin/semester-registration";
+import type { StudentName } from "@/lib/type/dashboard/admin/student";
 import type {
   AssessmentBucket,
   AssessmentComponentType,
@@ -55,7 +56,6 @@ export type EnrolledSubject = {
   offeredSubject: Pick<
     OfferedSubject,
     | "_id"
-    | "section"
     | "days"
     | "startTime"
     | "endTime"
@@ -84,7 +84,7 @@ export type OfferedSubjectMarkSheetStudent = {
     | {
         _id: string;
         id?: string;
-        name?: string;
+        name?: StudentName | string;
       }
     | string;
   markEntries: EnrolledSubjectMarkEntry[];

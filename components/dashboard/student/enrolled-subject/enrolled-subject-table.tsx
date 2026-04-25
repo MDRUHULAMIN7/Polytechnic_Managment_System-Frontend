@@ -52,8 +52,7 @@ function renderSchedule(value: EnrolledSubject["offeredSubject"]) {
   const days = value.days?.length ? value.days.join(", ") : "--";
   const time =
     value.startTime && value.endTime ? `(${value.startTime} - ${value.endTime})` : "";
-  const section = value.section ? `Sec ${value.section}` : "";
-  return [days, time, section].filter(Boolean).join(" ");
+  return [days, time].filter(Boolean).join(" ");
 }
 
 function renderStatus(item: EnrolledSubject) {
@@ -161,7 +160,7 @@ export function EnrolledSubjectTable({
                       onClick={() => onView?.(item)}
                       className="focus-ring inline-flex h-9 min-w-20 items-center justify-center rounded-lg border border-(--line) px-3 text-xs font-semibold text-(--text-dim) transition hover:bg-(--surface-muted)"
                     >
-                      View
+                      View Marks
                     </button>
                   </td>
                 </tr>

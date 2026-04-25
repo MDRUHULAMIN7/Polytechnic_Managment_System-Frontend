@@ -15,7 +15,6 @@ export type AttendanceDisplayStatus = AttendanceStatus | "NOT_MARKED";
 
 export type ClassSessionOfferedSubject = {
   _id?: string;
-  section?: number;
   days?: string[];
   startTime?: string;
   endTime?: string;

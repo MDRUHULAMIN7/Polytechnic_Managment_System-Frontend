@@ -43,13 +43,6 @@ export function resolveClassInstructorName(instructor: ClassSession["instructor"
   return `${resolveName(instructor?.name)}${instructor?.designation ? ` (${instructor.designation})` : ""}`;
 }
 
-export function resolveClassSection(offeredSubject?: ClassSession["offeredSubject"]) {
-  if (!offeredSubject || typeof offeredSubject === "string") {
-    return "--";
-  }
-  return offeredSubject.section ? `Section ${offeredSubject.section}` : "--";
-}
-
 export function resolveSemesterRegistrationLabel(
   registration?: SemesterRegistration | string,
 ) {

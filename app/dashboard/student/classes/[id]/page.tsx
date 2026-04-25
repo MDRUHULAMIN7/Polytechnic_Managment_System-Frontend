@@ -7,7 +7,6 @@ import {
   formatClassDate,
   formatTimeRange,
   resolveClassInstructorName,
-  resolveClassSection,
   resolveClassSubjectTitle,
   statusBadgeClass,
 } from "@/utils/dashboard/class-session";
@@ -65,7 +64,7 @@ export default async function StudentClassDetailsPage({ params, searchParams }: 
           </span>
         </div>
 
-        <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-5 grid gap-3 md:grid-cols-3">
           <div className="rounded-xl border border-(--line) px-4 py-3">
             <p className="text-xs uppercase tracking-[0.18em] text-(--text-dim)">
               Date
@@ -85,12 +84,6 @@ export default async function StudentClassDetailsPage({ params, searchParams }: 
               Day
             </p>
             <p className="mt-2 font-medium">{item.day}</p>
-          </div>
-          <div className="rounded-xl border border-(--line) px-4 py-3">
-            <p className="text-xs uppercase tracking-[0.18em] text-(--text-dim)">
-              Section
-            </p>
-            <p className="mt-2 font-medium">{resolveClassSection(item.offeredSubject)}</p>
           </div>
         </div>
 

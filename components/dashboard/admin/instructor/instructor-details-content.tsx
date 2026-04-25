@@ -2,6 +2,7 @@ import type { InstructorDetailsContentProps } from "@/lib/type/dashboard/admin/i
 import type { AcademicDepartment } from "@/lib/type/dashboard/admin/academic-department";
 import type { Subject } from "@/lib/type/dashboard/admin/subject";
 import type { OfferedSubject } from "@/lib/type/dashboard/admin/offered-subject";
+import { DashboardErrorBanner } from "@/components/dashboard/shared/dashboard-error-banner";
 import { formatDate } from "@/utils/common/utils";
 import { StudentProfileImage } from "../student/student-profile-image";
 
@@ -36,7 +37,6 @@ function renderOfferedSubjectLabel(value: OfferedSubject) {
     typeof value.subject === "string"
       ? value.subject
       : value.subject?.title ?? "--";
-  const section = value.section ? `Sec ${value.section}` : "Section --";
   const registration =
     typeof value.semesterRegistration === "string"
       ? ""
@@ -64,7 +64,7 @@ function renderOfferedSubjectLabel(value: OfferedSubject) {
   const daysLabel = value.days?.length ? value.days.join(", ") : "--";
   const timeLabel =
     value.startTime && value.endTime ? `${value.startTime}-${value.endTime}` : "--";
-  return `${subjectTitle} · ${section} · ${daysLabel} ${timeLabel} · ${semesterLabel}`;
+  return `${subjectTitle} | ${daysLabel} ${timeLabel} | ${semesterLabel}`;
 }
 
 export function InstructorDetailsContent({
@@ -110,7 +110,7 @@ export function InstructorDetailsContent({
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="rounded-xl border border-(--line) px-4 py-3">
           <p className="text-xs uppercase tracking-[0.18em] text-(--text-dim)">Email</p>
-          <p className="mt-2 font-medium break-words">{details.email}</p>
+          <p className="mt-2 break-words font-medium">{details.email}</p>
         </div>
         <div className="rounded-xl border border-(--line) px-4 py-3">
           <p className="text-xs uppercase tracking-[0.18em] text-(--text-dim)">Status</p>
@@ -223,4 +223,3 @@ export function InstructorDetailsContent({
     </div>
   );
 }
-import { DashboardErrorBanner } from "@/components/dashboard/shared/dashboard-error-banner";

@@ -38,7 +38,7 @@ export default async function OfferedSubjectDetailsPage({ params }: PageProps) {
     <section className="space-y-6">
       <DashboardPageHeader
         title="Offered Subject Details"
-        description="View offered subject information and manage component-based marks."
+        description="View offered subject information, choose a student, and manage marks one student at a time."
         action={
           <Link
             href="/dashboard/instructor/offered-subjects"
@@ -50,7 +50,7 @@ export default async function OfferedSubjectDetailsPage({ params }: PageProps) {
       />
 
       <OfferedSubjectDetailsContent details={details} error={error} />
-      {markSheet ? <OfferedSubjectMarkingPanel initialData={markSheet} role="instructor" /> : null}
+      {markSheet ? <OfferedSubjectMarkingPanel initialData={markSheet} mode="manage" /> : null}
     </section>
   );
 }

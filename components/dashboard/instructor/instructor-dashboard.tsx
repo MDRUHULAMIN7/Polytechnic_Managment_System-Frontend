@@ -13,7 +13,6 @@ import type {
 } from "@/lib/type/dashboard/class-session";
 import {
   formatTimeRange,
-  resolveClassSection,
   resolveClassSubjectTitle,
 } from "@/utils/dashboard/class-session";
 
@@ -23,13 +22,12 @@ export type InstructorTeachingAssignment = {
   semesterLabel: string;
   registrationMeta: string;
   scheduleLabel: string;
-  sectionLabel: string;
   detailHref: string;
 };
 
 export type InstructorSemesterCoverage = {
   label: string;
-  sectionCount: number;
+  offeringCount: number;
   registrationCount: number;
   isCurrent: boolean;
   meta: string;
@@ -39,7 +37,7 @@ export type InstructorDashboardOverview = {
   assignedSubjects: number;
   assignedSemesters: number;
   assignedRegistrations: number;
-  assignedSections: number;
+  assignedOfferings: number;
   scheduledClasses: number;
   completedClasses: number;
   liveClasses: number;
@@ -195,7 +193,7 @@ export function InstructorDashboard({
             />
           </div>
           <p className="mt-4 text-xs font-medium text-(--text-dim)">
-            Upcoming classes across all your teaching sections
+            Upcoming classes across all your current teaching assignments
           </p>
         </div>
 
@@ -274,9 +272,6 @@ export function InstructorDashboard({
                           {resolveClassSubjectTitle(item.subject)}
                         </h3>
                         <p className="text-sm text-(--text-dim)">
-                          {resolveClassSection(item.offeredSubject) !== "--"
-                            ? `${resolveClassSection(item.offeredSubject)} | `
-                            : ""}
                           {formatTimeRange(item.startTime, item.endTime)}
                         </p>
                       </div>
@@ -310,14 +305,14 @@ export function InstructorDashboard({
                   Teaching Assignments
                 </h2>
                 <p className="mt-1 text-sm text-(--text-dim)">
-                  Recent subject sections assigned to you across semesters.
+                  Recent offered subjects assigned to you across semesters.
                 </p>
               </div>
               <Link
                 href="/dashboard/instructor/offered-subjects?scope=my"
                 className="focus-ring inline-flex items-center justify-center rounded-full border border-(--line) px-5 py-2.5 text-sm font-bold text-(--text-dim) transition hover:bg-(--surface)"
               >
-                View Assigned Sections
+                View Offered Subjects
               </Link>
             </div>
 
@@ -343,9 +338,7 @@ export function InstructorDashboard({
                   >
                     <div className="min-w-0">
                       <p className="font-bold text-(--text)">{item.subjectLabel}</p>
-                      <p className="mt-1 text-sm text-(--text-dim)">
-                        {item.semesterLabel} | {item.sectionLabel}
-                      </p>
+                      <p className="mt-1 text-sm text-(--text-dim)">{item.semesterLabel}</p>
                       <p className="mt-1 text-xs text-(--text-dim)">{item.scheduleLabel}</p>
                     </div>
                     <span className="shrink-0 rounded-full bg-(--surface-muted) px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-(--text-dim)">

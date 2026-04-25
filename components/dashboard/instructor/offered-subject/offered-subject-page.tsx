@@ -127,7 +127,8 @@ export function OfferedSubjectPage({
         basePath="/dashboard/instructor/offered-subjects"
         showEdit={false}
         showDelete={false}
-        actionsLabel="View"
+        actionsLabel="Marks"
+        viewLabel="Manage Marks"
       />
 
       <OfferedSubjectPagination

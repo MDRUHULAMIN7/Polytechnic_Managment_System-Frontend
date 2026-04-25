@@ -122,15 +122,17 @@ export function CurriculumOutline({
     const initial = dayOrder.reduce((acc, day) => {
       acc[day] = [];
       return acc;
-    }, {} as Record<OfferedSubjectDay, Array<{
-      key: string;
-      subject: string;
-      instructor: string;
-      startTime: string;
-      endTime: string;
-      section: number | null;
-      startMinutes: number | null;
-    }>>);
+    }, {} as Record<
+      OfferedSubjectDay,
+      Array<{
+        key: string;
+        subject: string;
+        instructor: string;
+        startTime: string;
+        endTime: string;
+        startMinutes: number | null;
+      }>
+    >);
 
     for (const item of offeredByCurriculum) {
       const entry = {
@@ -139,7 +141,6 @@ export function CurriculumOutline({
         instructor: renderInstructorName(item.instructor),
         startTime: item.startTime,
         endTime: item.endTime,
-        section: item.section ?? null,
         startMinutes: parseTimeToMinutes(item.startTime),
       };
 
@@ -227,9 +228,6 @@ export function CurriculumOutline({
                         Instructor: {renderInstructorName(item.instructor)}
                       </p>
                     </div>
-                    <span className="rounded-lg border border-(--line) px-2.5 py-1 text-xs font-semibold text-(--text-dim)">
-                      Section {item.section}
-                    </span>
                   </div>
                   <div className="mt-3 grid gap-2 text-xs text-(--text-dim) sm:grid-cols-2">
                     <div>Capacity: {item.maxCapacity}</div>
@@ -283,10 +281,7 @@ export function CurriculumOutline({
                             <p className="mt-1">
                               {entry.startTime} - {entry.endTime}
                             </p>
-                            <p className="mt-1">
-                              {entry.instructor}
-                              {entry.section ? ` · Section ${entry.section}` : ""}
-                            </p>
+                            <p className="mt-1">{entry.instructor}</p>
                           </div>
                         ))}
                       </div>

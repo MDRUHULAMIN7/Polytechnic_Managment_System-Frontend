@@ -36,7 +36,6 @@ export type OfferedSubject = {
   subject: Subject | string;
   instructor: Instructor | string;
   maxCapacity: number;
-  section: number;
   days: OfferedSubjectDay[];
   startTime: string;
   endTime: string;
@@ -101,7 +100,6 @@ export type OfferedSubjectInput = {
   academicDepartment: string;
   subject: string;
   instructor: string;
-  section: number;
   maxCapacity: number;
   scheduleBlocks: OfferedSubjectScheduleBlockInput[];
 };

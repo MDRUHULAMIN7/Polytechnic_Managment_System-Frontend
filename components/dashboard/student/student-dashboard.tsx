@@ -17,7 +17,6 @@ import type { AttendanceSummaryRow } from "@/lib/type/dashboard/student-attendan
 import {
   formatTimeRange,
   resolveClassInstructorName,
-  resolveClassSection,
   resolveClassSubjectTitle,
 } from "@/utils/dashboard/class-session";
 
@@ -272,9 +271,6 @@ export function StudentDashboard({
                         </h3>
                         <p className="text-sm text-(--text-dim)">
                           {resolveClassInstructorName(item.instructor)}
-                          {resolveClassSection(item.offeredSubject) !== "--"
-                            ? ` | ${resolveClassSection(item.offeredSubject)}`
-                            : ""}
                           {" | "}
                           {formatTimeRange(item.startTime, item.endTime)}
                         </p>

@@ -137,7 +137,7 @@ function buildInstructorOverview(params: {
     string,
     {
       label: string;
-      sectionCount: number;
+      offeringCount: number;
       registrationKeys: Set<string>;
       isCurrent: boolean;
     }
@@ -154,13 +154,13 @@ function buildInstructorOverview(params: {
 
     const existing = semesterGroups.get(semesterKey);
     if (existing) {
-      existing.sectionCount += 1;
+      existing.offeringCount += 1;
       existing.registrationKeys.add(registration.registrationKey);
       existing.isCurrent = existing.isCurrent || registration.isCurrent;
     } else {
       semesterGroups.set(semesterKey, {
         label: semesterLabel,
-        sectionCount: 1,
+        offeringCount: 1,
         registrationKeys: new Set([registration.registrationKey]),
         isCurrent: registration.isCurrent,
       });
@@ -175,10 +175,10 @@ function buildInstructorOverview(params: {
     )
     .map((group) => ({
       label: group.label,
-      sectionCount: group.sectionCount,
+      offeringCount: group.offeringCount,
       registrationCount: group.registrationKeys.size,
       isCurrent: group.isCurrent,
-      meta: `${pluralize(group.sectionCount, "section")} | ${pluralize(
+      meta: `${pluralize(group.offeringCount, "offered subject")} | ${pluralize(
         group.registrationKeys.size,
         "registration window",
       )}`,
@@ -188,7 +188,7 @@ function buildInstructorOverview(params: {
     assignedSubjects,
     assignedSemesters: semesterCoverage.length,
     assignedRegistrations: registrationKeys.size,
-    assignedSections: offeredSubjects.length,
+    assignedOfferings: offeredSubjects.length,
     scheduledClasses,
     completedClasses,
     liveClasses,
@@ -201,7 +201,6 @@ function buildInstructorOverview(params: {
         semesterLabel: resolveAcademicSemesterLabel(item.academicSemester),
         registrationMeta: registration.label,
         scheduleLabel: resolveScheduleLabel(item),
-        sectionLabel: item.section ? `Section ${item.section}` : "Section --",
         detailHref: `/dashboard/instructor/offered-subjects/${item._id}`,
       };
     }),
@@ -254,7 +253,7 @@ async function loadInstructorOverview(): Promise<InstructorDashboardOverview> {
       assignedSubjects: 0,
       assignedSemesters: 0,
       assignedRegistrations: 0,
-      assignedSections: 0,
+      assignedOfferings: 0,
       scheduledClasses: 0,
       completedClasses: 0,
       liveClasses: 0,

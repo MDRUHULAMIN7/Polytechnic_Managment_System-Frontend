@@ -271,19 +271,19 @@ export function ProfilePage({ profile, error }: ProfilePageProps) {
                         className="rounded-2xl border border-(--line) bg-(--surface) px-4 py-4 shadow-sm"
                       >
                         <div className="flex items-center gap-2 text-(--text-dim)">
-                           <CalendarDays size={18} className="mt-0.5  text-(--text-dim)" />
+                          <CalendarDays size={18} className="mt-0.5 text-(--text-dim)" />
                           <p className="text-xs font-semibold uppercase tracking-[0.16em]">
-                            <p className="text-sm font-medium">Record timeline</p>
+                            Record Timeline
                           </p>
                         </div>
-                        <p className="mt-3 text-sm font-medium leading-6">
+                        <div className="mt-3 space-y-1 text-sm text-(--text-dim)">
                          <p className="mt-1 text-sm text-(--text-dim)">
-                      Created {formatDate(profile.user?.createdAt ?? profile.createdAt)}
-                    </p>
-                    <p className="mt-1 text-sm text-(--text-dim)">
-                      Updated {formatDate(profile.user?.updatedAt ?? profile.updatedAt)}
-                    </p>
-                        </p>
+                            Created {formatDate(profile.user?.createdAt ?? profile.createdAt)}
+                          </p>
+                          <p className="mt-1 text-sm text-(--text-dim)">
+                            Updated {formatDate(profile.user?.updatedAt ?? profile.updatedAt)}
+                          </p>
+                        </div>
                       </div>
                   </div>
                      

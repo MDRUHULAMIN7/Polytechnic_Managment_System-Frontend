@@ -13,6 +13,9 @@ import type { SemesterRegistration } from "@/lib/type/dashboard/admin/semester-r
 import type { OfferedSubjectServerProps } from "@/lib/type/dashboard/admin/offered-subject/ui";
 import { OfferedSubjectPage } from "./offered-subject-page";
 
+const OFFERED_SUBJECT_TABLE_FIELDS =
+  "subject,instructor,academicSemester,maxCapacity";
+
 export async function OfferedSubjectPageServer({
   searchTerm,
   page,
@@ -43,7 +46,13 @@ export async function OfferedSubjectPageServer({
     academicInstructorsResult,
     registrationsResult,
   ] = await Promise.allSettled([
-    getOfferedSubjectsServer({ searchTerm, page, limit, sort }),
+    getOfferedSubjectsServer({
+      searchTerm,
+      page,
+      limit,
+      sort,
+      fields: OFFERED_SUBJECT_TABLE_FIELDS,
+    }),
     getSubjectsServer({ page: 1, limit: 50, fields: "title" }),
     getInstructorsServer({
       page: 1,

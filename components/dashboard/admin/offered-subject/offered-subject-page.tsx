@@ -2,7 +2,13 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import type { OfferedSubjectSortOption } from "@/lib/type/dashboard/admin/offered-subject";
+import {
+  getOfferedSubject,
+} from "@/lib/api/dashboard/admin/offered-subject";
+import type {
+  OfferedSubject,
+  OfferedSubjectSortOption,
+} from "@/lib/type/dashboard/admin/offered-subject";
 import type { OfferedSubjectPageProps } from "@/lib/type/dashboard/admin/offered-subject/ui";
 import { showToast } from "@/utils/common/toast";
 import { ConfirmDialog } from "@/components/common/confirm-dialog";
@@ -36,9 +42,10 @@ export function OfferedSubjectPage({
   const [isPending, startTransition] = useTransition();
   const [searchInput, setSearchInput] = useState(searchTerm);
   const [createOpen, setCreateOpen] = useState(false);
-  const [editItem, setEditItem] = useState<typeof items[number] | null>(null);
+  const [editItem, setEditItem] = useState<OfferedSubject | null>(null);
   const [deleteItem, setDeleteItem] = useState<typeof items[number] | null>(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
+  const [editBusy, setEditBusy] = useState(false);
 
   const debouncedSearch = useDebouncedValue(searchInput, 400);
 
@@ -84,6 +91,28 @@ export function OfferedSubjectPage({
       return;
     }
     setDeleteItem(item);
+  }
+
+  async function handleEdit(item: (typeof items)[number]) {
+    if (!item._id || editBusy) {
+      return;
+    }
+
+    setEditBusy(true);
+
+    try {
+      const details = await getOfferedSubject(item._id);
+      setEditItem(details);
+    } catch (err) {
+      showToast({
+        variant: "error",
+        title: "Unable to load offered subject",
+        description:
+          err instanceof Error ? err.message : "Please try again in a moment.",
+      });
+    } finally {
+      setEditBusy(false);
+    }
   }
 
   async function confirmDelete() {
@@ -174,8 +203,12 @@ export function OfferedSubjectPage({
         items={items}
         loading={isPending}
         error={error}
-        onEdit={(item) => setEditItem(item)}
+        onEdit={(item) => {
+          void handleEdit(item);
+        }}
         onDelete={handleDelete}
+        actionsLabel="Marks"
+        viewLabel="View Marks"
       />
 
       <OfferedSubjectPagination

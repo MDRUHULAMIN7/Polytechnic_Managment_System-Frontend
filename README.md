@@ -96,7 +96,7 @@ The following screenshots were captured from the live deployment of this fronten
 ### Instructors
 
 - Access an instructor dashboard focused on teaching load and current classroom activity.
-- Review assigned subjects, teaching sections, semesters, and class schedules.
+- Review assigned subjects, offered subjects, semesters, and class schedules.
 - Monitor today's teaching queue and scheduled or completed classes.
 - Open relevant curriculum, subject, semester enrollment, and registration views.
 - Use profile and notification tools for day-to-day account management.

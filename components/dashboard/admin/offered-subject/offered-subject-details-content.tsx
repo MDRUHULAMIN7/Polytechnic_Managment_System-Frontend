@@ -67,7 +67,7 @@ export function OfferedSubjectDetailsContent({
         </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2">
         <div className="rounded-xl border border-(--line) px-4 py-3">
           <p className="text-xs uppercase tracking-[0.18em] text-(--text-dim)">
             Department
@@ -80,12 +80,6 @@ export function OfferedSubjectDetailsContent({
           </p>
           <p className="mt-2 font-medium">{renderValue(details.academicInstructor)}</p>
         </div>
-        <div className="rounded-xl border border-(--line) px-4 py-3">
-          <p className="text-xs uppercase tracking-[0.18em] text-(--text-dim)">
-            Section
-          </p>
-          <p className="mt-2 font-medium">{details.section}</p>
-        </div>
       </div>
 
       <div className="rounded-xl border border-(--line) px-4 py-3">
@@ -95,7 +89,7 @@ export function OfferedSubjectDetailsContent({
               Marking Snapshot
             </p>
             <p className="mt-1 text-sm text-(--text-dim)">
-              Frozen from the subject at the time this section was offered.
+              Frozen from the subject at the time this subject was offered.
             </p>
           </div>
           <div className="rounded-lg border border-(--line) bg-(--surface-muted) px-3 py-2 text-sm">
