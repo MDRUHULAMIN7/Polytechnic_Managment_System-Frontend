@@ -100,11 +100,15 @@ const markSheet: OfferedSubjectMarkSheet = {
 };
 
 describe("OfferedSubjectMarkingPanel", () => {
-  it("asks the instructor to select a student before marking", async () => {
+  it("shows the report list and lets the instructor select a student before marking", async () => {
     render(<OfferedSubjectMarkingPanel initialData={markSheet} mode="manage" />);
     const user = userEvent.setup();
 
-    expect(screen.getByText("Select a student to enter or update marks.")).toBeInTheDocument();
+    expect(screen.getByText("Student Report")).toBeInTheDocument();
+    expect(screen.getAllByText("Ruhul A Amin").length).toBeGreaterThan(0);
+    expect(screen.getByText("2027010001")).toBeInTheDocument();
+    expect(screen.getByText("35 / 40")).toBeInTheDocument();
+    expect(screen.getByText("Select a student row to enter or update marks.")).toBeInTheDocument();
 
     await user.selectOptions(screen.getByLabelText("Student"), "student-1");
 
@@ -121,7 +125,7 @@ describe("OfferedSubjectMarkingPanel", () => {
 
     await user.selectOptions(screen.getByLabelText("Student"), "student-1");
 
-    expect(screen.getByText("Read-only admin view")).toBeInTheDocument();
+    expect(screen.getByText("Review mode")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Save Marks" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Release" })).not.toBeInTheDocument();
     expect(screen.getAllByText("35").length).toBeGreaterThan(0);

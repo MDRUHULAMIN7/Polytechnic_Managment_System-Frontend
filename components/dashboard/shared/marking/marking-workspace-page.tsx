@@ -23,6 +23,9 @@ type SemesterOption = {
   label: string;
 };
 
+const selectClassName =
+  "focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-(--surface) px-3 text-sm text-(--text) disabled:cursor-not-allowed disabled:opacity-60";
+
 function resolveSemesterLabel(value: OfferedSubject["semesterRegistration"]) {
   if (!value) {
     return "Semester registration";
@@ -215,8 +218,8 @@ export function MarkingWorkspacePage({
         title="Student Marking"
         description={
           isReadOnly
-            ? "Filter by semester, subject, and student to review marks before or after release. This view is read only."
-            : "Select one of your assigned semester registrations, choose a subject, then pick a student to enter marks."
+            ? "Filter by semester and subject to review student marks."
+            : "Select your semester and subject to open the marking workspace."
         }
       />
 
@@ -232,7 +235,7 @@ export function MarkingWorkspacePage({
               value={semesterRegistrationId}
               onChange={(event) => setSemesterRegistrationId(event.target.value)}
               disabled={semesterOptions.length === 0}
-              className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-transparent px-3 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+              className={selectClassName}
             >
               <option value="">Select semester registration</option>
               {semesterOptions.map((option) => (
@@ -251,7 +254,7 @@ export function MarkingWorkspacePage({
               value={offeredSubjectId}
               onChange={(event) => setOfferedSubjectId(event.target.value)}
               disabled={!semesterRegistrationId || filteredSubjects.length === 0}
-              className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-transparent px-3 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+              className={selectClassName}
             >
               <option value="">Select subject</option>
               {filteredSubjects.map((item) => (

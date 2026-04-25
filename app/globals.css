@@ -148,6 +148,17 @@ body {
   font-family: var(--font-body), var(--font-bengali), sans-serif;
 }
 
+select,
+select option,
+select optgroup {
+  background: var(--surface);
+  color: var(--text);
+}
+
+[data-theme="dark"] select {
+  color-scheme: dark;
+}
+
 .font-display {
   font-family: var(--font-heading), var(--font-bengali), serif;
 }

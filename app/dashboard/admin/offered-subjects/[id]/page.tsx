@@ -33,7 +33,7 @@ export default async function OfferedSubjectDetailsPage({ params }: PageProps) {
     <section className="space-y-6">
       <DashboardPageHeader
         title="Offered Subject Details"
-        description="Overview of offered subject details and read-only student marks."
+        description="Overview and student mark report."
       />
 
       <OfferedSubjectDetailsContent details={details} error={error} />

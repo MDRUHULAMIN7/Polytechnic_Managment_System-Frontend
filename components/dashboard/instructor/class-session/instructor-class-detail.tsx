@@ -83,6 +83,8 @@ export function InstructorClassDetail({ details }: InstructorClassDetailProps) {
   const [isPending, startTransition] = useTransition();
   const [topic, setTopic] = useState(details.classSession.topic ?? "");
   const [remarks, setRemarks] = useState(details.classSession.remarks ?? "");
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<AttendanceBadgeStatus | "ALL">("ALL");
   const [attendanceMap, setAttendanceMap] = useState<Record<string, AttendanceDraftStatus>>(
     () =>
       Object.fromEntries(
@@ -112,6 +114,23 @@ export function InstructorClassDetail({ details }: InstructorClassDetailProps) {
   const canComplete =
     details.classSession.status === "ONGOING" && attendanceCounts.pending === 0;
   const canSubmit = details.classSession.status === "ONGOING";
+
+  const filteredStudents = useMemo(() => {
+    const normalizedSearch = search.trim().toLowerCase();
+
+    return details.students.filter((student) => {
+      const currentStatus = resolveAttendanceStatus(attendanceMap[student.studentId]);
+      const matchesSearch =
+        !normalizedSearch ||
+        `${resolveName(student.name)} ${student.studentCode} ${student.email ?? ""} ${student.contactNo ?? ""}`
+          .toLowerCase()
+          .includes(normalizedSearch);
+      const matchesStatus =
+        statusFilter === "ALL" || currentStatus === statusFilter;
+
+      return matchesSearch && matchesStatus;
+    });
+  }, [attendanceMap, details.students, search, statusFilter]);
 
   function updateAttendance(studentId: string, status: AttendanceDraftStatus) {
     setAttendanceMap((prev) => ({
@@ -354,8 +373,39 @@ export function InstructorClassDetail({ details }: InstructorClassDetailProps) {
                   : "Attendance is unavailable for this class status."}
           </div>
 
+          <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
+            <label className="text-sm">
+              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-(--text-dim)">
+                Search
+              </span>
+              <input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Search by student ID, name, email, or contact"
+                className="focus-ring mt-2 h-10 w-full rounded-xl border border-(--line) bg-(--surface) px-3 text-sm text-(--text)"
+              />
+            </label>
+
+            <div className="flex flex-wrap items-end gap-2">
+              {(["ALL", ...attendanceOptions, "NOT_MARKED"] as const).map((status) => (
+                <button
+                  key={status}
+                  type="button"
+                  onClick={() => setStatusFilter(status)}
+                  className={`focus-ring inline-flex h-10 items-center justify-center rounded-xl border px-3 text-xs font-semibold transition ${
+                    statusFilter === status
+                      ? "border-(--accent) bg-(--accent) text-(--accent-ink)"
+                      : "border-(--line) bg-(--surface) text-(--text-dim) hover:bg-(--surface-muted)"
+                  }`}
+                >
+                  {status === "ALL" ? "All" : attendanceStatusMeta[status].label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="mt-4 space-y-3 md:hidden">
-            {details.students.map((student) => {
+            {filteredStudents.map((student) => {
               const currentStatus = attendanceMap[student.studentId];
 
               return (
@@ -411,7 +461,7 @@ export function InstructorClassDetail({ details }: InstructorClassDetailProps) {
                 </tr>
               </thead>
               <tbody>
-                {details.students.map((student) => {
+                {filteredStudents.map((student) => {
                   const currentStatus = attendanceMap[student.studentId];
 
                   return (
@@ -455,6 +505,12 @@ export function InstructorClassDetail({ details }: InstructorClassDetailProps) {
               </tbody>
             </table>
           </div>
+
+          {filteredStudents.length === 0 ? (
+            <div className="mt-4 rounded-xl border border-dashed border-(--line) bg-(--surface-muted) px-4 py-6 text-sm text-(--text-dim)">
+              No students matched the current attendance filters.
+            </div>
+          ) : null}
 
           <div className="mt-5 flex justify-end">
             <button

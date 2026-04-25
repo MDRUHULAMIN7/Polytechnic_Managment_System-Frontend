@@ -38,7 +38,7 @@ export default async function OfferedSubjectDetailsPage({ params }: PageProps) {
     <section className="space-y-6">
       <DashboardPageHeader
         title="Offered Subject Details"
-        description="View offered subject information, choose a student, and manage marks one student at a time."
+        description="View the report list and manage student marks."
         action={
           <Link
             href="/dashboard/instructor/offered-subjects"

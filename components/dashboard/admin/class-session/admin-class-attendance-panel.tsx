@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type {
   AttendanceRecord,
   ClassSessionStatistics,
+  AttendanceDisplayStatus,
 } from "@/lib/type/dashboard/class-session";
 import { getClassAttendance } from "@/lib/api/dashboard/student-attendance";
 import { DashboardErrorBanner } from "@/components/dashboard/shared/dashboard-error-banner";
@@ -14,7 +15,18 @@ import { showToast } from "@/utils/common/toast";
 type AdminClassAttendancePanelProps = {
   classSessionId: string;
   initialStatistics: ClassSessionStatistics;
+  initialAttendance: AttendanceRecord[];
 };
+
+type AttendanceFilter = "ALL" | AttendanceDisplayStatus;
+
+const filterOptions: AttendanceFilter[] = [
+  "ALL",
+  "PRESENT",
+  "ABSENT",
+  "LEAVE",
+  "NOT_MARKED",
+];
 
 function renderStudentName(row: AttendanceRecord) {
   if (typeof row.student === "string") {
@@ -32,11 +44,14 @@ function renderStudentName(row: AttendanceRecord) {
 export function AdminClassAttendancePanel({
   classSessionId,
   initialStatistics,
+  initialAttendance,
 }: AdminClassAttendancePanelProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [attendance, setAttendance] = useState<AttendanceRecord[] | null>(null);
+  const [attendance, setAttendance] = useState<AttendanceRecord[]>(initialAttendance);
   const [statistics, setStatistics] = useState(initialStatistics);
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState<AttendanceFilter>("ALL");
 
   async function loadAttendance() {
     setLoading(true);
@@ -60,7 +75,22 @@ export function AdminClassAttendancePanel({
     }
   }
 
-  const attendanceRows = attendance ?? [];
+  const attendanceRows = attendance;
+  const filteredAttendanceRows = useMemo(() => {
+    const normalizedSearch = search.trim().toLowerCase();
+
+    return attendanceRows.filter((row) => {
+      const student = renderStudentName(row);
+      const matchesSearch =
+        !normalizedSearch ||
+        `${student.name} ${student.id} ${student.email} ${student.contactNo}`
+          .toLowerCase()
+          .includes(normalizedSearch);
+      const matchesFilter = filter === "ALL" || row.status === filter;
+
+      return matchesSearch && matchesFilter;
+    });
+  }, [attendanceRows, filter, search]);
 
   return (
     <section className="mt-5 rounded-2xl border border-(--line) bg-(--surface) p-5">
@@ -68,7 +98,7 @@ export function AdminClassAttendancePanel({
         <div>
           <h2 className="text-lg font-semibold tracking-tight">Student Attendance List</h2>
           <p className="mt-1 text-sm text-(--text-dim)">
-            Student rows load on demand so large classes do not slow down the page.
+            Report-style attendance list for quick review from the admin side.
           </p>
         </div>
         <button
@@ -79,11 +109,7 @@ export function AdminClassAttendancePanel({
           disabled={loading}
           className="focus-ring inline-flex h-10 items-center justify-center rounded-xl border border-(--line) px-4 text-sm font-semibold text-(--text-dim) transition hover:bg-(--surface-muted) disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {loading
-            ? "Loading..."
-            : attendance
-              ? "Refresh Student List"
-              : "Load Student List"}
+          {loading ? "Refreshing..." : "Refresh List"}
         </button>
       </div>
 
@@ -135,11 +161,35 @@ export function AdminClassAttendancePanel({
         />
       </div>
 
-      {!attendance && !loading && !error ? (
-        <div className="mt-4 rounded-xl border border-dashed border-(--line) bg-(--surface-muted) px-4 py-6 text-sm text-(--text-dim)">
-          Load the student list when you need the detailed attendance rows.
+      <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
+        <label className="text-sm">
+          <span className="text-xs font-semibold uppercase tracking-[0.18em] text-(--text-dim)">
+            Search
+          </span>
+          <input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Search by ID, name, email, or contact"
+            className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-(--surface) px-3 text-sm text-(--text)"
+          />
+        </label>
+        <div className="flex flex-wrap items-end gap-2">
+          {filterOptions.map((item) => (
+            <button
+              key={item}
+              type="button"
+              onClick={() => setFilter(item)}
+              className={`focus-ring inline-flex h-10 items-center justify-center rounded-xl border px-3 text-xs font-semibold transition ${
+                filter === item
+                  ? "border-(--accent) bg-(--accent) text-(--accent-ink)"
+                  : "border-(--line) bg-(--surface) text-(--text-dim) hover:bg-(--surface-muted)"
+              }`}
+            >
+              {item === "ALL" ? "All" : item.replace("_", " ")}
+            </button>
+          ))}
         </div>
-      ) : null}
+      </div>
 
       {loading ? (
         <div className="mt-4 rounded-xl border border-(--line) bg-(--surface-muted) px-4 py-6 text-sm text-(--text-dim)">
@@ -147,16 +197,16 @@ export function AdminClassAttendancePanel({
         </div>
       ) : null}
 
-      {attendance && attendanceRows.length === 0 && !loading ? (
+      {attendanceRows.length === 0 && !loading ? (
         <div className="mt-4 rounded-xl border border-(--line) bg-(--surface-muted) px-4 py-6 text-sm text-(--text-dim)">
           No attendance rows found for this class yet.
         </div>
       ) : null}
 
-      {attendance && attendanceRows.length > 0 ? (
+      {attendanceRows.length > 0 ? (
         <>
           <div className="mt-5 space-y-3 md:hidden">
-            {attendanceRows.map((row) => {
+            {filteredAttendanceRows.map((row) => {
               const student = renderStudentName(row);
 
               return (
@@ -177,7 +227,7 @@ export function AdminClassAttendancePanel({
                       <p className="text-xs uppercase tracking-[0.18em] text-(--text-dim)">
                         Status
                       </p>
-                      <p className="mt-1 text-sm">{row.status}</p>
+                      <p className="mt-1 text-sm font-medium">{row.status}</p>
                     </div>
                     <div>
                       <p className="text-xs uppercase tracking-[0.18em] text-(--text-dim)">
@@ -204,7 +254,7 @@ export function AdminClassAttendancePanel({
                 </tr>
               </thead>
               <tbody>
-                {attendanceRows.map((row) => {
+                {filteredAttendanceRows.map((row) => {
                   const student = renderStudentName(row);
 
                   return (
@@ -226,6 +276,12 @@ export function AdminClassAttendancePanel({
               </tbody>
             </table>
           </div>
+
+          {filteredAttendanceRows.length === 0 ? (
+            <div className="mt-4 rounded-xl border border-dashed border-(--line) bg-(--surface-muted) px-4 py-6 text-sm text-(--text-dim)">
+              No attendance rows matched the current filters.
+            </div>
+          ) : null}
         </>
       ) : null}
     </section>

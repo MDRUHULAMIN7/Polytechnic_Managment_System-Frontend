@@ -73,6 +73,36 @@ function getDraftValue(
   return drafts[studentId]?.[entry.componentCode] ?? (entry.obtainedMarks ?? "").toString();
 }
 
+function getEntryDisplayValue(
+  row: OfferedSubjectMarkSheetStudent,
+  componentCode: string,
+) {
+  const entry = row.markEntries.find((item) => item.componentCode === componentCode);
+  return typeof entry?.obtainedMarks === "number" ? entry.obtainedMarks : "--";
+}
+
+function resultStatusClassName(status: string) {
+  if (status === "Final Published") {
+    return "border-emerald-500/30 bg-emerald-500/10 text-emerald-300";
+  }
+
+  if (status === "Final Ready") {
+    return "border-sky-500/30 bg-sky-500/10 text-sky-300";
+  }
+
+  if (status === "Partial Released") {
+    return "border-amber-500/30 bg-amber-500/10 text-amber-300";
+  }
+
+  return "border-(--line) bg-(--surface-muted) text-(--text-dim)";
+}
+
+const selectClassName =
+  "focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-(--surface) px-3 text-sm text-(--text)";
+
+const inputClassName =
+  "focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-(--surface) px-3 text-sm text-(--text)";
+
 function StudentMarkCard({
   row,
   selectedStudentId,
@@ -140,7 +170,7 @@ function StudentMarkCard({
                     onDraftChange(selectedStudentId, entry.componentCode, event.target.value)
                   }
                   inputMode="decimal"
-                  className="focus-ring mt-3 h-11 w-full rounded-xl border border-(--line) bg-transparent px-3 text-sm"
+                  className="focus-ring mt-3 h-11 w-full rounded-xl border border-(--line) bg-(--surface) px-3 text-sm text-(--text)"
                 />
               ) : (
                 <div className="mt-3 rounded-xl border border-(--line) bg-(--surface-muted) px-3 py-3 text-sm font-medium">
@@ -182,7 +212,7 @@ function StudentMarkCard({
           </button>
         ) : (
           <div className="rounded-xl border border-(--line) bg-(--surface) px-4 py-2 text-sm text-(--text-dim)">
-            Read-only admin view
+            Review mode
           </div>
         )}
       </div>
@@ -198,6 +228,7 @@ export function OfferedSubjectMarkingPanel({ initialData, mode }: Props) {
   const [savingStudentId, setSavingStudentId] = useState<string | null>(null);
   const [releasingCode, setReleasingCode] = useState<string | null>(null);
   const [selectedStudentId, setSelectedStudentId] = useState("");
+  const [studentSearch, setStudentSearch] = useState("");
 
   const canEditMarks = mode === "manage";
   const canReleaseComponents = mode === "manage";
@@ -236,12 +267,30 @@ export function OfferedSubjectMarkingPanel({ initialData, mode }: Props) {
     [data.enrolledSubjects, selectedStudentId],
   );
 
+  const visibleStudents = useMemo(() => {
+    const normalizedQuery = studentSearch.trim().toLowerCase();
+
+    if (!normalizedQuery) {
+      return data.enrolledSubjects;
+    }
+
+    return data.enrolledSubjects.filter((row) => {
+      const studentInfo = resolveStudentLabel(row.student);
+      const haystack = `${studentInfo.name} ${studentInfo.id} ${humanizeStatus(
+        row.resultStatus,
+      )}`.toLowerCase();
+
+      return haystack.includes(normalizedQuery);
+    });
+  }, [data.enrolledSubjects, studentSearch]);
+
   useEffect(() => {
     setData(initialData);
     setDrafts({});
     setSavingStudentId(null);
     setReleasingCode(null);
     setSelectedStudentId("");
+    setStudentSearch("");
   }, [initialData]);
 
   useEffect(() => {
@@ -353,12 +402,12 @@ export function OfferedSubjectMarkingPanel({ initialData, mode }: Props) {
           <h2 className="text-lg font-semibold">Marking Workspace</h2>
           <p className="text-sm text-(--text-dim)">
             {canEditMarks
-              ? "Select one student at a time, update marks, then release components when they are ready."
-              : "Review any student's marks before or after release in read-only mode."}
+              ? "Use the report list or dropdown to open a student and save marks."
+              : "Review the report list and inspect any student in detail."}
           </p>
         </div>
         <span className="inline-flex rounded-full border border-(--line) bg-(--surface-muted) px-3 py-1 text-xs font-semibold text-(--text-dim)">
-          {canEditMarks ? "Instructor Access" : "Read Only"}
+          {canEditMarks ? "Instructor" : "Admin"}
         </span>
       </div>
 
@@ -394,9 +443,7 @@ export function OfferedSubjectMarkingPanel({ initialData, mode }: Props) {
                       : "Release"}
                 </button>
               ) : (
-                <p className="mt-3 text-xs text-(--text-dim)">
-                  Admin can review component status only.
-                </p>
+                <p className="mt-3 text-xs text-(--text-dim)">Review only.</p>
               )}
             </div>
           );
@@ -406,10 +453,8 @@ export function OfferedSubjectMarkingPanel({ initialData, mode }: Props) {
       <section className="rounded-2xl border border-(--line) bg-(--surface-muted) p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-sm font-semibold">Student Selection</p>
-            <p className="text-sm text-(--text-dim)">
-              Choose a student before opening the marking form.
-            </p>
+            <p className="text-sm font-semibold">Student Report</p>
+            <p className="text-sm text-(--text-dim)">Scan rows, search quickly, then open a student.</p>
           </div>
           <div className="rounded-xl border border-(--line) bg-(--surface) px-4 py-2 text-sm">
             Enrolled Students:{" "}
@@ -423,23 +468,159 @@ export function OfferedSubjectMarkingPanel({ initialData, mode }: Props) {
           </div>
         ) : (
           <>
-            <label className="mt-4 block max-w-xl text-sm">
-              <span className="text-xs font-semibold uppercase tracking-[0.18em] text-(--text-dim)">
-                Student
-              </span>
-              <select
-                value={selectedStudentId}
-                onChange={(event) => setSelectedStudentId(event.target.value)}
-                className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-(--surface) px-3 text-sm"
-              >
-                <option value="">Select student</option>
-                {studentOptions.map((student) => (
-                  <option key={student.id} value={student.id}>
-                    {student.label} | {student.resultStatus}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <div className="mt-4 grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+              <label className="text-sm">
+                <span className="text-xs font-semibold uppercase tracking-[0.18em] text-(--text-dim)">
+                  Student
+                </span>
+                <select
+                  value={selectedStudentId}
+                  onChange={(event) => setSelectedStudentId(event.target.value)}
+                  className={selectClassName}
+                >
+                  <option value="">Select student</option>
+                  {studentOptions.map((student) => (
+                    <option key={student.id} value={student.id}>
+                      {student.label} | {student.resultStatus}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="text-sm">
+                <span className="text-xs font-semibold uppercase tracking-[0.18em] text-(--text-dim)">
+                  Search
+                </span>
+                <input
+                  value={studentSearch}
+                  onChange={(event) => setStudentSearch(event.target.value)}
+                  placeholder="Search by student ID or name"
+                  className={inputClassName}
+                />
+              </label>
+            </div>
+
+            <div className="mt-4 space-y-3 md:hidden">
+              {visibleStudents.map((row) => {
+                const studentInfo = resolveStudentLabel(row.student);
+                const studentId = resolveStudentObjectId(row.student);
+                const status = humanizeStatus(row.resultStatus);
+                const isSelected = studentId === selectedStudentId;
+
+                return (
+                  <button
+                    key={row._id}
+                    type="button"
+                    onClick={() => setSelectedStudentId(studentId)}
+                    className={`w-full rounded-xl border p-4 text-left transition ${
+                      isSelected
+                        ? "border-(--accent) bg-(--surface)"
+                        : "border-(--line) bg-(--surface)"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="font-semibold">{studentInfo.name}</p>
+                        <p className="text-xs text-(--text-dim)">{studentInfo.id}</p>
+                      </div>
+                      <span
+                        className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold ${resultStatusClassName(
+                          status,
+                        )}`}
+                      >
+                        {status}
+                      </span>
+                    </div>
+                    <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                      {sortedComponents.map((component) => (
+                        <div
+                          key={`${row._id}-${component.code}`}
+                          className="rounded-lg border border-(--line) bg-(--surface-muted) px-3 py-2"
+                        >
+                          <p className="text-[11px] uppercase tracking-[0.18em] text-(--text-dim)">
+                            {component.title}
+                          </p>
+                          <p className="mt-1 text-sm font-semibold">
+                            {getEntryDisplayValue(row, component.code)}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-3 flex items-center justify-between text-sm">
+                      <span className="text-(--text-dim)">
+                        Total {row.markSummary.total} / {row.markSummary.totalMarks}
+                      </span>
+                      <span className="font-medium">
+                        {canEditMarks ? "Open" : "Review"}
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="mt-4 hidden overflow-x-auto rounded-2xl border border-(--line) bg-(--surface) md:block">
+              <table className="min-w-full text-sm">
+                <thead>
+                  <tr className="border-b border-(--line) text-left text-[11px] uppercase tracking-[0.18em] text-(--text-dim)">
+                    <th className="px-4 py-3">Student</th>
+                    {sortedComponents.map((component) => (
+                      <th key={component.code} className="px-4 py-3 whitespace-nowrap">
+                        {component.title}
+                      </th>
+                    ))}
+                    <th className="px-4 py-3">Total</th>
+                    <th className="px-4 py-3">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {visibleStudents.map((row) => {
+                    const studentInfo = resolveStudentLabel(row.student);
+                    const studentId = resolveStudentObjectId(row.student);
+                    const status = humanizeStatus(row.resultStatus);
+                    const isSelected = studentId === selectedStudentId;
+
+                    return (
+                      <tr
+                        key={row._id}
+                        className={`cursor-pointer border-b border-(--line)/70 transition ${
+                          isSelected ? "bg-(--surface-muted)" : "hover:bg-(--surface-muted)/60"
+                        }`}
+                        onClick={() => setSelectedStudentId(studentId)}
+                      >
+                        <td className="px-4 py-3">
+                          <p className="font-medium">{studentInfo.name}</p>
+                          <p className="text-xs text-(--text-dim)">{studentInfo.id}</p>
+                        </td>
+                        {sortedComponents.map((component) => (
+                          <td key={`${row._id}-${component.code}`} className="px-4 py-3 font-medium">
+                            {getEntryDisplayValue(row, component.code)}
+                          </td>
+                        ))}
+                        <td className="px-4 py-3 font-semibold">
+                          {row.markSummary.total} / {row.markSummary.totalMarks}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span
+                            className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold ${resultStatusClassName(
+                              status,
+                            )}`}
+                          >
+                            {status}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {visibleStudents.length === 0 ? (
+              <div className="mt-4 rounded-xl border border-dashed border-(--line) bg-(--surface) px-4 py-6 text-sm text-(--text-dim)">
+                No students matched the current search.
+              </div>
+            ) : null}
 
             {selectedStudent ? (
               <div className="mt-4">
@@ -457,8 +638,8 @@ export function OfferedSubjectMarkingPanel({ initialData, mode }: Props) {
             ) : (
               <div className="mt-4 rounded-xl border border-dashed border-(--line) bg-(--surface) px-4 py-6 text-sm text-(--text-dim)">
                 {canEditMarks
-                  ? "Select a student to enter or update marks."
-                  : "Select a student to review detailed marks."}
+                  ? "Select a student row to enter or update marks."
+                  : "Select a student row to review detailed marks."}
               </div>
             )}
           </>

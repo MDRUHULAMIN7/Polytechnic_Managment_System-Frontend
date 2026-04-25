@@ -30,9 +30,7 @@ export default async function AdminClassDetailsPage({
 }: PageProps) {
   const resolvedParams = await Promise.resolve(params);
   const resolvedSearchParams = await Promise.resolve(searchParams);
-  const details = await getAdminClassDetailsServer(resolvedParams.id, {
-    includeAttendance: false,
-  });
+  const details = await getAdminClassDetailsServer(resolvedParams.id);
   const item = details.classSession;
   const backHref = buildClassSessionBackHref(
     "/dashboard/admin/classes",
@@ -118,6 +116,7 @@ export default async function AdminClassDetailsPage({
       <AdminClassAttendancePanel
         classSessionId={item._id}
         initialStatistics={details.statistics}
+        initialAttendance={details.attendance}
       />
     </section>
   );
