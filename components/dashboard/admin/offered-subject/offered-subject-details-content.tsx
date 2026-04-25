@@ -142,36 +142,20 @@ export function OfferedSubjectDetailsContent({
 
         <div className="mt-4 space-y-2">
           <p className="text-xs uppercase tracking-[0.18em] text-(--text-dim)">
-            Assessment Components
+            Release Visibility
           </p>
-          {details.assessmentComponentsSnapshot?.length ? (
-            details.assessmentComponentsSnapshot
-              .slice()
-              .sort((left, right) => left.order - right.order)
-              .map((component) => (
-                <div
-                  key={component.code}
-                  className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-(--line) bg-(--surface) px-3 py-2"
-                >
-                  <div>
-                    <p className="font-medium">{component.title}</p>
-                    <p className="text-xs text-(--text-dim)">
-                      {component.bucket} / {component.componentType}
-                    </p>
-                  </div>
-                  <div className="text-right text-sm">
-                    <p className="font-medium">{component.fullMarks}</p>
-                    <p className="text-xs text-(--text-dim)">
-                      {details.releasedComponentCodes?.includes(component.code)
-                        ? "Released"
-                        : "Not released"}
-                    </p>
-                  </div>
-                </div>
-              ))
-          ) : (
-            <p className="text-sm text-(--text-dim)">No component snapshot found.</p>
-          )}
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-(--line) bg-(--surface) px-3 py-2">
+            <div>
+              <p className="font-medium">Released Components</p>
+              <p className="text-xs text-(--text-dim)">
+                Students only see marks after the instructor releases a component.
+              </p>
+            </div>
+            <div className="text-right text-sm">
+              <p className="font-medium">{details.releasedComponentCodes?.length ?? 0}</p>
+              <p className="text-xs text-(--text-dim)">Currently released</p>
+            </div>
+          </div>
         </div>
       </div>
 

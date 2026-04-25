@@ -27,7 +27,33 @@ const markSheet: OfferedSubjectMarkSheet = {
     academicSemester: "academic-semester-1",
     academicInstructor: "academic-instructor-1",
     academicDepartment: "academic-department-1",
-    subject: "subject-1",
+    subject: {
+      _id: "subject-1",
+      title: "Innovation & Entrepreneurship",
+      prefix: "CST",
+      code: 25853,
+      credits: 2,
+      regulation: 2022,
+      subjectType: "THEORY",
+      markingScheme: {
+        theoryContinuous: 40,
+        theoryFinal: 60,
+        practicalContinuous: 0,
+        practicalFinal: 0,
+        totalMarks: 100,
+      },
+      assessmentComponents: [
+        {
+          title: "CT_1",
+          code: "TC-1",
+          bucket: "THEORY_CONTINUOUS",
+          componentType: "class_test",
+          fullMarks: 5,
+          order: 1,
+          isRequired: true,
+        },
+      ],
+    },
     instructor: "instructor-1",
     maxCapacity: 40,
     days: ["Sun"],
@@ -35,8 +61,8 @@ const markSheet: OfferedSubjectMarkSheet = {
     endTime: "09:00",
     assessmentComponentsSnapshot: [
       {
-        title: "Theory Continuous",
-        code: "TC-1",
+        title: "Theory Continuous Auto",
+        code: "AUTO-1",
         bucket: "THEORY_CONTINUOUS",
         componentType: "written_exam",
         fullMarks: 40,
@@ -61,13 +87,13 @@ const markSheet: OfferedSubjectMarkSheet = {
       markEntries: [
         {
           componentCode: "TC-1",
-          componentTitle: "Theory Continuous",
+          componentTitle: "CT_1",
           bucket: "THEORY_CONTINUOUS",
-          componentType: "written_exam",
-          fullMarks: 40,
+          componentType: "class_test",
+          fullMarks: 5,
           order: 1,
           isRequired: true,
-          obtainedMarks: 35,
+          obtainedMarks: 4,
           isReleased: false,
           releasedAt: null,
           remarks: "",
@@ -76,7 +102,7 @@ const markSheet: OfferedSubjectMarkSheet = {
         },
       ],
       markSummary: {
-        theoryContinuous: 35,
+        theoryContinuous: 4,
         theoryFinal: 0,
         practicalContinuous: 0,
         practicalFinal: 0,
@@ -84,10 +110,10 @@ const markSheet: OfferedSubjectMarkSheet = {
         releasedTheoryFinal: 0,
         releasedPracticalContinuous: 0,
         releasedPracticalFinal: 0,
-        total: 35,
+        total: 4,
         releasedTotal: 0,
-        totalMarks: 40,
-        percentage: 87.5,
+        totalMarks: 100,
+        percentage: 4,
         releasedPercentage: 0,
         releasedMarks: 0,
       },
@@ -106,15 +132,17 @@ describe("OfferedSubjectMarkingPanel", () => {
 
     expect(screen.getByText("Student Report")).toBeInTheDocument();
     expect(screen.getAllByText("Ruhul A Amin").length).toBeGreaterThan(0);
-    expect(screen.getByText("2027010001")).toBeInTheDocument();
-    expect(screen.getByText("35 / 40")).toBeInTheDocument();
+    expect(screen.getAllByText("2027010001").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("4 / 100").length).toBeGreaterThan(0);
     expect(screen.getByText("Select a student row to enter or update marks.")).toBeInTheDocument();
+    expect(screen.getAllByText("CT_1").length).toBeGreaterThan(0);
+    expect(screen.queryByText("Theory Continuous Auto")).not.toBeInTheDocument();
 
     await user.selectOptions(screen.getByLabelText("Student"), "student-1");
 
-    expect(screen.getByText("Ruhul A Amin")).toBeInTheDocument();
+    expect(screen.getAllByText("Ruhul A Amin").length).toBeGreaterThan(0);
     expect(screen.getByText("ID: 2027010001")).toBeInTheDocument();
-    expect(screen.getByDisplayValue("35")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("4")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Save Marks" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Release" })).toBeInTheDocument();
   });
@@ -128,6 +156,6 @@ describe("OfferedSubjectMarkingPanel", () => {
     expect(screen.getByText("Review mode")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Save Marks" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Release" })).not.toBeInTheDocument();
-    expect(screen.getAllByText("35").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("4").length).toBeGreaterThan(0);
   });
 });

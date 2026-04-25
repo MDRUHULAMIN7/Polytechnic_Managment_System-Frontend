@@ -104,4 +104,8 @@ export type ApiResponse<T> = {
   success?: boolean;
   message?: string;
   data?: T;
+  errorSources?: Array<{
+    path?: string | number;
+    message?: string;
+  }>;
 };

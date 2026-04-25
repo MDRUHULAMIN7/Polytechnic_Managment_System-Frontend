@@ -2,6 +2,7 @@ import type {
   ApiResponse,
   OfferedSubjectMarkSheet,
 } from "@/lib/type/dashboard/admin/enrolled-subject";
+import { getSafeApiErrorMessage } from "@/utils/common/api-error";
 import {
   API_BASE_URL,
   authHeadersFromCookie,
@@ -65,7 +66,7 @@ export async function updateOfferedSubjectStudentMarks(input: {
   );
 
   if (!response.ok || !payload.success) {
-    throw new Error(payload.message || "Failed to update marks.");
+    throw new Error(getSafeApiErrorMessage(payload, "Failed to update marks."));
   }
 
   return payload.data;
@@ -93,7 +94,7 @@ export async function releaseOfferedSubjectComponent(input: {
   );
 
   if (!response.ok || !payload.success) {
-    throw new Error(payload.message || "Failed to release component.");
+    throw new Error(getSafeApiErrorMessage(payload, "Failed to release component."));
   }
 
   return payload.data;
@@ -118,7 +119,7 @@ export async function publishOfferedSubjectFinalResult(input: { offeredSubject: 
   );
 
   if (!response.ok || !payload.success) {
-    throw new Error(payload.message || "Failed to publish final result.");
+    throw new Error(getSafeApiErrorMessage(payload, "Failed to publish final result."));
   }
 
   return payload.data;

@@ -26,6 +26,91 @@ type StudentOption = {
   resultStatus: string;
 };
 
+type MarkingComponentView = {
+  componentCode: string;
+  componentTitle: string;
+  bucket: string;
+  fullMarks: number;
+  order: number;
+};
+
+function buildEntryFromComponent(component: MarkingComponentView): EnrolledSubjectMarkEntry {
+  return {
+    componentCode: component.componentCode,
+    componentTitle: component.componentTitle,
+    bucket: component.bucket as EnrolledSubjectMarkEntry["bucket"],
+    componentType: "class_test",
+    fullMarks: component.fullMarks,
+    order: component.order,
+    isRequired: true,
+    obtainedMarks: null,
+    isReleased: false,
+    releasedAt: null,
+    remarks: "",
+    lastUpdatedAt: null,
+    lastUpdatedBy: null,
+  };
+}
+
+function resolveEntryForComponent(
+  row: OfferedSubjectMarkSheetStudent,
+  component: MarkingComponentView,
+) {
+  return (
+    row.markEntries.find((item) => item.componentCode === component.componentCode) ??
+    row.markEntries.find((item) => item.order === component.order) ??
+    buildEntryFromComponent(component)
+  );
+}
+
+function deriveSortedComponents(data: OfferedSubjectMarkSheet): MarkingComponentView[] {
+  const subjectComponents =
+    data.offeredSubject.subject &&
+    typeof data.offeredSubject.subject !== "string" &&
+    Array.isArray(data.offeredSubject.subject.assessmentComponents)
+      ? data.offeredSubject.subject.assessmentComponents
+      : [];
+
+  if (subjectComponents.length > 0) {
+    return subjectComponents
+      .map((component) => ({
+        componentCode: component.code,
+        componentTitle: component.title,
+        bucket: component.bucket,
+        fullMarks: component.fullMarks,
+        order: component.order,
+      }))
+      .sort((left, right) => left.order - right.order);
+  }
+
+  const snapshotComponents = data.offeredSubject.assessmentComponentsSnapshot ?? [];
+
+  if (snapshotComponents.length > 0) {
+    return snapshotComponents
+      .map((component) => ({
+        componentCode: component.code,
+        componentTitle: component.title,
+        bucket: component.bucket,
+        fullMarks: component.fullMarks,
+        order: component.order,
+      }))
+      .sort((left, right) => left.order - right.order);
+  }
+
+  const students = data.enrolledSubjects ?? [];
+  const componentMap = new Map<string, EnrolledSubjectMarkEntry>();
+
+  for (const row of students) {
+    for (const entry of row.markEntries ?? []) {
+      if (!componentMap.has(entry.componentCode)) {
+        componentMap.set(entry.componentCode, entry);
+      }
+    }
+  }
+
+  return Array.from(componentMap.values()).sort((left, right) => left.order - right.order);
+}
+
 function humanizeStatus(value?: string) {
   if (!value) {
     return "--";
@@ -75,9 +160,9 @@ function getDraftValue(
 
 function getEntryDisplayValue(
   row: OfferedSubjectMarkSheetStudent,
-  componentCode: string,
+  component: MarkingComponentView,
 ) {
-  const entry = row.markEntries.find((item) => item.componentCode === componentCode);
+  const entry = resolveEntryForComponent(row, component);
   return typeof entry?.obtainedMarks === "number" ? entry.obtainedMarks : "--";
 }
 
@@ -107,6 +192,7 @@ function StudentMarkCard({
   row,
   selectedStudentId,
   drafts,
+  components,
   canEditMarks,
   isPending,
   savingStudentId,
@@ -116,6 +202,7 @@ function StudentMarkCard({
   row: OfferedSubjectMarkSheetStudent;
   selectedStudentId: string;
   drafts: Record<string, Record<string, string>>;
+  components: MarkingComponentView[];
   canEditMarks: boolean;
   isPending: boolean;
   savingStudentId: string | null;
@@ -123,6 +210,7 @@ function StudentMarkCard({
   onSave: (studentId: string, entries: EnrolledSubjectMarkEntry[]) => void;
 }) {
   const studentInfo = resolveStudentLabel(row.student);
+  const resolvedEntries = components.map((component) => resolveEntryForComponent(row, component));
 
   return (
     <div className="rounded-2xl border border-(--line) bg-(--surface-muted) p-4">
@@ -143,19 +231,19 @@ function StudentMarkCard({
       </div>
 
       <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-        {row.markEntries
-          .slice()
-          .sort((left, right) => left.order - right.order)
-          .map((entry) => (
+        {components.map((component) => {
+          const entry = resolveEntryForComponent(row, component);
+
+          return (
             <div
-              key={entry.componentCode}
+              key={component.componentCode}
               className="rounded-xl border border-(--line) bg-(--surface) p-3"
             >
               <div className="flex items-center justify-between gap-2">
                 <div>
-                  <p className="font-medium">{entry.componentTitle}</p>
+                  <p className="font-medium">{component.componentTitle}</p>
                   <p className="text-xs text-(--text-dim)">
-                    {entry.bucket} / {entry.fullMarks}
+                    {component.bucket} / {component.fullMarks}
                   </p>
                 </div>
                 <span className="text-xs text-(--text-dim)">
@@ -178,7 +266,8 @@ function StudentMarkCard({
                 </div>
               )}
             </div>
-          ))}
+          );
+        })}
       </div>
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
@@ -205,7 +294,7 @@ function StudentMarkCard({
           <button
             type="button"
             disabled={savingStudentId === row._id || isPending}
-            onClick={() => onSave(selectedStudentId, row.markEntries)}
+            onClick={() => onSave(selectedStudentId, resolvedEntries)}
             className="focus-ring inline-flex h-10 items-center justify-center rounded-xl border border-(--line) px-4 text-sm font-semibold text-(--text-dim) transition hover:bg-(--surface) disabled:cursor-not-allowed disabled:opacity-60"
           >
             {savingStudentId === row._id ? "Saving..." : "Save Marks"}
@@ -234,11 +323,8 @@ export function OfferedSubjectMarkingPanel({ initialData, mode }: Props) {
   const canReleaseComponents = mode === "manage";
 
   const sortedComponents = useMemo(
-    () =>
-      (data.offeredSubject.assessmentComponentsSnapshot ?? [])
-        .slice()
-        .sort((left, right) => left.order - right.order),
-    [data.offeredSubject.assessmentComponentsSnapshot],
+    () => deriveSortedComponents(data),
+    [data],
   );
 
   const studentOptions = useMemo<StudentOption[]>(
@@ -329,17 +415,20 @@ export function OfferedSubjectMarkingPanel({ initialData, mode }: Props) {
     );
 
     try {
+      const visibleEntryCodes = new Set(sortedComponents.map((component) => component.componentCode));
       await updateOfferedSubjectStudentMarks({
         offeredSubject: data.offeredSubject._id,
         student: studentId,
-        entries: entries.map((entry) => {
-          const rawValue = getDraftValue(drafts, studentId, entry).trim();
-          return {
-            componentCode: entry.componentCode,
-            obtainedMarks: rawValue === "" ? null : Number(rawValue),
-            remarks: entry.remarks ?? "",
-          };
-        }),
+        entries: entries
+          .filter((entry) => visibleEntryCodes.has(entry.componentCode))
+          .map((entry) => {
+            const rawValue = getDraftValue(drafts, studentId, entry).trim();
+            return {
+              componentCode: entry.componentCode,
+              obtainedMarks: rawValue === "" ? null : Number(rawValue),
+              remarks: entry.remarks ?? "",
+            };
+          }),
       });
 
       await refreshMarkSheet();
@@ -414,14 +503,14 @@ export function OfferedSubjectMarkingPanel({ initialData, mode }: Props) {
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         {sortedComponents.map((component) => {
           const isReleased =
-            data.offeredSubject.releasedComponentCodes?.includes(component.code) ?? false;
+            data.offeredSubject.releasedComponentCodes?.includes(component.componentCode) ?? false;
 
           return (
             <div
-              key={component.code}
+              key={component.componentCode}
               className="rounded-xl border border-(--line) bg-(--surface-muted) p-3"
             >
-              <p className="font-semibold">{component.title}</p>
+              <p className="font-semibold">{component.componentTitle}</p>
               <p className="mt-1 text-xs text-(--text-dim)">
                 {component.bucket} / {component.fullMarks} marks
               </p>
@@ -432,13 +521,13 @@ export function OfferedSubjectMarkingPanel({ initialData, mode }: Props) {
               {canReleaseComponents ? (
                 <button
                   type="button"
-                  disabled={isReleased || releasingCode === component.code}
-                  onClick={() => handleReleaseComponent(component.code)}
+                  disabled={isReleased || releasingCode === component.componentCode}
+                  onClick={() => handleReleaseComponent(component.componentCode)}
                   className="focus-ring mt-3 inline-flex h-9 items-center justify-center rounded-lg border border-(--line) px-3 text-xs font-semibold text-(--text-dim) transition hover:bg-(--surface) disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {isReleased
                     ? "Released"
-                    : releasingCode === component.code
+                    : releasingCode === component.componentCode
                       ? "Releasing..."
                       : "Release"}
                 </button>
@@ -534,14 +623,14 @@ export function OfferedSubjectMarkingPanel({ initialData, mode }: Props) {
                     <div className="mt-3 grid gap-2 sm:grid-cols-2">
                       {sortedComponents.map((component) => (
                         <div
-                          key={`${row._id}-${component.code}`}
+                          key={`${row._id}-${component.componentCode}`}
                           className="rounded-lg border border-(--line) bg-(--surface-muted) px-3 py-2"
                         >
                           <p className="text-[11px] uppercase tracking-[0.18em] text-(--text-dim)">
-                            {component.title}
+                            {component.componentTitle}
                           </p>
                           <p className="mt-1 text-sm font-semibold">
-                            {getEntryDisplayValue(row, component.code)}
+                            {getEntryDisplayValue(row, component)}
                           </p>
                         </div>
                       ))}
@@ -565,8 +654,8 @@ export function OfferedSubjectMarkingPanel({ initialData, mode }: Props) {
                   <tr className="border-b border-(--line) text-left text-[11px] uppercase tracking-[0.18em] text-(--text-dim)">
                     <th className="px-4 py-3">Student</th>
                     {sortedComponents.map((component) => (
-                      <th key={component.code} className="px-4 py-3 whitespace-nowrap">
-                        {component.title}
+                      <th key={component.componentCode} className="px-4 py-3 whitespace-nowrap">
+                        {component.componentTitle}
                       </th>
                     ))}
                     <th className="px-4 py-3">Total</th>
@@ -593,8 +682,8 @@ export function OfferedSubjectMarkingPanel({ initialData, mode }: Props) {
                           <p className="text-xs text-(--text-dim)">{studentInfo.id}</p>
                         </td>
                         {sortedComponents.map((component) => (
-                          <td key={`${row._id}-${component.code}`} className="px-4 py-3 font-medium">
-                            {getEntryDisplayValue(row, component.code)}
+                          <td key={`${row._id}-${component.componentCode}`} className="px-4 py-3 font-medium">
+                            {getEntryDisplayValue(row, component)}
                           </td>
                         ))}
                         <td className="px-4 py-3 font-semibold">
@@ -628,6 +717,7 @@ export function OfferedSubjectMarkingPanel({ initialData, mode }: Props) {
                   row={selectedStudent}
                   selectedStudentId={selectedStudentId}
                   drafts={drafts}
+                  components={sortedComponents}
                   canEditMarks={canEditMarks}
                   isPending={isPending}
                   savingStudentId={savingStudentId}

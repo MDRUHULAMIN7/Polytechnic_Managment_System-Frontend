@@ -22,10 +22,13 @@ import {
   subjectTypeOptions,
 } from "@/utils/dashboard/admin/subject/constants";
 import {
-  calculateSubjectTotalFromBuckets,
   createEmptySubjectComponent,
   createInitialSubjectFormState,
   createSubjectFormState,
+  calculateSubjectTotalFromBuckets,
+  getComponentBucketTotals,
+  resolveDefaultComponentTypeForBucket,
+  resolveNextSubjectComponentBucket,
   toSafeSubjectNumber,
 } from "@/utils/dashboard/admin/subject/form";
 import { Modal } from "./modal";
@@ -130,7 +133,10 @@ export function SubjectFormModal({ open, subject, onClose, onSaved }: SubjectFor
   function addComponent() {
     setForm((prev) => ({
       ...prev,
-      assessmentComponents: [...prev.assessmentComponents, createEmptySubjectComponent()],
+      assessmentComponents: [
+        ...prev.assessmentComponents,
+        createEmptySubjectComponent(resolveNextSubjectComponentBucket(prev)),
+      ],
     }));
   }
 
@@ -167,18 +173,7 @@ export function SubjectFormModal({ open, subject, onClose, onSaved }: SubjectFor
   }, [subjects]);
 
   const componentBucketTotals = useMemo(() => {
-    return form.assessmentComponents.reduce<Record<AssessmentBucket, number>>(
-      (acc, component) => {
-        acc[component.bucket] += toSafeSubjectNumber(component.fullMarks);
-        return acc;
-      },
-      {
-        THEORY_CONTINUOUS: 0,
-        THEORY_FINAL: 0,
-        PRACTICAL_CONTINUOUS: 0,
-        PRACTICAL_FINAL: 0,
-      }
-    );
+    return getComponentBucketTotals(form) as Record<AssessmentBucket, number>;
   }, [form.assessmentComponents]);
 
   function renderSubjectLabel(item: Subject) {
@@ -542,13 +537,19 @@ export function SubjectFormModal({ open, subject, onClose, onSaved }: SubjectFor
                     <label className="text-xs font-semibold text-(--text-dim)">
                       Bucket
                     </label>
-                    <select
-                      value={component.bucket}
-                      onChange={(event) =>
-                        updateComponent(index, "bucket", event.target.value as AssessmentBucket)
-                      }
-                      className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-transparent px-3 text-sm"
-                    >
+	                    <select
+	                      value={component.bucket}
+	                      onChange={(event) => {
+	                        const nextBucket = event.target.value as AssessmentBucket;
+	                        updateComponent(index, "bucket", nextBucket);
+	                        updateComponent(
+	                          index,
+	                          "componentType",
+	                          resolveDefaultComponentTypeForBucket(nextBucket),
+	                        );
+	                      }}
+	                      className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-transparent px-3 text-sm"
+	                    >
                       {assessmentBucketOptions.map((option) => (
                         <option key={option.value} value={option.value} className="bg-(--surface)">
                           {option.label}
