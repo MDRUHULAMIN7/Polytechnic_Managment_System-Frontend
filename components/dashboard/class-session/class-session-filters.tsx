@@ -1,7 +1,9 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { getClassSessionFilterOptions } from "@/lib/api/dashboard/class-session";
 import type { ClassSessionFilterOption } from "@/lib/type/dashboard/class-session";
 import { updateListSearchParams } from "@/utils/dashboard/admin/search-params";
 
@@ -51,23 +53,51 @@ export function ClassSessionFilters({
   const [draft, setDraft] = useState(serverForm);
   const [draftKey, setDraftKey] = useState(serverFormKey);
   const form = draftKey === serverFormKey ? draft : serverForm;
-  const hasPendingSemesterChange =
-    form.semesterRegistration !== semesterRegistration;
-  const effectiveSubjectOptions = hasPendingSemesterChange ? [] : subjectOptions;
+  const hasPendingSemesterChange = form.semesterRegistration !== semesterRegistration;
+  const pendingSemesterRegistration = hasPendingSemesterChange
+    ? form.semesterRegistration
+    : "";
   const selectClassName =
     "focus-ring h-11 w-full min-w-0 rounded-xl border border-(--line) bg-(--surface) px-3 pr-10 text-sm text-(--text) disabled:cursor-not-allowed disabled:opacity-60";
   const inputClassName =
     "focus-ring h-11 w-full min-w-0 rounded-xl border border-(--line) bg-transparent px-3 text-sm text-(--text) disabled:cursor-not-allowed disabled:opacity-60";
 
+  const pendingSubjectOptionsQuery = useQuery({
+    queryKey: ["class-session-filter-options", pendingSemesterRegistration],
+    queryFn: () =>
+      getClassSessionFilterOptions({
+        semesterRegistration: pendingSemesterRegistration,
+      }),
+    enabled: Boolean(pendingSemesterRegistration),
+    staleTime: 30_000,
+  });
+
+  const isLoadingSubjects =
+    hasPendingSemesterChange && pendingSubjectOptionsQuery.isFetching;
+  const effectiveSubjectOptions = !form.semesterRegistration
+    ? []
+    : hasPendingSemesterChange
+      ? (pendingSubjectOptionsQuery.data?.subjects ?? [])
+      : subjectOptions;
+
   function updateField(
     key: "semesterRegistration" | "subject" | "status" | "startDate" | "endDate",
     value: string,
   ) {
+    const today = new Date(Date.now() - new Date().getTimezoneOffset() * 60_000)
+      .toISOString()
+      .slice(0, 10);
+
     setDraftKey(serverFormKey);
     setDraft({
       ...form,
       [key]: value,
-      ...(key === "semesterRegistration" ? { subject: "" } : {}),
+      ...(key === "semesterRegistration"
+        ? { subject: "", startDate: "", endDate: "" }
+        : {}),
+      ...(key === "subject" && value && !form.startDate && !form.endDate
+        ? { startDate: today, endDate: "" }
+        : {}),
     });
   }
 
@@ -108,11 +138,15 @@ export function ClassSessionFilters({
       <select
         value={form.subject}
         onChange={(event) => updateField("subject", event.target.value)}
-        disabled={!form.semesterRegistration || hasPendingSemesterChange}
+        disabled={!form.semesterRegistration || isLoadingSubjects}
         className={selectClassName}
       >
         <option value="">
-          {hasPendingSemesterChange ? "Apply semester to load subjects" : "All Subjects"}
+          {!form.semesterRegistration
+            ? "Select Semester First"
+            : isLoadingSubjects
+              ? "Loading subjects..."
+              : "All Subjects"}
         </option>
         {effectiveSubjectOptions.map((item) => (
           <option key={item.value} value={item.value}>
