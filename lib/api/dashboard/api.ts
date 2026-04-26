@@ -1,4 +1,7 @@
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+const SERVER_API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL?.trim() ?? "";
+
+export const API_BASE_URL =
+  typeof window === "undefined" ? SERVER_API_BASE_URL : "/api/proxy";
 export const ACCESS_TOKEN_COOKIE = "pms_access_token";
 
 export function ensureApiBaseUrl() {
@@ -16,30 +19,15 @@ export function authHeaders(token: string | null): HeadersInit {
 }
 
 export function readBrowserCookie(name: string): string | null {
-  if (typeof document === "undefined") {
-    return null;
-  }
-
-  const cookie = document.cookie
-    .split("; ")
-    .find((item) => item.startsWith(`${name}=`));
-
-  if (!cookie) {
-    return null;
-  }
-
-  return decodeURIComponent(cookie.split("=")[1] ?? "");
+  void name;
+  return null;
 }
 
 export function authHeadersFromCookie(
   name: string = ACCESS_TOKEN_COOKIE
 ): HeadersInit {
-  const token = readBrowserCookie(name);
-  if (!token) {
-    return {};
-  }
-
-  return { Authorization: `Bearer ${token}` };
+  void name;
+  return {};
 }
 
 export async function parseJsonResponse<T>(

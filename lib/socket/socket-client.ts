@@ -1,10 +1,6 @@
 "use client";
 
 import { io, type Socket } from "socket.io-client";
-import {
-  ACCESS_TOKEN_COOKIE,
-  readBrowserCookie,
-} from "@/lib/api/dashboard/api";
 import type { RealtimeConnectionAck, RealtimeNotification } from "@/lib/type/realtime";
 
 type RealtimeSocket = Socket<
@@ -35,6 +31,51 @@ export function resolveSocketBaseUrl() {
 
 class RealtimeSocketClient {
   private socket: RealtimeSocket | null = null;
+  private connectingPromise: Promise<void> | null = null;
+
+  private async fetchAccessToken() {
+    const response = await fetch("/api/auth/socket-token", {
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const payload = (await response.json()) as {
+      data?: {
+        accessToken?: string;
+      };
+    };
+
+    return payload.data?.accessToken ?? null;
+  }
+
+  private async ensureConnected() {
+    if (!this.socket || this.socket.connected) {
+      return;
+    }
+
+    if (this.connectingPromise) {
+      await this.connectingPromise;
+      return;
+    }
+
+    this.connectingPromise = (async () => {
+      const accessToken = await this.fetchAccessToken();
+      this.socket!.auth = accessToken ? { accessToken } : {};
+
+      if (!this.socket!.connected) {
+        this.socket!.connect();
+      }
+    })();
+
+    try {
+      await this.connectingPromise;
+    } finally {
+      this.connectingPromise = null;
+    }
+  }
 
   connect() {
     if (typeof window === "undefined") {
@@ -53,12 +94,7 @@ class RealtimeSocketClient {
       });
     }
 
-    const accessToken = readBrowserCookie(ACCESS_TOKEN_COOKIE);
-    this.socket.auth = accessToken ? { accessToken } : {};
-
-    if (!this.socket.connected) {
-      this.socket.connect();
-    }
+    void this.ensureConnected();
 
     return this.socket;
   }

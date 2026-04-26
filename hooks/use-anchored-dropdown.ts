@@ -117,7 +117,7 @@ export function useAnchoredDropdown({
       window.removeEventListener("resize", updatePosition);
       window.removeEventListener("scroll", updatePosition, true);
     };
-  }, [maxWidth, open]);
+  }, [maxWidth, mobileAlign, open]);
 
   const shouldUseMobilePosition =
     open &&

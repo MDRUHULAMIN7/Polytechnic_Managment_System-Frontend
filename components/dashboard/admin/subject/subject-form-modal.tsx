@@ -29,7 +29,6 @@ import {
   getComponentBucketTotals,
   resolveDefaultComponentTypeForBucket,
   resolveNextSubjectComponentBucket,
-  toSafeSubjectNumber,
 } from "@/utils/dashboard/admin/subject/form";
 import { Modal } from "./modal";
 
@@ -174,7 +173,7 @@ export function SubjectFormModal({ open, subject, onClose, onSaved }: SubjectFor
 
   const componentBucketTotals = useMemo(() => {
     return getComponentBucketTotals(form) as Record<AssessmentBucket, number>;
-  }, [form.assessmentComponents]);
+  }, [form]);
 
   function renderSubjectLabel(item: Subject) {
     const code = item.code ? `${item.prefix}${item.code}` : item.prefix;

@@ -52,7 +52,7 @@ export type HomeStat = {
 
 export const homeQuickLinks: HomeQuickLink[] = [
   { title: "Course Registration", subtitle: "Semester workflow", href: "/login", icon: LayoutDashboard },
-  { title: "Fee Payment", subtitle: "Secure student access", href: "/login", icon: CreditCard },
+  { title: "Fee Status", subtitle: "Enrollment finance tracking", href: "/login", icon: CreditCard },
   { title: "Academic Calendar", subtitle: "Dates and milestones", href: "/academic-calendar", icon: CalendarDays },
   { title: "Digital ID & Profile", subtitle: "Public and portal identity", href: "/login", icon: FileBadge2 },
 ];

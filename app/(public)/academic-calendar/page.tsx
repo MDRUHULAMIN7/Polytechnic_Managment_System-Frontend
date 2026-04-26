@@ -5,7 +5,7 @@ import type { AcademicDepartment } from "@/lib/type/dashboard/admin/academic-dep
 import type { AcademicSemester } from "@/lib/type/dashboard/admin/academic-semester";
 import { PublicAcademicCalendarPage } from "@/components/public/public-academic-calendar-page";
 import { PublicFooter } from "@/components/public/public-footer";
-import { PublicNavbar } from "@/components/public/public-navbar";
+import { PublicNavbarServer } from "@/components/public/public-navbar-server";
 
 export const metadata: Metadata = {
   title: "Academic Calendar",
@@ -55,7 +55,7 @@ export default async function AcademicCalendarPage() {
       <a href="#main-content" className="skip-link focus-ring">
         Skip to main content
       </a>
-      <PublicNavbar />
+      <PublicNavbarServer />
       <main id="main-content" className="min-h-screen bg-(--bg) text-(--text)">
         <PublicAcademicCalendarPage
           semesters={semesters}

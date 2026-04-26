@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { PublicAcademicInstructorDetailPage } from "@/components/public/public-academic-instructor-detail-page";
 import { PublicFooter } from "@/components/public/public-footer";
-import { PublicNavbar } from "@/components/public/public-navbar";
+import { PublicNavbarServer } from "@/components/public/public-navbar-server";
 import { getPublicInstructor } from "@/lib/api/public/instructor";
 import type { Instructor } from "@/lib/type/dashboard/admin/instructor";
 
@@ -40,7 +40,7 @@ export default async function AcademicInstructorDetailPage({
       <a href="#main-content" className="skip-link focus-ring">
         Skip to main content
       </a>
-      <PublicNavbar />
+      <PublicNavbarServer />
       <main id="main-content" className="min-h-screen bg-(--bg) text-(--text)">
         <PublicAcademicInstructorDetailPage
           instructor={instructor}

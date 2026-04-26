@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { LucideIcon } from "lucide-react";
@@ -98,20 +98,7 @@ const drawerItemVariants = {
   },
 };
 
-type DashboardRole = "admin" | "superAdmin" | "instructor" | "student";
-
-function parseRole(value: string | undefined): DashboardRole | undefined {
-  if (
-    value === "admin" ||
-    value === "superAdmin" ||
-    value === "instructor" ||
-    value === "student"
-  ) {
-    return value;
-  }
-
-  return undefined;
-}
+export type DashboardRole = "admin" | "superAdmin" | "instructor" | "student";
 
 function dashboardHref(role: DashboardRole | undefined) {
   if (role === "student") {
@@ -129,7 +116,11 @@ function dashboardHref(role: DashboardRole | undefined) {
   return "/dashboard";
 }
 
-export function PublicNavbar() {
+export function PublicNavbar({
+  initialRole,
+}: {
+  initialRole?: DashboardRole;
+}) {
   const pathname = usePathname();
   const reduceMotion = useReducedMotion();
   const scrollLockYRef = useRef(0);
@@ -137,18 +128,7 @@ export function PublicNavbar() {
     open: false,
     path: pathname,
   }));
-  const role = useMemo(() => {
-    if (typeof document === "undefined") {
-      return undefined;
-    }
-
-    const cookieValue = document.cookie
-      .split("; ")
-      .find((row) => row.startsWith("pms_role="))
-      ?.split("=")[1];
-
-    return parseRole(cookieValue);
-  }, []);
+  const role = initialRole;
   const isOpen = menuState.open && menuState.path === pathname;
   const closeMenu = useCallback(() => {
     setMenuState({ open: false, path: pathname });

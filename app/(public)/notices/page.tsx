@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { NoticeBoardServer } from "@/components/notice/notice-board-server";
 import { PublicFooter } from "@/components/public/public-footer";
-import { PublicNavbar } from "@/components/public/public-navbar";
+import { PublicNavbarServer } from "@/components/public/public-navbar-server";
 import type { NoticeCategory } from "@/lib/type/notice";
 import { PageProps } from "@/lib/type/dashboard/admin/type";
 import { parseNumberParam, readParam } from "@/utils/dashboard/admin/utils";
@@ -24,7 +24,7 @@ export default async function NoticesPage({ searchParams }: PageProps) {
       <a href="#main-content" className="skip-link focus-ring">
         Skip to main content
       </a>
-      <PublicNavbar />
+      <PublicNavbarServer />
       <main id="main-content" className="min-h-screen bg-(--bg) text-(--text)">
         <NoticeBoardServer category={category} page={page} limit={limit} />
       </main>

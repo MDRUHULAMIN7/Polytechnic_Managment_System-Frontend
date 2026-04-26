@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { NoticeDetailPage } from "@/components/notice/notice-detail-page";
 import { PublicFooter } from "@/components/public/public-footer";
-import { PublicNavbar } from "@/components/public/public-navbar";
+import { PublicNavbarServer } from "@/components/public/public-navbar-server";
 
 export const metadata: Metadata = {
   title: "Notice Details",
@@ -24,7 +24,7 @@ export default async function NoticeDetailsRoute({ params }: PageProps) {
       <a href="#main-content" className="skip-link focus-ring">
         Skip to main content
       </a>
-      <PublicNavbar />
+      <PublicNavbarServer />
       <main
         id="main-content"
         className="min-h-screen overflow-x-hidden bg-(--bg) text-(--text)"

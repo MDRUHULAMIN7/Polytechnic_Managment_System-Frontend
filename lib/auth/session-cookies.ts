@@ -6,6 +6,8 @@ export const SESSION_COOKIE_NAMES = [
   "refreshToken",
 ] as const;
 
+export const FORWARDED_SESSION_COOKIE_NAMES = SESSION_COOKIE_NAMES;
+
 type SessionCookieName = (typeof SESSION_COOKIE_NAMES)[number];
 
 type SessionCookies = {
@@ -69,7 +71,7 @@ export function writeSessionCookies(
     response.cookies.set({
       name: "pms_access_token",
       value: session.accessToken,
-      httpOnly: false,
+      httpOnly: true,
       sameSite: "lax",
       secure,
       path: "/",
@@ -80,7 +82,7 @@ export function writeSessionCookies(
     response.cookies.set({
       name: "pms_role",
       value: session.role,
-      httpOnly: false,
+      httpOnly: true,
       sameSite: "lax",
       secure,
       path: "/",
@@ -104,11 +106,22 @@ export function clearSessionCookies(response: NextResponse) {
     response.cookies.set({
       name,
       value: "",
-      httpOnly: name === "refreshToken",
+      httpOnly: true,
       sameSite: "lax",
       secure,
       path: "/",
       maxAge: 0,
     });
   }
+}
+
+export function buildBackendSessionCookieHeader(
+  readCookie: (name: SessionCookieName) => string | null | undefined,
+) {
+  return FORWARDED_SESSION_COOKIE_NAMES.map((name) => {
+    const value = readCookie(name);
+    return value ? `${name}=${encodeURIComponent(value)}` : null;
+  })
+    .filter((value): value is string => Boolean(value))
+    .join("; ");
 }
