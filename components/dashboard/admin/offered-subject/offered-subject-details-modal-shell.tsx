@@ -15,6 +15,7 @@ export function OfferedSubjectDetailsModalShell({
       title="Offered Subject Details"
       description="View offered subject information"
       onClose={() => router.back()}
+      maxWidth="max-w-4xl"
     >
       {children}
     </Modal>

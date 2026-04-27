@@ -12,7 +12,6 @@ import { getRooms } from "@/lib/api/dashboard/admin/room";
 import type {
   OfferedSubjectClassType,
   OfferedSubjectInput,
-  OfferedSubjectSchedulePlan,
   OfferedSubjectScheduleBlock,
   OfferedSubjectScheduleBlockInput,
   OfferedSubjectUpdateInput,
@@ -85,30 +84,6 @@ function resolveRoomId(room: OfferedSubjectScheduleBlock["room"]) {
 
 function resolveRoomLabel(room: Room) {
   return `${room.roomName} | Building ${room.buildingNumber} | Room ${room.roomNumber} | Cap ${room.capacity}`;
-}
-
-function mapPlanBlocksToEditable(
-  blocks: OfferedSubjectSchedulePlan["suggestedBlocks"],
-): OfferedSubjectEditableScheduleBlock[] {
-  return blocks.map((block) => ({
-    id: createBlockId(),
-    classType: block.classType,
-    day: block.day,
-    room: block.room,
-    startPeriod: String(block.startPeriod),
-    periodCount: String(block.periodCount),
-  }));
-}
-
-function formatSuggestedPlanBlock(
-  block: OfferedSubjectSchedulePlan["suggestedBlocks"][number],
-) {
-  return [
-    `${block.day} (${block.classType})`,
-    `${block.startTimeSnapshot}-${block.endTimeSnapshot}`,
-    `Periods ${block.periodNumbers.join(", ")}`,
-    block.roomLabel,
-  ].join(" | ");
 }
 
 function resolveSelectedPeriods(
@@ -426,7 +401,6 @@ export function OfferedSubjectFormModal({
     if (!open) {
       return;
     }
-
   }, [
     open,
     form.semesterRegistration,
@@ -825,6 +799,7 @@ export function OfferedSubjectFormModal({
             ? "Update instructor, capacity, and schedule blocks."
             : "Create a new offered subject using rooms and active periods."
         }
+        maxWidth="max-w-5xl"
       >
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="grid gap-4 sm:grid-cols-2">

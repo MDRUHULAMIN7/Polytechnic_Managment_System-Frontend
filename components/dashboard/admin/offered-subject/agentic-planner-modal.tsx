@@ -40,13 +40,25 @@ export function AgenticPlannerModal({
   const [planning, setPlanning] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // Selections: instructorId -> { subjectIds: string[], maxCapacity: number }
-  const [selections, setSelections] = useState<
-    Record<string, { subjectIds: string[]; maxCapacity: number }>
-  >({});
+  // Assignment Blocks: each block is one instructor + one subject
+  interface AssignmentBlock {
+    id: string;
+    instructorId: string;
+    subjectId: string;
+    maxCapacity: number;
+  }
+  const [blocks, setBlocks] = useState<AssignmentBlock[]>([
+    {
+      id: crypto.randomUUID(),
+      instructorId: "",
+      subjectId: "",
+      maxCapacity: 40,
+    },
+  ]);
 
   const [planResult, setPlanResult] =
     useState<BulkOfferedSubjectSchedulePlan | null>(null);
+  const [viewMode, setViewMode] = useState<"list" | "routine">("list");
 
   useEffect(() => {
     if (!open) return;
@@ -97,53 +109,50 @@ export function AgenticPlannerModal({
       .finally(() => setLoading(false));
   }, [open, academicDepartmentId, semesterRegistrationId]);
 
-  const toggleSubject = (instructorId: string, subjectId: string) => {
-    setSelections((prev) => {
-      const current = prev[instructorId] || { subjectIds: [], maxCapacity: 40 };
-      const isSelected = current.subjectIds.includes(subjectId);
-
-      const newSubjectIds = isSelected
-        ? current.subjectIds.filter((id) => id !== subjectId)
-        : [...current.subjectIds, subjectId];
-
-      return {
-        ...prev,
-        [instructorId]: { ...current, subjectIds: newSubjectIds },
-      };
-    });
+  const addBlock = () => {
+    setBlocks((prev) => [
+      ...prev,
+      {
+        id: crypto.randomUUID(),
+        instructorId: "",
+        subjectId: "",
+        maxCapacity: 40,
+      },
+    ]);
   };
 
-  const updateMaxCapacity = (instructorId: string, capacity: number) => {
-    setSelections((prev) => ({
-      ...prev,
-      [instructorId]: {
-        ...(prev[instructorId] || { subjectIds: [], maxCapacity: 40 }),
-        maxCapacity: capacity,
-      },
-    }));
+  const removeBlock = (id: string) => {
+    setBlocks((prev) =>
+      prev.length > 1 ? prev.filter((b) => b.id !== id) : prev,
+    );
+  };
+
+  const updateBlock = (id: string, updates: Partial<AssignmentBlock>) => {
+    setBlocks((prev) =>
+      prev.map((b) => (b.id === id ? { ...b, ...updates } : b)),
+    );
   };
 
   const handleCreatePlan = async () => {
-    const entries: BulkOfferedSubjectSchedulePlanEntry[] = [];
+    const validBlocks = blocks.filter((b) => b.instructorId && b.subjectId);
 
-    Object.entries(selections).forEach(([instructorId, data]) => {
-      data.subjectIds.forEach((subjectId) => {
-        entries.push({
-          subject: subjectId,
-          instructor: instructorId,
-          maxCapacity: data.maxCapacity,
-        });
-      });
-    });
-
-    if (entries.length === 0) {
+    if (validBlocks.length === 0) {
       showToast({
         variant: "error",
         title: "No selections",
-        description: "Please select at least one subject for an instructor.",
+        description:
+          "Please select both an instructor and a subject in at least one block.",
       });
       return;
     }
+
+    const entries: BulkOfferedSubjectSchedulePlanEntry[] = validBlocks.map(
+      (b) => ({
+        subject: b.subjectId,
+        instructor: b.instructorId,
+        maxCapacity: b.maxCapacity,
+      }),
+    );
 
     setPlanning(true);
     setPlanResult(null);
@@ -155,6 +164,7 @@ export function AgenticPlannerModal({
         entries,
       });
       setPlanResult(result);
+      setViewMode("routine"); // Switch to routine view by default when plan is generated
       showToast({
         variant: "success",
         title: "Plan Generated",
@@ -179,29 +189,17 @@ export function AgenticPlannerModal({
     try {
       let successCount = 0;
       for (const plan of planResult.plans) {
-        // Find selection data for this subject/instructor pair
-        let selectionData = null;
-        for (const [instId, data] of Object.entries(selections)) {
-          if (data.subjectIds.includes(plan.subjectId)) {
-            // Need to make sure it's the right instructor too if subjects are assigned to multiple (rare)
-            // But our UI assigns subject to one instructor at a time in the selection state.
-            selectionData = {
-              instructorId: instId,
-              maxCapacity: data.maxCapacity,
-            };
-            break;
-          }
-        }
-
-        if (!selectionData) continue;
+        // Find the block for this subject
+        const block = blocks.find((b) => b.subjectId === plan.subjectId);
+        if (!block) continue;
 
         const payload: OfferedSubjectInput = {
           semesterRegistration: semesterRegistrationId,
           academicInstructor: academicInstructorId,
           academicDepartment: academicDepartmentId,
           subject: plan.subjectId,
-          instructor: selectionData.instructorId,
-          maxCapacity: selectionData.maxCapacity,
+          instructor: block.instructorId,
+          maxCapacity: block.maxCapacity,
           scheduleBlocks: plan.suggestedBlocks.map((b) => ({
             classType: b.classType,
             day: b.day,
@@ -235,13 +233,127 @@ export function AgenticPlannerModal({
     }
   };
 
+  const RoutineView = ({ plan }: { plan: BulkOfferedSubjectSchedulePlan }) => {
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu"];
+
+    // Extract all unique time slots
+    const timeSlots = Array.from(
+      new Set(
+        plan.plans.flatMap((p) =>
+          p.suggestedBlocks.map(
+            (b) => `${b.startTimeSnapshot} - ${b.endTimeSnapshot}`,
+          ),
+        ),
+      ),
+    ).sort((a, b) => {
+      // Basic time string comparison (e.g. "08:00 AM" vs "09:00 AM")
+      // Since they are likely standard formats, string sort might work,
+      // but let's be safer and convert to 24h for sorting if needed.
+      const toMinutes = (s: string) => {
+        const [time, period] = s.split(" ");
+        const [hoursPart, minutesPart] = time.split(":").map(Number);
+        let hours = hoursPart;
+        const minutes = minutesPart;
+        if (period === "PM" && hours !== 12) hours += 12;
+        if (period === "AM" && hours === 12) hours = 0;
+        return hours * 60 + minutes;
+      };
+      return toMinutes(a) - toMinutes(b);
+    });
+
+    return (
+      <div className="mt-4 overflow-x-auto rounded-xl border border-(--line)">
+        <table className="w-full border-collapse text-left text-xs">
+          <thead>
+            <tr className="bg-(--surface-muted)">
+              <th className="border-b border-r border-(--line) p-3 font-bold uppercase tracking-wider text-(--text-dim) w-20">
+                Day
+              </th>
+              {timeSlots.map((slot) => (
+                <th
+                  key={slot}
+                  className="border-b border-r border-(--line) p-3 font-bold text-(--text) text-center min-w-35"
+                >
+                  {slot}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {days.map((day) => (
+              <tr key={day} className="border-b border-(--line) last:border-0">
+                <td className="border-r border-(--line) bg-(--surface-muted) p-3 font-bold uppercase text-(--text-dim)">
+                  {day}
+                </td>
+                {timeSlots.map((slot) => {
+                  const [start, end] = slot.split(" - ");
+                  const matches = plan.plans.flatMap((p) =>
+                    p.suggestedBlocks
+                      .filter(
+                        (b) =>
+                          b.day === day &&
+                          b.startTimeSnapshot === start &&
+                          b.endTimeSnapshot === end,
+                      )
+                      .map((b) => ({
+                        ...b,
+                        subjectTitle: p.planningMeta.subjectTitle,
+                      })),
+                  );
+
+                  return (
+                    <td
+                      key={slot}
+                      className="border-r border-(--line) p-2 last:border-r-0 align-top h-24"
+                    >
+                      <div className="flex flex-col gap-2">
+                        {matches.map((m, i) => (
+                          <div
+                            key={i}
+                            className={`rounded-lg border p-2 shadow-sm ${
+                              m.classType === "practical"
+                                ? "border-purple-500/20 bg-purple-500/5"
+                                : "border-(--accent)/20 bg-(--accent)/5"
+                            }`}
+                          >
+                            <p className="font-bold text-(--text) line-clamp-2">
+                              {m.subjectTitle}
+                            </p>
+                            <div className="mt-1 flex items-center justify-between gap-1 text-[9px] font-medium uppercase tracking-tighter">
+                              <span
+                                className={`rounded px-1 py-0.5 ${
+                                  m.classType === "practical"
+                                    ? "bg-purple-500/10 text-purple-600"
+                                    : "bg-(--accent)/10 text-(--accent)"
+                                }`}
+                              >
+                                {m.classType === "practical" ? "LAB" : "THEORY"}
+                              </span>
+                              <span className="text-(--text-dim)">
+                                {m.roomLabel}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
+
   return (
     <Modal
       open={open}
       onClose={onClose}
       title="Agentic AI Planner"
       description="Select instructors and assign subjects to generate an optimal schedule."
-      maxWidth="max-w-6xl"
+      maxWidth="max-w-7xl"
     >
       <div className="flex flex-col gap-6 p-1">
         {loading ? (
@@ -255,76 +367,119 @@ export function AgenticPlannerModal({
             {/* Selection Panel */}
             <div className="space-y-6">
               <div className="rounded-2xl border border-(--line) bg-(--surface) p-4">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-(--text-dim)">
-                  1. Assign Subjects to Instructors
-                </h3>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-(--text-dim)">
+                    1. Instructor & Subject Assignment
+                  </h3>
+                  <button
+                    onClick={addBlock}
+                    className="inline-flex h-8 items-center justify-center rounded-lg bg-(--accent)/10 px-3 text-xs font-bold text-(--accent) transition hover:bg-(--accent)/20"
+                  >
+                    + Add Block
+                  </button>
+                </div>
 
-                <div className="mt-4 space-y-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
-                  {instructors.map((instructor) => (
+                <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+                  {blocks.map((block, index) => (
                     <div
-                      key={instructor._id}
-                      className="rounded-xl border border-(--line) bg-(--surface-muted) p-4"
+                      key={block.id}
+                      className="group relative rounded-xl border border-(--line) bg-(--surface-muted) p-4 pt-6"
                     >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-bold text-(--text)">
-                            {resolveName(instructor.name)}
-                          </p>
-                          <p className="text-xs text-(--text-dim)">
-                            {instructor.designation}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <label className="text-[10px] font-bold uppercase text-(--text-dim)">
-                            Cap
-                          </label>
-                          <input
-                            type="number"
-                            value={
-                              selections[instructor._id]?.maxCapacity ?? 40
-                            }
-                            onChange={(e) =>
-                              updateMaxCapacity(
-                                instructor._id,
-                                parseInt(e.target.value) || 0,
-                              )
-                            }
-                            className="h-8 w-16 rounded-lg border border-(--line) bg-transparent px-2 text-sm focus:outline-none focus:ring-1 focus:ring-(--accent)"
+                      <button
+                        onClick={() => removeBlock(block.id)}
+                        className="absolute right-2 top-2 hidden h-6 w-6 items-center justify-center rounded-md bg-red-500/10 text-red-500 transition hover:bg-red-500 group-hover:flex hover:text-white"
+                        title="Remove block"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-3.5 w-3.5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2.5}
+                            d="M6 18L18 6M6 6l12 12"
                           />
+                        </svg>
+                      </button>
+
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-bold uppercase tracking-wider text-(--text-dim)">
+                            Instructor
+                          </label>
+                          <select
+                            value={block.instructorId}
+                            onChange={(e) =>
+                              updateBlock(block.id, {
+                                instructorId: e.target.value,
+                              })
+                            }
+                            className="h-10 w-full rounded-lg border border-(--line) bg-(--surface) px-3 text-sm focus:outline-none focus:ring-1 focus:ring-(--accent)"
+                          >
+                            <option value="">Select Instructor</option>
+                            {instructors.map((inst) => (
+                              <option key={inst._id} value={inst._id}>
+                                {resolveName(inst.name)}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-bold uppercase tracking-wider text-(--text-dim)">
+                            Subject
+                          </label>
+                          <select
+                            value={block.subjectId}
+                            onChange={(e) =>
+                              updateBlock(block.id, {
+                                subjectId: e.target.value,
+                              })
+                            }
+                            className="h-10 w-full rounded-lg border border-(--line) bg-(--surface) px-3 text-sm focus:outline-none focus:ring-1 focus:ring-(--accent)"
+                          >
+                            <option value="">Select Subject</option>
+                            {subjects.map((sub) => {
+                              const isSelectedElsewhere = blocks.some(
+                                (b) =>
+                                  b.id !== block.id && b.subjectId === sub._id,
+                              );
+                              if (isSelectedElsewhere) return null;
+                              return (
+                                <option key={sub._id} value={sub._id}>
+                                  {sub.title} ({sub.code})
+                                </option>
+                              );
+                            })}
+                          </select>
                         </div>
                       </div>
 
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {subjects.map((subject) => {
-                          const isSelected = selections[
-                            instructor._id
-                          ]?.subjectIds.includes(subject._id);
-                          const isAssignedElsewhere = Object.entries(
-                            selections,
-                          ).some(
-                            ([instId, data]) =>
-                              instId !== instructor._id &&
-                              data.subjectIds.includes(subject._id),
-                          );
-
-                          if (isAssignedElsewhere) return null;
-
-                          return (
-                            <button
-                              key={subject._id}
-                              onClick={() =>
-                                toggleSubject(instructor._id, subject._id)
-                              }
-                              className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
-                                isSelected
-                                  ? "bg-(--accent) text-(--accent-ink)"
-                                  : "bg-(--surface) border border-(--line) text-(--text-dim) hover:border-(--accent)/50"
-                              }`}
-                            >
-                              {subject.title}
-                            </button>
-                          );
-                        })}
+                      <div className="mt-4 flex items-center gap-3">
+                        <div className="flex-1 space-y-1.5">
+                          <label className="text-[10px] font-bold uppercase tracking-wider text-(--text-dim)">
+                            Max Capacity
+                          </label>
+                          <input
+                            type="number"
+                            value={block.maxCapacity}
+                            onChange={(e) =>
+                              updateBlock(block.id, {
+                                maxCapacity: parseInt(e.target.value) || 0,
+                              })
+                            }
+                            className="h-10 w-full rounded-lg border border-(--line) bg-(--surface) px-3 text-sm focus:outline-none focus:ring-1 focus:ring-(--accent)"
+                          />
+                        </div>
+                        <div className="mt-auto h-10 flex items-center px-3 bg-(--surface) border border-(--line) rounded-lg">
+                          <span className="text-[10px] font-bold uppercase text-(--text-dim)">
+                            Block #{index + 1}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -335,9 +490,7 @@ export function AgenticPlannerModal({
                 onClick={handleCreatePlan}
                 disabled={
                   planning ||
-                  Object.values(selections).every(
-                    (s) => s.subjectIds.length === 0,
-                  )
+                  blocks.every((b) => !b.instructorId || !b.subjectId)
                 }
                 className="w-full rounded-xl bg-(--accent) py-3 font-bold text-(--accent-ink) transition-all hover:opacity-90 disabled:opacity-50"
               >
@@ -347,9 +500,35 @@ export function AgenticPlannerModal({
 
             {/* Results Panel */}
             <div className="rounded-2xl border border-(--line) bg-(--surface) p-4">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-(--text-dim)">
-                2. AI Suggested Plans
-              </h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-sm font-bold uppercase tracking-wider text-(--text-dim)">
+                  2. AI Suggested Plans
+                </h3>
+                {planResult && (
+                  <div className="flex items-center rounded-lg bg-(--surface-muted) p-1 border border-(--line)">
+                    <button
+                      onClick={() => setViewMode("routine")}
+                      className={`rounded-md px-3 py-1 text-[10px] font-bold uppercase transition-all ${
+                        viewMode === "routine"
+                          ? "bg-(--accent) text-(--accent-ink) shadow-sm"
+                          : "text-(--text-dim) hover:text-(--text)"
+                      }`}
+                    >
+                      Routine
+                    </button>
+                    <button
+                      onClick={() => setViewMode("list")}
+                      className={`rounded-md px-3 py-1 text-[10px] font-bold uppercase transition-all ${
+                        viewMode === "list"
+                          ? "bg-(--accent) text-(--accent-ink) shadow-sm"
+                          : "text-(--text-dim) hover:text-(--text)"
+                      }`}
+                    >
+                      List
+                    </button>
+                  </div>
+                )}
+              </div>
 
               {!planResult ? (
                 <div className="flex h-full min-h-100 flex-col items-center justify-center text-center">
@@ -376,51 +555,59 @@ export function AgenticPlannerModal({
                 </div>
               ) : (
                 <div className="mt-4 flex flex-col h-full">
-                  <div className="flex-1 space-y-4 overflow-y-auto max-h-[60vh] pr-2 custom-scrollbar">
-                    {planResult.plans.map((plan) => (
-                      <div
-                        key={plan.subjectId}
-                        className="rounded-xl border border-(--accent)/20 bg-(--surface-muted) p-4"
-                      >
-                        <div className="flex items-center justify-between">
-                          <h4 className="font-bold text-(--accent)">
-                            {plan.planningMeta.subjectTitle}
-                          </h4>
-                          <span className="rounded-full bg-(--accent)/10 px-2 py-0.5 text-[10px] font-bold text-(--accent)">
-                            {plan.planningMeta.credits} Credits
-                          </span>
-                        </div>
-                        <p className="mt-1 text-xs font-medium text-(--text)">
-                          {plan.summary}
-                        </p>
-
-                        <div className="mt-3 space-y-2">
-                          {plan.suggestedBlocks.map((block, idx) => (
-                            <div
-                              key={idx}
-                              className="flex items-center gap-2 text-[10px] text-(--text-dim)"
-                            >
-                              <span className="rounded bg-(--surface) px-1.5 py-0.5 border border-(--line)">
-                                {block.day}
+                  <div className="flex-1 overflow-y-auto max-h-[60vh] pr-2 custom-scrollbar">
+                    {viewMode === "list" ? (
+                      <div className="space-y-4">
+                        {planResult.plans.map((plan) => (
+                          <div
+                            key={plan.subjectId}
+                            className="rounded-xl border border-(--accent)/20 bg-(--surface-muted) p-4"
+                          >
+                            <div className="flex items-center justify-between">
+                              <h4 className="font-bold text-(--accent)">
+                                {plan.planningMeta.subjectTitle}
+                              </h4>
+                              <span className="rounded-full bg-(--accent)/10 px-2 py-0.5 text-[10px] font-bold text-(--accent)">
+                                {plan.planningMeta.credits} Credits
                               </span>
-                              <span>
-                                {block.startTimeSnapshot} -{" "}
-                                {block.endTimeSnapshot}
-                              </span>
-                              <span className="italic">{block.roomLabel}</span>
                             </div>
-                          ))}
-                        </div>
-
-                        {plan.warnings.length > 0 && (
-                          <div className="mt-3 rounded-lg bg-yellow-500/10 p-2">
-                            <p className="text-[10px] text-yellow-600">
-                              ⚠️ {plan.warnings[0]}
+                            <p className="mt-1 text-xs font-medium text-(--text)">
+                              {plan.summary}
                             </p>
+
+                            <div className="mt-3 space-y-2">
+                              {plan.suggestedBlocks.map((block, idx) => (
+                                <div
+                                  key={idx}
+                                  className="flex items-center gap-2 text-[10px] text-(--text-dim)"
+                                >
+                                  <span className="rounded bg-(--surface) px-1.5 py-0.5 border border-(--line)">
+                                    {block.day}
+                                  </span>
+                                  <span>
+                                    {block.startTimeSnapshot} -{" "}
+                                    {block.endTimeSnapshot}
+                                  </span>
+                                  <span className="italic">
+                                    {block.roomLabel}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+
+                            {plan.warnings.length > 0 && (
+                              <div className="mt-3 rounded-lg bg-yellow-500/10 p-2">
+                                <p className="text-[10px] text-yellow-600">
+                                  ⚠️ {plan.warnings[0]}
+                                </p>
+                              </div>
+                            )}
                           </div>
-                        )}
+                        ))}
                       </div>
-                    ))}
+                    ) : (
+                      <RoutineView plan={planResult} />
+                    )}
                   </div>
 
                   <div className="mt-6 border-t border-(--line) pt-4">
