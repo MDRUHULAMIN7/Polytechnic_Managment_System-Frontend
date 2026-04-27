@@ -11,6 +11,7 @@ export function Modal({
   description,
   children,
   onClose,
+  maxWidth = "max-w-2xl",
 }: OfferedSubjectModalProps) {
   useEffect(() => {
     if (!open) {
@@ -59,14 +60,18 @@ export function Modal({
             exit={{ opacity: 0, y: 12 }}
           >
             <section
-              className="w-full max-w-4xl rounded-2xl border border-(--line) bg-(--surface) shadow-[0_24px_48px_rgba(15,23,42,0.2)]"
+              className={`w-full ${maxWidth} rounded-2xl border border-(--line) bg-(--surface) shadow-[0_24px_48px_rgba(15,23,42,0.2)]`}
               onClick={(event) => event.stopPropagation()}
             >
               <div className="flex items-start justify-between border-b border-(--line) px-6 py-4">
                 <div>
-                  <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
+                  <h2 className="text-lg font-semibold tracking-tight">
+                    {title}
+                  </h2>
                   {description ? (
-                    <p className="mt-1 text-sm text-(--text-dim)">{description}</p>
+                    <p className="mt-1 text-sm text-(--text-dim)">
+                      {description}
+                    </p>
                   ) : null}
                 </div>
                 <button

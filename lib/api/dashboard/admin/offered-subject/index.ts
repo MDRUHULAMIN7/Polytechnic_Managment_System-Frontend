@@ -5,7 +5,11 @@ import type {
   OfferedSubjectListParams,
   OfferedSubjectListPayload,
   OfferedSubjectMyListParams,
+  OfferedSubjectSchedulePlan,
+  OfferedSubjectSchedulePlanInput,
   OfferedSubjectUpdateInput,
+  BulkOfferedSubjectSchedulePlanInput,
+  BulkOfferedSubjectSchedulePlan,
 } from "@/lib/type/dashboard/admin/offered-subject";
 import { buildOfferedSubjectQuery } from "@/utils/dashboard/admin/offered-subject/query";
 import {
@@ -127,6 +131,60 @@ export async function createOfferedSubject(
       .filter((message): message is string => Boolean(message))
       .join(", ");
     throw new Error(errorMessage || payload.message || "Failed to create offered subject.");
+  }
+
+  return payload.data;
+}
+
+export async function planOfferedSubjectSchedule(
+  input: OfferedSubjectSchedulePlanInput,
+): Promise<OfferedSubjectSchedulePlan> {
+  ensureApiBaseUrl();
+
+  const response = await fetch(`${API_BASE_URL}/offered-subject/plan-schedule`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeadersFromCookie(),
+    },
+    credentials: "include",
+    body: JSON.stringify(input),
+  });
+
+  const payload = await parseJsonResponse<ApiResponse<OfferedSubjectSchedulePlan>>(
+    response,
+    "Failed to generate offered subject plan.",
+  );
+
+  if (!response.ok || !payload.success || !payload.data) {
+    throw new Error(payload.message || "Failed to generate offered subject plan.");
+  }
+
+  return payload.data;
+}
+
+export async function planBulkOfferedSubjectSchedule(
+  input: BulkOfferedSubjectSchedulePlanInput,
+): Promise<BulkOfferedSubjectSchedulePlan> {
+  ensureApiBaseUrl();
+
+  const response = await fetch(`${API_BASE_URL}/offered-subject/plan-bulk-schedule`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...authHeadersFromCookie(),
+    },
+    credentials: "include",
+    body: JSON.stringify(input),
+  });
+
+  const payload = await parseJsonResponse<ApiResponse<BulkOfferedSubjectSchedulePlan>>(
+    response,
+    "Failed to generate bulk offered subject plan.",
+  );
+
+  if (!response.ok || !payload.success || !payload.data) {
+    throw new Error(payload.message || "Failed to generate bulk offered subject plan.");
   }
 
   return payload.data;

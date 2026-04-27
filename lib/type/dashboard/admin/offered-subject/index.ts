@@ -6,6 +6,7 @@ import type { Room } from "@/lib/type/dashboard/admin/room";
 import type {
   AssessmentComponent,
   Subject,
+  SubjectType,
   SubjectMarkingScheme,
 } from "@/lib/type/dashboard/admin/subject";
 import type { SemesterRegistration } from "@/lib/type/dashboard/admin/semester-registration";
@@ -116,6 +117,56 @@ export type OfferedSubjectScheduleBlockInput = {
   room: string;
   startPeriod: number;
   periodCount: number;
+};
+
+export type OfferedSubjectSchedulePlanInput = {
+  semesterRegistration: string;
+  academicInstructor: string;
+  academicDepartment: string;
+  subject: string;
+  instructor: string;
+  maxCapacity: number;
+};
+
+export type OfferedSubjectSchedulePlanSuggestedBlock =
+  OfferedSubjectScheduleBlockInput & {
+    roomLabel: string;
+    periodNumbers: number[];
+    startTimeSnapshot: string;
+    endTimeSnapshot: string;
+  };
+
+export type OfferedSubjectSchedulePlan = {
+  summary: string;
+  reasoning: string[];
+  warnings: string[];
+  suggestedBlocks: OfferedSubjectSchedulePlanSuggestedBlock[];
+  planningMeta: {
+    subjectTitle: string;
+    subjectCode: number;
+    credits: number;
+    subjectType: SubjectType;
+    preferredWorkingDays: OfferedSubjectDay[];
+    totalExistingOfferedSubjects: number;
+  };
+};
+
+export type BulkOfferedSubjectSchedulePlanEntry = {
+  subject: string;
+  instructor: string;
+  maxCapacity: number;
+};
+
+export type BulkOfferedSubjectSchedulePlanInput = {
+  semesterRegistration: string;
+  academicInstructor: string;
+  academicDepartment: string;
+  entries: BulkOfferedSubjectSchedulePlanEntry[];
+};
+
+export type BulkOfferedSubjectSchedulePlan = {
+  plans: (OfferedSubjectSchedulePlan & { subjectId: string })[];
+  summary: string;
 };
 
 export type ApiResponse<T> = {

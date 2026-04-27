@@ -97,6 +97,7 @@ export type OfferedSubjectModalProps = {
   description?: string;
   children: ReactNode;
   onClose: () => void;
+  maxWidth?: string;
 };
 
 export type OfferedSubjectServerProps = {

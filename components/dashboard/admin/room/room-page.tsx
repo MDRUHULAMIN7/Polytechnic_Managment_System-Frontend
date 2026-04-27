@@ -62,7 +62,9 @@ function RoomFilters({
           </label>
           <select
             value={sort}
-            onChange={(event) => onSortChange(event.target.value as RoomSortOption)}
+            onChange={(event) =>
+              onSortChange(event.target.value as RoomSortOption)
+            }
             className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-(--surface) px-3 text-sm text-(--text)"
           >
             <option value="-createdAt">Newest first</option>
@@ -97,6 +99,7 @@ function RoomTable({
             <tr>
               <th className="px-5 py-4 font-semibold">Room</th>
               <th className="px-5 py-4 font-semibold">Location</th>
+              <th className="px-5 py-4 font-semibold">Type</th>
               <th className="px-5 py-4 font-semibold">Capacity</th>
               <th className="px-5 py-4 font-semibold">Floor</th>
               <th className="px-5 py-4 font-semibold">Status</th>
@@ -106,12 +109,18 @@ function RoomTable({
           <tbody>
             {loading
               ? Array.from({ length: 6 }).map((_, index) => (
-                  <tr key={`room-skeleton-${index}`} className="border-b border-(--line)">
+                  <tr
+                    key={`room-skeleton-${index}`}
+                    className="border-b border-(--line)"
+                  >
                     <td className="px-5 py-4">
                       <div className="h-4 w-36 animate-pulse rounded bg-(--surface-muted)" />
                     </td>
                     <td className="px-5 py-4">
                       <div className="h-4 w-32 animate-pulse rounded bg-(--surface-muted)" />
+                    </td>
+                    <td className="px-5 py-4">
+                      <div className="h-4 w-12 animate-pulse rounded bg-(--surface-muted)" />
                     </td>
                     <td className="px-5 py-4">
                       <div className="h-4 w-16 animate-pulse rounded bg-(--surface-muted)" />
@@ -131,7 +140,10 @@ function RoomTable({
 
             {!loading && items.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-5 py-8 text-center text-(--text-dim)">
+                <td
+                  colSpan={6}
+                  className="px-5 py-8 text-center text-(--text-dim)"
+                >
                   {error ? "Failed to load rooms." : "No rooms found."}
                 </td>
               </tr>
@@ -139,7 +151,10 @@ function RoomTable({
 
             {!loading &&
               items.map((item) => (
-                <tr key={item._id} className="border-b border-(--line) last:border-b-0">
+                <tr
+                  key={item._id}
+                  className="border-b border-(--line) last:border-b-0"
+                >
                   <td className="px-5 py-4">
                     <p className="font-medium">{item.roomName}</p>
                     <p className="mt-1 text-xs text-(--text-dim)">
@@ -149,7 +164,18 @@ function RoomTable({
                   <td className="px-5 py-4 text-(--text-dim)">
                     Building {item.buildingNumber}
                   </td>
-                  <td className="px-5 py-4 text-(--text-dim)">{item.capacity}</td>
+                  <td className="px-5 py-4">
+                    <span className="inline-flex rounded-lg bg-(--surface-muted) border border-(--line) px-2 py-0.5 text-[10px] font-bold uppercase text-(--text-dim)">
+                      {item.roomType === "practical"
+                        ? "Lab"
+                        : item.roomType === "theory"
+                          ? "Theory"
+                          : "Both"}
+                    </span>
+                  </td>
+                  <td className="px-5 py-4 text-(--text-dim)">
+                    {item.capacity}
+                  </td>
                   <td className="px-5 py-4 text-(--text-dim)">
                     {item.floor ?? "--"}
                   </td>
@@ -304,7 +330,7 @@ export function RoomPage({
       searchTerm: debouncedSearch.trim() ? debouncedSearch : null,
       page: 1,
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedSearch, searchTerm]);
 
   function handleSaved() {
@@ -375,7 +401,9 @@ export function RoomPage({
         limit={limit}
         meta={meta}
         onPageChange={(nextPage) => updateParams({ page: nextPage })}
-        onLimitChange={(nextLimit) => updateParams({ limit: nextLimit, page: 1 })}
+        onLimitChange={(nextLimit) =>
+          updateParams({ limit: nextLimit, page: 1 })
+        }
       />
 
       <RoomFormModal

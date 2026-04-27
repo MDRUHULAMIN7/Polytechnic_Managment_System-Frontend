@@ -42,6 +42,9 @@ export function RoomFormModal({
   const [roomNumber, setRoomNumber] = useState("");
   const [buildingNumber, setBuildingNumber] = useState("");
   const [capacity, setCapacity] = useState("");
+  const [roomType, setRoomType] = useState<"theory" | "practical" | "both">(
+    "theory",
+  );
   const [floor, setFloor] = useState("");
   const [isActive, setIsActive] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -55,6 +58,7 @@ export function RoomFormModal({
     setRoomNumber(room?.roomNumber ? String(room.roomNumber) : "");
     setBuildingNumber(room?.buildingNumber ? String(room.buildingNumber) : "");
     setCapacity(room?.capacity ? String(room.capacity) : "");
+    setRoomType(room?.roomType ?? "theory");
     setFloor(room?.floor ? String(room.floor) : "");
     setIsActive(room?.isActive ?? true);
   }, [open, room]);
@@ -72,6 +76,7 @@ export function RoomFormModal({
           "Building number",
         ) as number,
         capacity: toPositiveNumber(capacity, "Capacity") as number,
+        roomType,
         floor: toPositiveNumber(floor, "Floor", { allowBlank: true }),
         isActive,
       };
@@ -169,6 +174,31 @@ export function RoomFormModal({
               inputMode="numeric"
               className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-transparent px-3 text-sm"
             />
+          </div>
+
+          <div>
+            <label className="text-xs font-semibold uppercase tracking-[0.18em] text-(--text-dim)">
+              Room Type
+            </label>
+            <select
+              value={roomType}
+              onChange={(event) =>
+                setRoomType(
+                  event.target.value as "theory" | "practical" | "both",
+                )
+              }
+              className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-transparent px-3 text-sm"
+            >
+              <option value="theory" className="bg-(--surface)">
+                Theory
+              </option>
+              <option value="practical" className="bg-(--surface)">
+                Lab (Practical)
+              </option>
+              <option value="both" className="bg-(--surface)">
+                Both
+              </option>
+            </select>
           </div>
 
           <div>
