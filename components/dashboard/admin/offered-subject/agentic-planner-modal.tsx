@@ -236,111 +236,133 @@ export function AgenticPlannerModal({
   const RoutineView = ({ plan }: { plan: BulkOfferedSubjectSchedulePlan }) => {
     const days = ["Sun", "Mon", "Tue", "Wed", "Thu"];
 
-    // Extract all unique time slots
-    const timeSlots = Array.from(
-      new Set(
-        plan.plans.flatMap((p) =>
-          p.suggestedBlocks.map(
-            (b) => `${b.startTimeSnapshot} - ${b.endTimeSnapshot}`,
-          ),
+    // 1. Get all unique periods present in the plan
+    const allBlocks = plan.plans.flatMap((p) =>
+      p.suggestedBlocks.map((b) => ({
+        ...b,
+        subjectTitle: p.planningMeta.subjectTitle,
+      })),
+    );
+
+    const periodInfo = Array.from(
+      new Map(
+        allBlocks.flatMap((b) =>
+          b.periodNumbers.map((pNum, idx) => {
+            // For each period number, we might want to know its individual time if possible
+            // but since we only have the block's total start/end, we'll just track period numbers.
+            return [pNum, pNum];
+          }),
         ),
-      ),
-    ).sort((a, b) => {
-      // Basic time string comparison (e.g. "08:00 AM" vs "09:00 AM")
-      // Since they are likely standard formats, string sort might work,
-      // but let's be safer and convert to 24h for sorting if needed.
-      const toMinutes = (s: string) => {
-        const [time, period] = s.split(" ");
-        const [hoursPart, minutesPart] = time.split(":").map(Number);
-        let hours = hoursPart;
-        const minutes = minutesPart;
-        if (period === "PM" && hours !== 12) hours += 12;
-        if (period === "AM" && hours === 12) hours = 0;
-        return hours * 60 + minutes;
-      };
-      return toMinutes(a) - toMinutes(b);
-    });
+      ).values(),
+    ).sort((a, b) => a - b);
+
+    if (periodInfo.length === 0) return null;
+
+    const minPeriod = Math.min(...periodInfo);
+    const maxPeriod = Math.max(...periodInfo);
+    const totalPeriods = maxPeriod - minPeriod + 1;
+    const periods = Array.from(
+      { length: totalPeriods },
+      (_, i) => minPeriod + i,
+    );
 
     return (
-      <div className="mt-4 overflow-x-auto rounded-xl border border-(--line)">
-        <table className="w-full border-collapse text-left text-xs">
+      <div className="mt-4 overflow-x-auto rounded-xl border border-(--line) bg-(--surface)">
+        <table className="w-full border-collapse text-left text-xs table-fixed">
           <thead>
             <tr className="bg-(--surface-muted)">
-              <th className="border-b border-r border-(--line) p-3 font-bold uppercase tracking-wider text-(--text-dim) w-20">
-                Day
+              <th className="border-b border-r border-(--line) p-3 font-bold uppercase tracking-wider text-(--text-dim) w-24">
+                Day \ Period
               </th>
-              {timeSlots.map((slot) => (
+              {periods.map((p) => (
                 <th
-                  key={slot}
-                  className="border-b border-r border-(--line) p-3 font-bold text-(--text) text-center min-w-35"
+                  key={p}
+                  className="border-b border-r border-(--line) p-3 font-bold text-(--text) text-center"
                 >
-                  {slot}
+                  P{p}
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {days.map((day) => (
-              <tr key={day} className="border-b border-(--line) last:border-0">
-                <td className="border-r border-(--line) bg-(--surface-muted) p-3 font-bold uppercase text-(--text-dim)">
-                  {day}
-                </td>
-                {timeSlots.map((slot) => {
-                  const [start, end] = slot.split(" - ");
-                  const matches = plan.plans.flatMap((p) =>
-                    p.suggestedBlocks
-                      .filter(
-                        (b) =>
-                          b.day === day &&
-                          b.startTimeSnapshot === start &&
-                          b.endTimeSnapshot === end,
-                      )
-                      .map((b) => ({
-                        ...b,
-                        subjectTitle: p.planningMeta.subjectTitle,
-                      })),
-                  );
+            {days.map((day) => {
+              const dayBlocks = allBlocks.filter((b) => b.day === day);
+              const renderedPeriods = new Set<number>();
 
-                  return (
-                    <td
-                      key={slot}
-                      className="border-r border-(--line) p-2 last:border-r-0 align-top h-24"
-                    >
-                      <div className="flex flex-col gap-2">
-                        {matches.map((m, i) => (
+              return (
+                <tr
+                  key={day}
+                  className="border-b border-(--line) last:border-0"
+                >
+                  <td className="border-r border-(--line) bg-(--surface-muted) p-3 font-bold uppercase text-(--text-dim)">
+                    {day}
+                  </td>
+                  {periods.map((p) => {
+                    if (renderedPeriods.has(p)) return null;
+
+                    const block = dayBlocks.find((b) => b.startPeriod === p);
+
+                    if (block) {
+                      const colSpan = block.periodCount;
+                      // Mark all periods in this block as rendered
+                      block.periodNumbers.forEach((pn) =>
+                        renderedPeriods.add(pn),
+                      );
+
+                      return (
+                        <td
+                          key={p}
+                          colSpan={colSpan}
+                          className="border-r border-(--line) p-2 align-top h-28"
+                        >
                           <div
-                            key={i}
-                            className={`rounded-lg border p-2 shadow-sm ${
-                              m.classType === "practical"
-                                ? "border-purple-500/20 bg-purple-500/5"
-                                : "border-(--accent)/20 bg-(--accent)/5"
+                            className={`h-full flex flex-col justify-between rounded-lg border p-2 shadow-sm transition-all hover:shadow-md ${
+                              block.classType === "practical"
+                                ? "border-purple-500/30 bg-purple-500/5"
+                                : "border-(--accent)/30 bg-(--accent)/5"
                             }`}
                           >
-                            <p className="font-bold text-(--text) line-clamp-2">
-                              {m.subjectTitle}
-                            </p>
-                            <div className="mt-1 flex items-center justify-between gap-1 text-[9px] font-medium uppercase tracking-tighter">
+                            <div>
+                              <p className="font-bold text-(--text) line-clamp-2 leading-tight">
+                                {block.subjectTitle}
+                              </p>
+                              <p className="mt-1 text-[9px] text-(--text-dim) font-medium">
+                                {block.startTimeSnapshot} -{" "}
+                                {block.endTimeSnapshot}
+                              </p>
+                            </div>
+                            <div className="mt-2 flex items-center justify-between gap-1">
                               <span
-                                className={`rounded px-1 py-0.5 ${
-                                  m.classType === "practical"
+                                className={`rounded px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wider ${
+                                  block.classType === "practical"
                                     ? "bg-purple-500/10 text-purple-600"
                                     : "bg-(--accent)/10 text-(--accent)"
                                 }`}
                               >
-                                {m.classType === "practical" ? "LAB" : "THEORY"}
+                                {block.classType === "practical"
+                                  ? "LAB"
+                                  : "THEORY"}
                               </span>
-                              <span className="text-(--text-dim)">
-                                {m.roomLabel}
+                              <span className="text-[8px] font-bold text-(--text-dim) truncate max-w-20">
+                                {block.roomLabel.split("|")[2].trim()}
                               </span>
                             </div>
                           </div>
-                        ))}
-                      </div>
-                    </td>
-                  );
-                })}
-              </tr>
-            ))}
+                        </td>
+                      );
+                    } else {
+                      renderedPeriods.add(p);
+                      return (
+                        <td
+                          key={p}
+                          className="border-r border-(--line) p-2 h-28 bg-(--surface)/30"
+                        />
+                      );
+                    }
+                  })}
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
