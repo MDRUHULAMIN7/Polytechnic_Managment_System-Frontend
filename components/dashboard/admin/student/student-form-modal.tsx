@@ -464,7 +464,7 @@ export function StudentFormModal({
                 <option value="">Select semester</option>
                 {semesters.map((semester) => (
                   <option key={semester._id} value={semester._id}>
-                    {semester.name}
+                    {[semester.name, semester.year].filter(Boolean).join(" ")}
                   </option>
                 ))}
               </select>
