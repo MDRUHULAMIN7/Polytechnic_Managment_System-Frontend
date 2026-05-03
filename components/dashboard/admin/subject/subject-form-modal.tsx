@@ -96,7 +96,7 @@ export function SubjectFormModal({ open, subject, onClose, onSaved }: SubjectFor
 
     getSubjectsAction({
       page: 1,
-      limit: 1000,
+      limit: 50,
       fields: "title,prefix,code",
     })
       .then((payload) => {

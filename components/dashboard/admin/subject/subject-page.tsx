@@ -130,7 +130,7 @@ export function SubjectPage({
 
     try {
       const [instructorsPayload, assignedPayload] = await Promise.all([
-        getInstructorsAction({ page: 1, limit: 1000 }),
+        getInstructorsAction({ page: 1, limit: 50 }),
         getSubjectInstructorsAction(subject._id),
       ]);
       setAllInstructors(instructorsPayload.result ?? []);

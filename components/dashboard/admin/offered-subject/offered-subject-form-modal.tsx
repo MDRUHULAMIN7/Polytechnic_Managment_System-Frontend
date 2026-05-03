@@ -36,13 +36,14 @@ import {
   parseTimeToMinutes,
 } from "@/utils/dashboard/admin/offered-subject";
 import { showToast } from "@/utils/common/toast";
+import { generateMessageId } from "@/utils/common/generateId";
 import { Modal } from "./modal";
 import { useInstructorBusySlots } from "@/hooks/dashboard/admin/offered-subject/use-instructor-busy-slots";
 import { useOfferedSubjectOptions } from "@/hooks/dashboard/admin/offered-subject/use-offered-subject-options";
 import { AgenticPlannerModal } from "./agentic-planner-modal";
 
-function createBlockId() {
-  return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+function createBlockId(): string {
+  return generateMessageId("block");
 }
 
 function createEmptyScheduleBlock(): OfferedSubjectEditableScheduleBlock {
@@ -424,7 +425,7 @@ export function OfferedSubjectFormModal({
       getActivePeriodConfig(),
       getRooms({
         page: 1,
-        limit: 1000,
+        limit: 50,
         sort: "roomName",
         isActive: "true",
       }),
@@ -603,7 +604,7 @@ export function OfferedSubjectFormModal({
     setOfferedSummaryError(null);
     getOfferedSubjects({
       page: 1,
-      limit: 1000,
+      limit: 50,
       semesterRegistration: form.semesterRegistration,
       fields: "subject,days,startTime,endTime,scheduleBlocks",
     })

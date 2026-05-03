@@ -34,7 +34,7 @@ export async function SemesterRegistrationPageServer({
       status: status || undefined,
       shift: shift || undefined,
     }),
-    getAcademicSemestersServer({ page: 1, limit: 1000, sort: "name" }),
+    getAcademicSemestersServer({ page: 1, limit: 50, sort: "name" }),
   ]);
 
   if (registrationsResult.status === "fulfilled") {

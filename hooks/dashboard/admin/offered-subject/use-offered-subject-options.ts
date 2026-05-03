@@ -320,7 +320,7 @@ export function useOfferedSubjectOptions({
     let active = true;
     getOfferedSubjects({
       page: 1,
-      limit: 1000,
+      limit: 50,
       semesterRegistration: semesterRegistrationId,
       academicInstructor: academicInstructorId || undefined,
       academicDepartment: academicDepartmentId || undefined,

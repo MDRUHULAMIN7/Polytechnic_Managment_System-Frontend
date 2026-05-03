@@ -2,6 +2,7 @@
 
 import { revalidateTag } from "next/cache";
 import type { SubjectInput, SubjectSortOption } from "@/lib/type/dashboard/admin/subject";
+import { PAGINATION } from "@/lib/constants/routes";
 import {
   SUBJECTS_TAG,
   subjectInstructorTag,
@@ -72,7 +73,7 @@ export async function getInstructorsAction(params: {
 }) {
   return getInstructorsServer({
     page: params.page ?? 1,
-    limit: params.limit ?? 1000,
+    limit: params.limit ?? PAGINATION.DEFAULT_LIMIT,
   });
 }
 
@@ -85,7 +86,7 @@ export async function getSubjectsAction(params: {
 }) {
   return getSubjectsServer({
     page: params.page ?? 1,
-    limit: params.limit ?? 1000,
+    limit: params.limit ?? PAGINATION.DEFAULT_LIMIT,
     searchTerm: params.searchTerm,
     sort: params.sort,
     fields: params.fields,

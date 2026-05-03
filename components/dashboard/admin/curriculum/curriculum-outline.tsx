@@ -83,7 +83,7 @@ export function CurriculumOutline({
     try {
       const data = await getOfferedSubjects({
         page: 1,
-        limit: 1000,
+        limit: 50,
         sort: "-createdAt",
         semesterRegistration: semesterRegistrationId,
         academicDepartment: academicDepartmentId,

@@ -1,15 +1,12 @@
 import { ToastInput, ToastMessage } from "@/lib/type/toast/toast";
 import { AlertCircle, CheckCircle2, Info } from "lucide-react";
+import { generateSecureUUID } from "./generateId";
 
 const DEFAULT_DURATION_MS = 2800;
 const TOAST_EVENT_NAME = "pms:toast";
 
 function buildToastId(): string {
-  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
-    return crypto.randomUUID();
-  }
-
-  return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  return generateSecureUUID();
 }
 
 export function showToast(input: ToastInput) {

@@ -11,11 +11,8 @@ import type {
   PeriodConfigFormState,
 } from "@/lib/type/dashboard/admin/period-config/ui";
 import { showToast } from "@/utils/common/toast";
+import { generateMessageId } from "@/utils/common/generateId";
 import { Modal } from "./modal";
-
-function createRowId() {
-  return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-}
 
 function calculateDuration(startTime: string, endTime: string) {
   if (!startTime || !endTime) {
@@ -51,7 +48,7 @@ function createEmptyState(): PeriodConfigFormState {
     isActive: true,
     periods: [
       {
-        id: createRowId(),
+        id: generateMessageId("period"),
         periodNo: "1",
         title: "",
         startTime: "",
@@ -92,7 +89,7 @@ export function PeriodConfigFormModal({
       isActive: periodConfig.isActive ?? false,
       periods:
         periodConfig.periods?.map((period) => ({
-          id: createRowId(),
+          id: generateMessageId("period"),
           periodNo: String(period.periodNo ?? ""),
           title: period.title ?? "",
           startTime: period.startTime ?? "",
@@ -120,7 +117,7 @@ export function PeriodConfigFormModal({
       periods: [
         ...current.periods,
         {
-          id: createRowId(),
+          id: generateMessageId("period"),
           periodNo: String(current.periods.length + 1),
           title: "",
           startTime: "",

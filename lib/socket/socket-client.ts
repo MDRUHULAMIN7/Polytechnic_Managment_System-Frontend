@@ -33,7 +33,7 @@ class RealtimeSocketClient {
   private socket: RealtimeSocket | null = null;
   private connectingPromise: Promise<void> | null = null;
 
-  private async fetchAccessToken() {
+  private async fetchSocketToken() {
     const response = await fetch("/api/auth/socket-token", {
       cache: "no-store",
     });
@@ -44,11 +44,11 @@ class RealtimeSocketClient {
 
     const payload = (await response.json()) as {
       data?: {
-        accessToken?: string;
+        socketToken?: string;
       };
     };
 
-    return payload.data?.accessToken ?? null;
+    return payload.data?.socketToken ?? null;
   }
 
   private async ensureConnected() {
@@ -62,8 +62,8 @@ class RealtimeSocketClient {
     }
 
     this.connectingPromise = (async () => {
-      const accessToken = await this.fetchAccessToken();
-      this.socket!.auth = accessToken ? { accessToken } : {};
+      const socketToken = await this.fetchSocketToken();
+      this.socket!.auth = socketToken ? { token: socketToken } : {};
 
       if (!this.socket!.connected) {
         this.socket!.connect();

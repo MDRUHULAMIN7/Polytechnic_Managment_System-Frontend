@@ -9,6 +9,7 @@ import {
   NOTICE_STATUSES,
 } from "@/lib/type/notice";
 import { showToast } from "@/utils/common/toast";
+import { generateSecureUUID } from "@/utils/common/generateId";
 import { NoticeModal } from "./notice-modal";
 
 type AttachmentDraft = NoticeAttachment & { key: string };
@@ -29,10 +30,7 @@ function toDateTimeLocal(value?: string) {
 
 function createAttachmentDraft(): AttachmentDraft {
   return {
-    key:
-      typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
-        ? crypto.randomUUID()
-        : `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`,
+    key: generateSecureUUID(),
     name: "",
     url: "",
     fileType: "",

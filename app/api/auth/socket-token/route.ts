@@ -13,60 +13,52 @@ function getBackendApiBaseUrl() {
 
 export async function GET() {
   const cookieStore = await cookies();
-  const refreshToken = cookieStore.get("refreshToken")?.value ?? null;
-  const accessToken = cookieStore.get("pms_access_token")?.value ?? null;
   const apiBaseUrl = getBackendApiBaseUrl();
 
-  if (refreshToken && apiBaseUrl) {
-    try {
-      const backendResponse = await fetch(`${apiBaseUrl}/auth/refresh-token`, {
-        method: "POST",
-        headers: {
-          cookie: buildBackendSessionCookieHeader((name) =>
-            cookieStore.get(name)?.value ?? null,
-          ),
-        },
-        cache: "no-store",
-      });
-
-      const session = readBackendSessionCookies(backendResponse.headers);
-      if (backendResponse.ok && session.accessToken) {
-        const response = NextResponse.json({
-          success: true,
-          data: { accessToken: session.accessToken },
-        });
-        writeSessionCookies(response, session);
-        return response;
-      }
-
-      if (backendResponse.status === 401) {
-        const response = NextResponse.json(
-          {
-            success: false,
-            message: "Authentication expired.",
-          },
-          { status: 401 },
-        );
-        clearSessionCookies(response);
-        return response;
-      }
-    } catch {
-      // Fall back to the current access token when refresh is temporarily unavailable.
-    }
+  if (!apiBaseUrl) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Missing NEXT_PUBLIC_API_BASE_URL in environment.",
+      },
+      { status: 500 },
+    );
   }
 
-  if (accessToken) {
-    return NextResponse.json({
-      success: true,
-      data: { accessToken },
+  try {
+    const backendResponse = await fetch(`${apiBaseUrl}/auth/socket-token`, {
+      method: "GET",
+      headers: {
+        cookie: buildBackendSessionCookieHeader((name) =>
+          cookieStore.get(name)?.value ?? null,
+        ),
+      },
+      cache: "no-store",
     });
-  }
 
-  return NextResponse.json(
-    {
-      success: false,
-      message: "Authentication required.",
-    },
-    { status: 401 },
-  );
+    const payload = (await backendResponse.json()) as {
+      success?: boolean;
+      message?: string;
+      data?: {
+        socketToken?: string;
+      };
+    };
+    const response = NextResponse.json(payload, { status: backendResponse.status });
+
+    writeSessionCookies(response, readBackendSessionCookies(backendResponse.headers));
+
+    if (backendResponse.status === 401) {
+      clearSessionCookies(response);
+    }
+
+    return response;
+  } catch {
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Unable to issue a realtime session token right now.",
+      },
+      { status: 503 },
+    );
+  }
 }

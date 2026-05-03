@@ -10,6 +10,7 @@ import {
   X
 } from "lucide-react";
 import { askPublicChatbot } from "@/lib/api/chatbot";
+import { generateMessageId } from "@/utils/common/generateId";
 import type { ChatbotConversationMessage } from "@/lib/type/chatbot";
 
 type ChatMessage = {
@@ -34,10 +35,6 @@ const initialMessage: ChatMessage = {
     "Department, semester, registration, ba instructor niye prosno korun. Follow-up prosno o korte parben.",
   suggestions: starterPrompts
 };
-
-function createMessageId(prefix: string) {
-  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-}
 
 function AssistantText({
   text,
@@ -186,7 +183,7 @@ export function PublicChatbot() {
     }
 
     const userMessage: ChatMessage = {
-      id: createMessageId("user"),
+      id: generateMessageId("user"),
       role: "user",
       text: trimmedQuestion
     };
@@ -213,7 +210,7 @@ export function PublicChatbot() {
       setMessages((current) => [
         ...current,
         {
-          id: createMessageId("assistant"),
+          id: generateMessageId("assistant"),
           role: "assistant",
           text: reply.answer,
           suggestions: reply.suggestions,
@@ -230,7 +227,7 @@ export function PublicChatbot() {
       setMessages((current) => [
         ...current,
         {
-          id: createMessageId("assistant-error"),
+          id: generateMessageId("assistant-error"),
           role: "assistant",
           text: "Ei muhurte answer ana jacche na. Ektu pore abar try korun.",
           suggestions: starterPrompts,

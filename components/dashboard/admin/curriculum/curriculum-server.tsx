@@ -41,10 +41,10 @@ export async function CurriculumPageServer({
   ] =
     await Promise.allSettled([
       getCurriculumsServer({ searchTerm, page, limit, sort }),
-      getAcademicDepartmentsServer({ page: 1, limit: 1000, sort: "name" }),
-      getSemesterRegistrationsServer({ page: 1, limit: 1000, sort: "-createdAt" }),
-      getSubjectsServer({ page: 1, limit: 1000 }),
-      getOfferedSubjectsServer({ page: 1, limit: 1000, sort: "-createdAt" }),
+      getAcademicDepartmentsServer({ page: 1, limit: 50, sort: "name" }),
+      getSemesterRegistrationsServer({ page: 1, limit: 50, sort: "-createdAt" }),
+      getSubjectsServer({ page: 1, limit: 50 }),
+      getOfferedSubjectsServer({ page: 1, limit: 50, sort: "-createdAt" }),
     ]);
 
   if (curriculumsResult.status === "fulfilled") {

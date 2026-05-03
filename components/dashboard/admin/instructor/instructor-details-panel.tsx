@@ -66,7 +66,7 @@ export function InstructorDetailsPanel({
         getInstructorAssignedSubjects(instructorId),
         getOfferedSubjects({
           page: 1,
-          limit: 1000,
+          limit: 50,
           instructor: instructorId,
           sort: "-createdAt",
         }),
@@ -148,7 +148,7 @@ export function InstructorDetailsPanel({
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="rounded-xl border border-(--line) px-4 py-3">
           <p className="text-xs uppercase tracking-[0.18em] text-(--text-dim)">Email</p>
-          <p className="mt-2 font-medium break-words">{summary.email ?? "--"}</p>
+          <p className="mt-2 font-medium wrap-break-word">{summary.email ?? "--"}</p>
         </div>
         <div className="rounded-xl border border-(--line) px-4 py-3">
           <p className="text-xs uppercase tracking-[0.18em] text-(--text-dim)">
