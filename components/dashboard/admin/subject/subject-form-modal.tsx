@@ -76,7 +76,7 @@ export function SubjectFormModal({ open, subject, onClose, onSaved }: SubjectFor
             .filter(Boolean) ?? [];
 
         setForm((prev) => ({
-          ...prev,
+          ...createSubjectFormState(details),
           preRequisiteIds: preReqIds as string[],
         }));
         setInitialPreReqIds(preReqIds as string[]);
@@ -96,7 +96,7 @@ export function SubjectFormModal({ open, subject, onClose, onSaved }: SubjectFor
 
     getSubjectsAction({
       page: 1,
-      limit: 50,
+      limit: 1000,
       fields: "title,prefix,code",
     })
       .then((payload) => {
@@ -158,6 +158,23 @@ export function SubjectFormModal({ open, subject, onClose, onSaved }: SubjectFor
     );
   }
 
+  const showTheoryPeriods =
+    form.subjectType === "THEORY" || form.subjectType === "THEORY_PRACTICAL";
+  const showPracticalPeriods =
+    form.subjectType === "PRACTICAL_ONLY" || form.subjectType === "THEORY_PRACTICAL";
+
+  useEffect(() => {
+    setForm((prev) => ({
+      ...prev,
+      theoryPeriodsPerWeek: showTheoryPeriods
+        ? prev.theoryPeriodsPerWeek
+        : "0",
+      practicalPeriodsPerWeek: showPracticalPeriods
+        ? prev.practicalPeriodsPerWeek
+        : "0",
+    }));
+  }, [showTheoryPeriods, showPracticalPeriods]);
+
   const availableSubjects = useMemo(
     () => subjects.filter((item) => item._id !== subject?._id),
     [subjects, subject?._id]
@@ -195,6 +212,8 @@ export function SubjectFormModal({ open, subject, onClose, onSaved }: SubjectFor
     const code = Number(form.code);
     const credits = Number(form.credits);
     const regulation = Number(form.regulation);
+    const theoryPeriodsPerWeek = Number(form.theoryPeriodsPerWeek);
+    const practicalPeriodsPerWeek = Number(form.practicalPeriodsPerWeek);
     const theoryContinuous = Number(form.theoryContinuous);
     const theoryFinal = Number(form.theoryFinal);
     const practicalContinuous = Number(form.practicalContinuous);
@@ -219,6 +238,27 @@ export function SubjectFormModal({ open, subject, onClose, onSaved }: SubjectFor
         variant: "error",
         title: "Invalid credits",
         description: "Credits are required and must be greater than 0.",
+      });
+      return;
+    }
+
+    if (
+      (showTheoryPeriods && !Number.isFinite(theoryPeriodsPerWeek)) ||
+      (showPracticalPeriods && !Number.isFinite(practicalPeriodsPerWeek))
+    ) {
+      showToast({
+        variant: "error",
+        title: "Invalid periods",
+        description: "Periods per week must be valid numbers.",
+      });
+      return;
+    }
+
+    if (theoryPeriodsPerWeek < 0 || practicalPeriodsPerWeek < 0) {
+      showToast({
+        variant: "error",
+        title: "Invalid periods",
+        description: "Periods per week cannot be negative.",
       });
       return;
     }
@@ -280,6 +320,8 @@ export function SubjectFormModal({ open, subject, onClose, onSaved }: SubjectFor
         credits,
         regulation,
         subjectType: form.subjectType,
+        theoryPeriodsPerWeek,
+        practicalPeriodsPerWeek,
         markingScheme: {
           theoryContinuous,
           theoryFinal,
@@ -416,6 +458,41 @@ export function SubjectFormModal({ open, subject, onClose, onSaved }: SubjectFor
               ))}
             </select>
           </div>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          {showTheoryPeriods ? (
+            <div>
+              <label className="text-xs font-semibold uppercase tracking-[0.18em] text-(--text-dim)">
+                Theory Periods Per Week
+              </label>
+              <input
+                value={form.theoryPeriodsPerWeek}
+                onChange={(event) =>
+                  updateField("theoryPeriodsPerWeek", event.target.value)
+                }
+                className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-transparent px-3 text-sm"
+                type="number"
+                min="0"
+              />
+            </div>
+          ) : null}
+          {showPracticalPeriods ? (
+            <div>
+              <label className="text-xs font-semibold uppercase tracking-[0.18em] text-(--text-dim)">
+                Practical Periods Per Week
+              </label>
+              <input
+                value={form.practicalPeriodsPerWeek}
+                onChange={(event) =>
+                  updateField("practicalPeriodsPerWeek", event.target.value)
+                }
+                className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-transparent px-3 text-sm"
+                type="number"
+                min="0"
+              />
+            </div>
+          ) : null}
         </div>
 
         <div className="rounded-2xl border border-(--line) bg-(--surface-muted) p-4">

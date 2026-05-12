@@ -48,6 +48,8 @@ export function createInitialSubjectFormState(): SubjectFormState {
     credits: "",
     regulation: "",
     subjectType: "THEORY",
+    theoryPeriodsPerWeek: "0",
+    practicalPeriodsPerWeek: "0",
     theoryContinuous: "0",
     theoryFinal: "0",
     practicalContinuous: "0",
@@ -115,6 +117,12 @@ export function createSubjectFormState(subject?: Subject | null): SubjectFormSta
     credits: subject?.credits ? String(subject.credits) : "",
     regulation: subject?.regulation ? String(subject.regulation) : "",
     subjectType: subject?.subjectType ?? "THEORY",
+    theoryPeriodsPerWeek: subject?.theoryPeriodsPerWeek
+      ? String(subject.theoryPeriodsPerWeek)
+      : "0",
+    practicalPeriodsPerWeek: subject?.practicalPeriodsPerWeek
+      ? String(subject.practicalPeriodsPerWeek)
+      : "0",
     theoryContinuous: subject?.markingScheme
       ? String(subject.markingScheme.theoryContinuous)
       : "0",

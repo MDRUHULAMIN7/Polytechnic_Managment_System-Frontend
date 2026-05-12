@@ -69,6 +69,18 @@ export function SubjectDetailsContent({ details, error }: SubjectDetailsContentP
           </p>
           <p className="mt-2 font-medium">{details.subjectType}</p>
         </div>
+        <div className="rounded-xl border border-(--line) px-4 py-3">
+          <p className="text-xs uppercase tracking-[0.18em] text-(--text-dim)">
+            Theory Periods / Week
+          </p>
+          <p className="mt-2 font-medium">{details.theoryPeriodsPerWeek ?? 0}</p>
+        </div>
+        <div className="rounded-xl border border-(--line) px-4 py-3">
+          <p className="text-xs uppercase tracking-[0.18em] text-(--text-dim)">
+            Practical Periods / Week
+          </p>
+          <p className="mt-2 font-medium">{details.practicalPeriodsPerWeek ?? 0}</p>
+        </div>
       </div>
 
       <div className="rounded-xl border border-(--line) px-4 py-3">

@@ -102,6 +102,8 @@ export type SubjectFormState = {
   credits: string;
   regulation: string;
   subjectType: SubjectType;
+  theoryPeriodsPerWeek: string;
+  practicalPeriodsPerWeek: string;
   theoryContinuous: string;
   theoryFinal: string;
   practicalContinuous: string;

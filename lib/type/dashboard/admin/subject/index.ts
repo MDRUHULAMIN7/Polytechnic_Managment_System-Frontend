@@ -58,6 +58,8 @@ export type Subject = {
   credits: number;
   regulation: number;
   subjectType: SubjectType;
+  theoryPeriodsPerWeek?: number;
+  practicalPeriodsPerWeek?: number;
   markingScheme: SubjectMarkingScheme;
   assessmentComponents: AssessmentComponent[];
   preRequisiteSubjects?: SubjectPreRequisite[];
@@ -95,6 +97,8 @@ export type SubjectInput = {
   credits: number;
   regulation: number;
   subjectType: SubjectType;
+  theoryPeriodsPerWeek?: number;
+  practicalPeriodsPerWeek?: number;
   markingScheme: SubjectMarkingScheme;
   assessmentComponents: Array<{
     code?: string;
