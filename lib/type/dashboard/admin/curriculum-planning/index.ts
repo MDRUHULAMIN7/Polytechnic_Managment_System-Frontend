@@ -8,7 +8,7 @@ import type { AcademicInstructor } from "../academic-instructor";
 import type { AcademicSemester } from "../academic-semester";
 import type { Instructor } from "../instructor";
 import type { Room } from "../room";
-import type { Subject } from "../subject";
+import type { Subject, SubjectType } from "../subject";
 import type { SemesterRegistration } from "../semester-registration";
 import type { OfferedSubjectDay, OfferedSubjectClassType, OfferedSubjectScheduleBlock } from "../offered-subject";
 
@@ -170,6 +170,10 @@ export interface PeriodConfig {
   label: string;
   isActive: boolean;
   periods: Period[];
+  /** Weekly teaching days; if omitted, planning helpers default to Sun–Thu. */
+  workingDays?: OfferedSubjectDay[];
+  /** Cap on assignable period slots per week; if omitted, derived from periods × working days. */
+  totalPeriodsPerWeek?: number;
 }
 
 export interface Period {

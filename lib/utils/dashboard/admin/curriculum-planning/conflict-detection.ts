@@ -12,12 +12,43 @@ import type {
   RoomTypeConflict,
   PeriodConfigConflict,
   CurriculumPlanningContext,
+  PeriodConfig,
 } from "@/lib/type/dashboard/admin/curriculum-planning";
 import type {
   OfferedSubjectClassType,
   OfferedSubjectDay,
   OfferedSubjectScheduleBlock,
 } from "@/lib/type/dashboard/admin/offered-subject";
+
+const DEFAULT_WORKING_DAYS: OfferedSubjectDay[] = [
+  "Sun",
+  "Mon",
+  "Tue",
+  "Wed",
+  "Thu",
+];
+
+function countTeachingPeriodsPerDay(periods: PeriodConfig["periods"]): number {
+  const teaching = periods.filter((p) => !p.isBreak).length;
+  return teaching > 0 ? teaching : periods.length;
+}
+
+/** Resolves optional period-config fields used by the client-side planning helpers. */
+export function resolvePeriodPlanningMetrics(periodConfig: PeriodConfig) {
+  const workingDays: OfferedSubjectDay[] =
+    periodConfig.workingDays && periodConfig.workingDays.length > 0
+      ? periodConfig.workingDays
+      : DEFAULT_WORKING_DAYS;
+  const perDay = countTeachingPeriodsPerDay(periodConfig.periods);
+  const totalPeriodsPerWeek =
+    periodConfig.totalPeriodsPerWeek ?? perDay * workingDays.length;
+  const periodsPerDay =
+    periodConfig.totalPeriodsPerWeek != null
+      ? Math.max(1, Math.floor(totalPeriodsPerWeek / workingDays.length))
+      : perDay;
+
+  return { workingDays, totalPeriodsPerWeek, periodsPerDay };
+}
 
 /**
  * Calculates required periods per week based on subject type and credits
@@ -308,15 +339,16 @@ export function findAvailableSlots(
   requiredPeriodsPerWeek: number,
   context: CurriculumPlanningContext,
 ): Array<{ day: OfferedSubjectDay; periods: number[] }> {
-  const workingDays = context.periodConfig.workingDays;
-  const totalPeriodsPerDay = context.periodConfig.totalPeriodsPerWeek / workingDays.length;
+  const { workingDays, periodsPerDay } = resolvePeriodPlanningMetrics(
+    context.periodConfig,
+  );
   const availableSlots: Array<{ day: OfferedSubjectDay; periods: number[] }> = [];
 
   workingDays.forEach((day) => {
     let consecutiveFree = 0;
     const freePeriods: number[] = [];
 
-    for (let period = 1; period <= totalPeriodsPerDay; period++) {
+    for (let period = 1; period <= periodsPerDay; period++) {
       if (!context.occupiedSlots.has(`${instructorId}:${day}:${period}`)) {
         freePeriods.push(period);
         consecutiveFree++;

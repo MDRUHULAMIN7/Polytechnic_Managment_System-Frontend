@@ -1,10 +1,14 @@
 @import "tailwindcss";
 
-
 button{
   cursor: pointer;
 }
 :root {
+  /* Families load via <link> in app/layout.tsx (avoids next/font/google build-time fetch). */
+  --font-heading: "Newsreader", Georgia, "Times New Roman", serif;
+  --font-body: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-bengali: "Noto Sans Bengali", "Manrope", system-ui, sans-serif;
+
   --bg: #f5f7fb;
   --surface: #ffffff;
   --surface-muted: #eef2ff;

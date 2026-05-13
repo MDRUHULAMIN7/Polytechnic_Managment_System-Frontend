@@ -20,6 +20,7 @@ import {
   findAvailableSlots,
   markSlotOccupied,
   generateConflictSummary,
+  resolvePeriodPlanningMetrics,
 } from "./conflict-detection";
 import type { OfferedSubjectScheduleBlock } from "@/lib/type/dashboard/admin/offered-subject";
 
@@ -51,9 +52,12 @@ export async function planSingleBlock(
 
     // Step 2: Check period configuration constraints
     const totalRequired = requiredPeriods.theory + requiredPeriods.practical;
+    const { totalPeriodsPerWeek } = resolvePeriodPlanningMetrics(
+      context.periodConfig,
+    );
     const periodConfigConflict = checkPeriodConfigConflict(
       totalRequired,
-      context.periodConfig.totalPeriodsPerWeek,
+      totalPeriodsPerWeek,
       subject,
     );
 

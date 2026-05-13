@@ -1,29 +1,14 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { BackendWakeModal } from "@/components/common/backend-wake-modal";
-import { Manrope, Newsreader, Noto_Sans_Bengali } from "next/font/google";
 import { ToastRegion } from "@/components/common/toast-region";
 import { QueryProvider } from "@/components/providers/query-provider";
 
 import "./globals.css";
 
-const headingFont = Newsreader({
-  subsets: ["latin"],
-  variable: "--font-heading",
-  display: "swap"
-});
-
-const bodyFont = Manrope({
-  subsets: ["latin"],
-  variable: "--font-body",
-  display: "swap"
-});
-
-const bengaliFont = Noto_Sans_Bengali({
-  subsets: ["bengali", "latin"],
-  variable: "--font-bengali",
-  display: "swap"
-});
+/** Load at runtime in the browser — avoids build-time fetches to fonts.googleapis.com (offline / blocked CI). */
+const googleFontsHref =
+  "https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=Newsreader:wght@200..800&family=Noto+Sans+Bengali:wght@100..900&display=swap";
 
 const metadataBase = (() => {
   const envUrl = process.env.NEXT_PUBLIC_SITE_URL ?? process.env.VERCEL_URL;
@@ -102,12 +87,12 @@ export default async function RootLayout({
       style={theme ? { colorScheme: theme } : undefined}
     >
       <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="stylesheet" href={googleFontsHref} />
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
-      <body
-        suppressHydrationWarning
-        className={`${headingFont.variable} ${bodyFont.variable} ${bengaliFont.variable} antialiased`}
-      >
+      <body suppressHydrationWarning className="antialiased">
         <QueryProvider>
           <BackendWakeModal />
           {children}

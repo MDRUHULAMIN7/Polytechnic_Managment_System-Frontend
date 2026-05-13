@@ -36,6 +36,7 @@ export function AgenticPlannerModal({
     handleCreatePlan,
     handleSaveAll,
     downloadImage,
+    handleDownloadReport,
   } = useAgenticPlanner({
     open,
     onClose,
@@ -85,6 +86,7 @@ export function AgenticPlannerModal({
               onOpenFullView={openFullView}
               onCloseFullView={closeFullView}
               onDownload={downloadImage}
+              onDownloadReport={handleDownloadReport}
               onSaveAll={handleSaveAll}
             />
           </div>
