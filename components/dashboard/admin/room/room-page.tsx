@@ -1,15 +1,209 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { Room, RoomSortOption } from "@/lib/type/dashboard/admin/room";
+import type { OfferedSubject, OfferedSubjectDay } from "@/lib/type/dashboard/admin/offered-subject";
+import type { PeriodConfig } from "@/lib/type/dashboard/admin/period-config";
 import type { RoomPageProps } from "@/lib/type/dashboard/admin/room/ui";
+import { getOfferedSubjects } from "@/lib/api/dashboard/admin/offered-subject";
+import { getActivePeriodConfig } from "@/lib/api/dashboard/admin/period-config";
 import { DashboardErrorBanner } from "@/components/dashboard/shared/dashboard-error-banner";
 import { DashboardPageHeader } from "@/components/dashboard/shared/dashboard-page-header";
 import { showToast } from "@/utils/common/toast";
 import { useDebouncedValue } from "@/utils/common/use-debounced-value";
 import { updateListSearchParams } from "@/utils/dashboard/admin/search-params";
 import { RoomFormModal } from "./room-form-modal";
+import { Modal } from "./modal";
+
+const WEEK_DAYS: OfferedSubjectDay[] = ["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"];
+
+function toLabel(value: unknown, fallback: string) {
+  if (typeof value === "string" && value.trim()) {
+    return value;
+  }
+  return fallback;
+}
+
+function resolveSubjectTitle(item: OfferedSubject) {
+  if (typeof item.subject === "string") {
+    return item.subject;
+  }
+  return toLabel(item.subject?.title, "Unnamed Subject");
+}
+
+function resolveInstructorName(item: OfferedSubject) {
+  if (typeof item.instructor === "string") {
+    return item.instructor;
+  }
+  const name = item.instructor?.name;
+  if (name && typeof name === "object") {
+    const parts = [name.firstName, name.middleName, name.lastName]
+      .map((part) => (typeof part === "string" ? part.trim() : ""))
+      .filter(Boolean);
+    if (parts.length) return parts.join(" ");
+  }
+  return "Instructor";
+}
+
+function RoomDetailsModal({
+  room,
+  open,
+  onClose,
+}: {
+  room: Room | null;
+  open: boolean;
+  onClose: () => void;
+}) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [offeredSubjects, setOfferedSubjects] = useState<OfferedSubject[]>([]);
+  const [periodConfig, setPeriodConfig] = useState<PeriodConfig | null>(null);
+
+  useEffect(() => {
+    if (!open || !room?._id) return;
+
+    let active = true;
+    setLoading(true);
+    setError(null);
+
+    Promise.all([
+      getActivePeriodConfig(),
+      getOfferedSubjects({ page: 1, limit: 1000, sort: "-createdAt" }),
+    ])
+      .then(([activeConfig, offered]) => {
+        if (!active) return;
+        setPeriodConfig(activeConfig);
+        setOfferedSubjects(offered.result ?? []);
+      })
+      .catch((fetchError) => {
+        if (!active) return;
+        setError(
+          fetchError instanceof Error
+            ? fetchError.message
+            : "Failed to load room schedule details.",
+        );
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [open, room?._id]);
+
+  const schedulablePeriods = useMemo(
+    () =>
+      [...(periodConfig?.periods ?? [])]
+        .filter((period) => period.isActive !== false && period.isBreak !== true)
+        .sort((left, right) => left.periodNo - right.periodNo),
+    [periodConfig],
+  );
+
+  const occupancy = useMemo(() => {
+    const map = new Map<string, { subject: string; instructor: string; classType: string }>();
+    if (!room?._id) return map;
+
+    offeredSubjects.forEach((offeredSubject) => {
+      offeredSubject.scheduleBlocks?.forEach((block) => {
+        const roomId = typeof block.room === "string" ? block.room : block.room?._id;
+        if (roomId !== room._id) return;
+
+        const subject = resolveSubjectTitle(offeredSubject);
+        const instructor = resolveInstructorName(offeredSubject);
+
+        for (let period = block.startPeriod; period < block.startPeriod + block.periodCount; period += 1) {
+          map.set(`${block.day}-${period}`, {
+            subject,
+            instructor,
+            classType: block.classType,
+          });
+        }
+      });
+    });
+
+    return map;
+  }, [offeredSubjects, room?._id]);
+
+  return (
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={room ? `${room.roomName} · Room Availability` : "Room Availability"}
+      description="Weekly room status by day and period (Blocked vs Free)."
+    >
+      {loading ? (
+        <div className="space-y-2">
+          <div className="h-10 animate-pulse rounded-lg bg-(--surface-muted)" />
+          <div className="h-48 animate-pulse rounded-lg bg-(--surface-muted)" />
+        </div>
+      ) : error ? (
+        <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-300">
+          {error}
+        </div>
+      ) : schedulablePeriods.length === 0 ? (
+        <div className="rounded-xl border border-(--line) bg-(--surface-muted) p-4 text-sm text-(--text-dim)">
+          No active period configuration found.
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <span className="inline-flex items-center gap-1 rounded-full border border-red-500/30 bg-red-500/10 px-2 py-1 text-red-300">
+              Blocked
+            </span>
+            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 text-emerald-300">
+              Free
+            </span>
+          </div>
+
+          <div className="overflow-x-auto rounded-xl border border-(--line)">
+            <table className="min-w-full text-xs">
+              <thead className="bg-(--surface-muted)">
+                <tr>
+                  <th className="px-3 py-2 text-left font-semibold text-(--text-dim)">Day / Period</th>
+                  {schedulablePeriods.map((period) => (
+                    <th key={period.periodNo} className="px-3 py-2 text-left font-semibold text-(--text-dim)">
+                      <div>P{period.periodNo}</div>
+                      <div className="text-[10px] font-normal opacity-70">
+                        {period.startTime}-{period.endTime}
+                      </div>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {WEEK_DAYS.map((day) => (
+                  <tr key={day} className="border-t border-(--line)">
+                    <td className="px-3 py-2 font-semibold text-(--text-dim)">{day}</td>
+                    {schedulablePeriods.map((period) => {
+                      const slot = occupancy.get(`${day}-${period.periodNo}`);
+                      return (
+                        <td key={`${day}-${period.periodNo}`} className="px-2 py-2 align-top">
+                          {slot ? (
+                            <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-2">
+                              <p className="font-semibold text-(--text)">{slot.subject}</p>
+                              <p className="mt-1 text-[10px] text-(--text-dim)">{slot.instructor}</p>
+                              <p className="mt-1 text-[10px] uppercase text-red-300">{slot.classType}</p>
+                            </div>
+                          ) : (
+                            <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 p-2 text-[11px] font-medium text-emerald-300">
+                              Free
+                            </div>
+                          )}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </Modal>
+  );
+}
 
 function RoomFilters({
   search,
@@ -85,11 +279,13 @@ function RoomTable({
   loading,
   error,
   onEdit,
+  onViewDetails,
 }: {
   items: Room[];
   loading: boolean;
   error?: string | null;
   onEdit: (item: Room) => void;
+  onViewDetails: (item: Room) => void;
 }) {
   return (
     <div className="rounded-2xl border border-(--line) bg-(--surface)">
@@ -157,9 +353,29 @@ function RoomTable({
                 >
                   <td className="px-5 py-4">
                     <p className="font-medium">{item.roomName}</p>
-                    <p className="mt-1 text-xs text-(--text-dim)">
-                      Room #{item.roomNumber}
-                    </p>
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      <span className="text-xs text-(--text-dim)">
+                        Room #{item.roomNumber}
+                      </span>
+                      {item.facilities && item.facilities.length > 0 && (
+                        <>
+                          <span className="text-xs text-(--text-dim)">•</span>
+                          {item.facilities.slice(0, 2).map((f) => (
+                            <span
+                              key={f}
+                              className="text-[10px] text-(--accent) opacity-80"
+                            >
+                              {f}
+                            </span>
+                          ))}
+                          {item.facilities.length > 2 && (
+                            <span className="text-[10px] text-(--text-dim)">
+                              +{item.facilities.length - 2} more
+                            </span>
+                          )}
+                        </>
+                      )}
+                    </div>
                   </td>
                   <td className="px-5 py-4 text-(--text-dim)">
                     Building {item.buildingNumber}
@@ -191,13 +407,22 @@ function RoomTable({
                     </span>
                   </td>
                   <td className="px-5 py-4 text-right">
-                    <button
-                      type="button"
-                      onClick={() => onEdit(item)}
-                      className="focus-ring inline-flex h-9 min-w-20 items-center justify-center rounded-lg bg-(--accent) px-3 text-xs font-semibold text-(--accent-ink) transition hover:opacity-90"
-                    >
-                      Edit
-                    </button>
+                    <div className="inline-flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => onViewDetails(item)}
+                        className="focus-ring inline-flex h-9 min-w-20 items-center justify-center rounded-lg border border-(--line) bg-(--surface) px-3 text-xs font-semibold text-(--text-dim) transition hover:bg-(--surface-muted)"
+                      >
+                        Details
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onEdit(item)}
+                        className="focus-ring inline-flex h-9 min-w-20 items-center justify-center rounded-lg bg-(--accent) px-3 text-xs font-semibold text-(--accent-ink) transition hover:opacity-90"
+                      >
+                        Edit
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -288,6 +513,7 @@ export function RoomPage({
   const [statusFilter, setStatusFilter] = useState(isActive);
   const [createOpen, setCreateOpen] = useState(false);
   const [editItem, setEditItem] = useState<Room | null>(null);
+  const [detailsItem, setDetailsItem] = useState<Room | null>(null);
   const debouncedSearch = useDebouncedValue(searchInput, 400);
 
   useEffect(() => {
@@ -394,6 +620,7 @@ export function RoomPage({
         loading={isPending}
         error={error}
         onEdit={(item) => setEditItem(item)}
+        onViewDetails={(item) => setDetailsItem(item)}
       />
 
       <RoomPagination
@@ -419,6 +646,12 @@ export function RoomPage({
         room={editItem}
         onClose={() => setEditItem(null)}
         onSaved={handleSaved}
+      />
+
+      <RoomDetailsModal
+        open={Boolean(detailsItem)}
+        room={detailsItem}
+        onClose={() => setDetailsItem(null)}
       />
     </section>
   );

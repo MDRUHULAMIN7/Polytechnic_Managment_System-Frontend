@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { Sparkles } from "lucide-react";
 import {
   getOfferedSubject,
 } from "@/lib/api/dashboard/admin/offered-subject";
@@ -153,15 +154,25 @@ export function OfferedSubjectPage({
     <section className="space-y-5">
       <DashboardPageHeader
         title="Offered Subjects"
-        description="Manage semester offerings, schedules, and instructor assignments."
+        description="Manage manual semester offerings, schedules, and instructor assignments from one place. Use the dedicated AI planner page separately for multi-subject routine generation."
         action={
-          <button
-            type="button"
-            onClick={() => setCreateOpen(true)}
-            className="focus-ring inline-flex h-11 items-center justify-center rounded-xl bg-(--accent) px-5 text-sm font-semibold text-(--accent-ink) transition hover:opacity-90"
-          >
-            Create Offered Subject
-          </button>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => router.push("/dashboard/admin/curriculum-planning")}
+              className="focus-ring inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-(--line) bg-(--surface) px-5 text-sm font-semibold text-(--text) transition hover:bg-(--surface-alt)"
+            >
+              <Sparkles className="h-4 w-4" />
+              Open AI Curriculum Planner
+            </button>
+            <button
+              type="button"
+              onClick={() => setCreateOpen(true)}
+              className="focus-ring inline-flex h-11 items-center justify-center rounded-xl bg-(--accent) px-5 text-sm font-semibold text-(--accent-ink) transition hover:opacity-90"
+            >
+              Create Offered Subject
+            </button>
+          </div>
         }
       />
 

@@ -40,7 +40,6 @@ import { generateMessageId } from "@/utils/common/generateId";
 import { Modal } from "./modal";
 import { useInstructorBusySlots } from "@/hooks/dashboard/admin/offered-subject/use-instructor-busy-slots";
 import { useOfferedSubjectOptions } from "@/hooks/dashboard/admin/offered-subject/use-offered-subject-options";
-import { AgenticPlannerModal } from "./agentic-planner-modal";
 
 function createBlockId(): string {
   return generateMessageId("block");
@@ -293,7 +292,6 @@ export function OfferedSubjectFormModal({
   const [activePeriodConfig, setActivePeriodConfig] =
     useState<PeriodConfig | null>(null);
   const [rooms, setRooms] = useState<Room[]>([]);
-  const [isAgenticPlannerOpen, setIsAgenticPlannerOpen] = useState(false);
 
   const isEdit = Boolean(offeredSubject?._id);
   const {
@@ -1095,21 +1093,15 @@ export function OfferedSubjectFormModal({
             </div>
 
             <div className="mt-3 flex flex-wrap items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setIsAgenticPlannerOpen(true)}
-                disabled={
-                  !form.semesterRegistration ||
-                  !form.academicInstructor ||
-                  !form.academicDepartment
-                }
-                className="focus-ring inline-flex h-10 items-center justify-center rounded-xl border border-(--accent) px-4 text-sm font-semibold text-(--accent) transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+              <Link
+                href="/dashboard/admin/curriculum-planning"
+                className="focus-ring inline-flex h-10 items-center justify-center rounded-xl border border-(--accent) px-4 text-sm font-semibold text-(--accent) transition hover:opacity-90"
               >
-                AI Plan
-              </button>
+                Open AI Planner Page
+              </Link>
               <p className="text-xs text-(--text-dim)">
-                Agentic AI: Plan multiple subjects for instructors in this
-                department based on credits, room types, and busy slots.
+                Multi-subject AI curriculum planning now runs on its own dedicated page
+                so manual offering stays focused here.
               </p>
             </div>
 
@@ -1460,14 +1452,6 @@ export function OfferedSubjectFormModal({
         </form>
       </Modal>
 
-      <AgenticPlannerModal
-        open={isAgenticPlannerOpen}
-        onClose={() => setIsAgenticPlannerOpen(false)}
-        semesterRegistrationId={form.semesterRegistration}
-        academicInstructorId={form.academicInstructor}
-        academicDepartmentId={form.academicDepartment}
-        onSaved={onSaved}
-      />
     </>
   );
 }

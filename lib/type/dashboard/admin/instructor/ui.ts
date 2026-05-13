@@ -34,6 +34,7 @@ export type InstructorTableProps = {
   statusUpdatingId?: string | null;
   canChangeStatus: boolean;
   onStatusChange: (instructor: Instructor, nextStatus: InstructorStatus) => void;
+  onAvailability?: (instructor: Instructor) => void;
 };
 
 export type InstructorPageProps = {

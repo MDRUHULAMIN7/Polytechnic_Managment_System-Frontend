@@ -57,6 +57,7 @@ export function createInitialSubjectFormState(): SubjectFormState {
     totalMarks: "0",
     assessmentComponents: [createEmptySubjectComponent()],
     preRequisiteIds: [],
+    requiredFacilities: [],
   };
 }
 
@@ -146,5 +147,6 @@ export function createSubjectFormState(subject?: Subject | null): SubjectFormSta
           }))
         : [createEmptySubjectComponent()],
     preRequisiteIds: [],
+    requiredFacilities: subject?.requiredFacilities ?? [],
   };
 }

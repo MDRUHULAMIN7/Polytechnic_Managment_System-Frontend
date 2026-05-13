@@ -63,6 +63,7 @@ export type Subject = {
   markingScheme: SubjectMarkingScheme;
   assessmentComponents: AssessmentComponent[];
   preRequisiteSubjects?: SubjectPreRequisite[];
+  requiredFacilities?: string[];
   isDeleted?: boolean;
 };
 
@@ -113,6 +114,7 @@ export type SubjectInput = {
     subject: string;
     isDeleted?: boolean;
   }[];
+  requiredFacilities?: string[];
 };
 
 export type SubjectInstructor = {

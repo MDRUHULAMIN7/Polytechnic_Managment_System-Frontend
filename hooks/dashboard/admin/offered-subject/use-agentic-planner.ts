@@ -8,6 +8,7 @@ import { downloadRoutinePlanImage } from "@/components/dashboard/admin/offered-s
 import {
   buildBulkPlannerEntries,
   createEmptyAssignmentBlock,
+  downloadRoutinePlanCSV,
   generateBulkRoutinePlan,
   loadAgenticPlannerSupportData,
   savePlannedOfferedSubjects,
@@ -245,6 +246,11 @@ export function useAgenticPlanner({
     }
   };
 
+  const handleDownloadReport = () => {
+    if (!planResult) return;
+    downloadRoutinePlanCSV(planResult, blocks, instructors);
+  };
+
   return {
     instructors,
     subjects,
@@ -267,5 +273,6 @@ export function useAgenticPlanner({
     handleCreatePlan,
     handleSaveAll,
     downloadImage,
+    handleDownloadReport,
   };
 }

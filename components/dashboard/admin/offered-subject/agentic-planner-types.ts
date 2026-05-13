@@ -61,5 +61,6 @@ export interface AgenticPlannerResultsPanelProps {
   onOpenFullView: () => void;
   onCloseFullView: () => void;
   onDownload: () => void;
-  onSaveAll: () => void;
+  onDownloadReport: () => void;
+  onSaveAll: () => Promise<void>;
 }

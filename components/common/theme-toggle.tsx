@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react";
 
 type Theme = "light" | "dark";
@@ -11,12 +11,14 @@ type ThemeToggleProps = {
 const THEME_KEY = "pms_theme";
 
 function systemTheme(): Theme {
+  if (typeof window === "undefined") return "light";
   return window.matchMedia("(prefers-color-scheme: dark)").matches
     ? "dark"
     : "light";
 }
 
 function readTheme(): Theme {
+  if (typeof localStorage === "undefined") return "light";
   const fromStorage = localStorage.getItem(THEME_KEY);
   if (fromStorage === "dark" || fromStorage === "light") {
     return fromStorage;
@@ -34,6 +36,7 @@ function readTheme(): Theme {
 }
 
 function applyTheme(theme: Theme) {
+  if (typeof document === "undefined") return;
   document.documentElement.dataset.theme = theme;
   document.documentElement.style.colorScheme = theme;
   localStorage.setItem(THEME_KEY, theme);
@@ -41,27 +44,19 @@ function applyTheme(theme: Theme) {
 }
 
 export function ThemeToggle({ className }: ThemeToggleProps) {
-  const [theme, setTheme] = useState<Theme>(() => {
-    if (typeof document === "undefined") {
-      return "light";
-    }
+  const [mounted, setMounted] = useState(false);
+  const [theme, setTheme] = useState<Theme>("light");
 
-    if (
-      document.documentElement.dataset.theme === "dark" ||
-      document.documentElement.dataset.theme === "light"
-    ) {
-      return document.documentElement.dataset.theme as Theme;
-    }
-
+  useEffect(() => {
     const currentTheme = readTheme();
     applyTheme(currentTheme);
-    return currentTheme;
-  });
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setTheme(currentTheme);
+    setMounted(true);
+  }, []);
 
   function toggleTheme() {
-    const current =
-      theme === "dark" || theme === "light" ? theme : readTheme();
-    const nextTheme: Theme = current === "dark" ? "light" : "dark";
+    const nextTheme: Theme = theme === "dark" ? "light" : "dark";
     applyTheme(nextTheme);
     setTheme(nextTheme);
   }
@@ -77,7 +72,13 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
       aria-label="Toggle theme"
       title="Toggle theme"
     >
-      {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+      {!mounted ? (
+        <div className="h-4.5 w-4.5" />
+      ) : theme === "dark" ? (
+        <Sun size={18} />
+      ) : (
+        <Moon size={18} />
+      )}
     </button>
   );
 }

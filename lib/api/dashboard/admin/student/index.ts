@@ -40,7 +40,7 @@ export async function getStudents(
 export async function getStudent(id: string): Promise<Student> {
   ensureApiBaseUrl();
 
-  const response = await fetch(`${API_BASE_URL}/student/${id}`, {
+  const response = await fetch(`${API_BASE_URL}/students/${id}`, {
     headers: {
       "Content-Type": "application/json",
       ...authHeadersFromCookie(),
@@ -104,18 +104,25 @@ export async function createStudent(
 
 export async function updateStudent(
   id: string,
-  input: Partial<StudentInput>
+  input: Partial<StudentInput>,
+  file?: File | null
 ): Promise<Student> {
   ensureApiBaseUrl();
 
-  const response = await fetch(`${API_BASE_URL}/student/${id}`, {
+  const formData = new FormData();
+  formData.append("data", JSON.stringify({ student: input }));
+
+  if (file) {
+    formData.append("file", file);
+  }
+
+  const response = await fetch(`${API_BASE_URL}/students/${id}`, {
     method: "PATCH",
     headers: {
-      "Content-Type": "application/json",
       ...authHeadersFromCookie(),
     },
     credentials: "include",
-    body: JSON.stringify({ student: input }),
+    body: formData,
   });
 
   const payload = (await response.json()) as ApiResponse<Student>;

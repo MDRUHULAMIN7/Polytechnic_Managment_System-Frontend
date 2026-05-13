@@ -197,6 +197,25 @@ export function SubjectFormModal({ open, subject, onClose, onSaved }: SubjectFor
     return `${item.title} (${code})`;
   }
 
+  const availableFacilities = [
+    "Projector",
+    "AC",
+    "Computer Lab",
+    "Physics Lab",
+    "Chemistry Lab",
+    "Workshop",
+    "Whiteboard",
+  ];
+
+  function toggleFacility(facility: string) {
+    setForm((prev) => ({
+      ...prev,
+      requiredFacilities: prev.requiredFacilities.includes(facility)
+        ? prev.requiredFacilities.filter((item) => item !== facility)
+        : [...prev.requiredFacilities, facility],
+    }));
+  }
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -338,6 +357,7 @@ export function SubjectFormModal({ open, subject, onClose, onSaved }: SubjectFor
           order: index + 1,
           isRequired: item.isRequired,
         })),
+        requiredFacilities: form.requiredFacilities,
         ...(preRequisiteSubjects.length > 0 ? { preRequisiteSubjects } : {}),
       };
 
@@ -493,6 +513,28 @@ export function SubjectFormModal({ open, subject, onClose, onSaved }: SubjectFor
               />
             </div>
           ) : null}
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-xs font-semibold uppercase tracking-[0.18em] text-(--text-dim)">
+            Required Facilities
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {availableFacilities.map((facility) => (
+              <button
+                key={facility}
+                type="button"
+                onClick={() => toggleFacility(facility)}
+                className={`inline-flex h-9 items-center rounded-lg border px-3 text-xs font-medium transition-all ${
+                  form.requiredFacilities.includes(facility)
+                    ? "border-(--accent) bg-(--accent)/10 text-(--accent)"
+                    : "border-(--line) bg-transparent text-(--text-dim) hover:bg-(--surface-muted)"
+                }`}
+              >
+                {facility}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="rounded-2xl border border-(--line) bg-(--surface-muted) p-4">

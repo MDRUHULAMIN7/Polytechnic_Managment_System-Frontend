@@ -77,6 +77,23 @@ export function SubjectTable({
                 <tr key={item._id} className="border-b border-(--line) last:border-b-0">
                   <td className="px-5 py-4">
                     <p className="font-medium">{item.title}</p>
+                    {item.requiredFacilities && item.requiredFacilities.length > 0 && (
+                      <div className="mt-1 flex flex-wrap gap-1">
+                        {item.requiredFacilities.slice(0, 2).map((f) => (
+                          <span
+                            key={f}
+                            className="text-[9px] font-bold uppercase tracking-wider text-(--accent) opacity-70"
+                          >
+                            {f}
+                          </span>
+                        ))}
+                        {item.requiredFacilities.length > 2 && (
+                          <span className="text-[9px] font-bold text-(--text-dim)">
+                            +{item.requiredFacilities.length - 2} more
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </td>
                   <td className="px-5 py-4 text-(--text-dim)">
                     {renderCode(item.code)}

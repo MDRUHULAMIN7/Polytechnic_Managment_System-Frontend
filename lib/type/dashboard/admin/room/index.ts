@@ -6,6 +6,7 @@ export type Room = {
   capacity: number;
   roomType: "theory" | "practical" | "both";
   floor?: number;
+  facilities?: string[];
   isActive: boolean;
   createdAt?: string;
   updatedAt?: string;
@@ -48,6 +49,7 @@ export type RoomInput = {
   capacity: number;
   roomType: "theory" | "practical" | "both";
   floor?: number;
+  facilities?: string[];
   isActive?: boolean;
 };
 

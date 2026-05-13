@@ -46,8 +46,19 @@ export function RoomFormModal({
     "theory",
   );
   const [floor, setFloor] = useState("");
+  const [facilities, setFacilities] = useState<string[]>([]);
   const [isActive, setIsActive] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+
+  const availableFacilities = [
+    "Projector",
+    "AC",
+    "Computer Lab",
+    "Physics Lab",
+    "Chemistry Lab",
+    "Workshop",
+    "Whiteboard",
+  ];
 
   useEffect(() => {
     if (!open) {
@@ -60,8 +71,17 @@ export function RoomFormModal({
     setCapacity(room?.capacity ? String(room.capacity) : "");
     setRoomType(room?.roomType ?? "theory");
     setFloor(room?.floor ? String(room.floor) : "");
+    setFacilities(room?.facilities ?? []);
     setIsActive(room?.isActive ?? true);
   }, [open, room]);
+
+  const toggleFacility = (facility: string) => {
+    setFacilities((prev) =>
+      prev.includes(facility)
+        ? prev.filter((f) => f !== facility)
+        : [...prev, facility],
+    );
+  };
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -78,6 +98,7 @@ export function RoomFormModal({
         capacity: toPositiveNumber(capacity, "Capacity") as number,
         roomType,
         floor: toPositiveNumber(floor, "Floor", { allowBlank: true }),
+        facilities,
         isActive,
       };
 
@@ -212,6 +233,28 @@ export function RoomFormModal({
               placeholder="Optional"
               className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-transparent px-3 text-sm"
             />
+          </div>
+
+          <div className="sm:col-span-2">
+            <label className="text-xs font-semibold uppercase tracking-[0.18em] text-(--text-dim)">
+              Facilities
+            </label>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {availableFacilities.map((facility) => (
+                <button
+                  key={facility}
+                  type="button"
+                  onClick={() => toggleFacility(facility)}
+                  className={`inline-flex h-9 items-center rounded-lg border px-3 text-xs font-medium transition-all ${
+                    facilities.includes(facility)
+                      ? "border-(--accent) bg-(--accent)/10 text-(--accent)"
+                      : "border-(--line) bg-transparent text-(--text-dim) hover:bg-(--surface-muted)"
+                  }`}
+                >
+                  {facility}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 

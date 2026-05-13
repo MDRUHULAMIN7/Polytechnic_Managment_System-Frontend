@@ -111,6 +111,7 @@ export type SubjectFormState = {
   totalMarks: string;
   assessmentComponents: SubjectFormAssessmentComponentState[];
   preRequisiteIds: string[];
+  requiredFacilities: string[];
 };
 
 export type SubjectFormAssessmentComponentState = {

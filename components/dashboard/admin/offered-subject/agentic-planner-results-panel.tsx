@@ -19,9 +19,27 @@ function PlanList({
         >
           <div className="flex items-center justify-between">
             <h4 className="font-bold text-(--accent)">{plan.planningMeta.subjectTitle}</h4>
-            <span className="rounded-full bg-(--accent)/10 px-2 py-0.5 text-[10px] font-bold text-(--accent)">
-              {plan.planningMeta.credits} Credits
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="flex items-center gap-1 rounded-full bg-green-500/10 px-2 py-0.5 text-[9px] font-bold text-green-600 border border-green-500/20">
+                <svg
+                  className="w-3 h-3"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={3}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+                Verified
+              </span>
+              <span className="rounded-full bg-(--accent)/10 px-2 py-0.5 text-[10px] font-bold text-(--accent)">
+                {plan.planningMeta.credits} Credits
+              </span>
+            </div>
           </div>
           <p className="mt-1 text-xs font-medium text-(--text)">{plan.summary}</p>
 
@@ -188,6 +206,7 @@ export function AgenticPlannerResultsPanel({
   onOpenFullView,
   onCloseFullView,
   onDownload,
+  onDownloadReport,
   onSaveAll,
 }: AgenticPlannerResultsPanelProps) {
   return (
@@ -254,6 +273,25 @@ export function AgenticPlannerResultsPanel({
                         strokeLinejoin="round"
                         strokeWidth={2}
                         d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                      />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={onDownloadReport}
+                    className="flex h-8 w-8 items-center justify-center rounded-lg bg-(--surface-muted) text-(--text-dim) border border-(--line) hover:text-(--accent) hover:border-(--accent)/50 transition-all shadow-sm"
+                    title="Download CSV Report"
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                       />
                     </svg>
                   </button>

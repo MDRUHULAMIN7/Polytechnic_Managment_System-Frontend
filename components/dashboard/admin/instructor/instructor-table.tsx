@@ -32,6 +32,7 @@ export function InstructorTable({
   statusUpdatingId,
   canChangeStatus,
   onStatusChange,
+  onAvailability,
 }: InstructorTableProps) {
   return (
     <div className="rounded-2xl border border-(--line) bg-(--surface)">
@@ -123,7 +124,16 @@ export function InstructorTable({
                       )}
                     </td>
                     <td className="px-5 py-4 text-right">
-                      <div className="inline-flex items-center gap-2">
+                      <div className="inline-flex flex-wrap items-center justify-end gap-2">
+                        {onAvailability && item._id ? (
+                          <button
+                            type="button"
+                            onClick={() => onAvailability(item)}
+                            className="focus-ring inline-flex h-9 min-w-28 items-center justify-center rounded-lg border border-(--line) bg-(--surface) px-3 text-xs font-semibold text-(--text-dim) transition hover:bg-(--surface-muted)"
+                          >
+                            Availability
+                          </button>
+                        ) : null}
                         {item._id ? (
                           <Link
                             href={`/dashboard/admin/instructors/${item._id}`}
