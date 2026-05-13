@@ -5,14 +5,12 @@ const nextConfig = {
   images: {
     domains: ['res.cloudinary.com', 'lh3.googleusercontent.com'],
   },
-  async rewrites() {
-    return [
-      {
-        source: "/api/proxy/:path*",
-        destination: `http://localhost:5000/api/v1/:path*`,
-      },
-    ];
-  },
+  /**
+   * Do NOT add a rewrite from `/api/proxy/*` to localhost (or any fixed host).
+   * Next applies rewrites before route handlers, so that would bypass
+   * `app/api/proxy/[...path]/route.ts` and break Vercel (localhost → private / wrong host).
+   * Proxying is handled only by that route using `NEXT_PUBLIC_API_BASE_URL`.
+   */
 };
 
 export default nextConfig;
