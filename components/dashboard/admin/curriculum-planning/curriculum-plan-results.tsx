@@ -46,6 +46,12 @@ import { OFFERED_SUBJECT_DAYS } from "@/lib/type/dashboard/admin/offered-subject
 import type { Room } from "@/lib/type/dashboard/admin/room";
 import type { Subject } from "@/lib/type/dashboard/admin/subject";
 import type { Instructor } from "@/lib/type/dashboard/admin/instructor";
+import { useSemesterRoomOccupancy } from "@/hooks/dashboard/admin/offered-subject/use-semester-room-occupancy";
+import {
+  expandBlockPeriods,
+  isRoomFreeForDayPeriods,
+  roomDayPeriodKey,
+} from "@/utils/dashboard/admin/offered-subject/semester-room-occupancy";
 import { resolveName } from "@/utils/dashboard/admin/utils";
 import { showToast } from "@/utils/common/toast";
 
@@ -111,6 +117,8 @@ export function CurriculumPlanResults({
   const [instructors, setInstructors] = useState<Instructor[]>([]);
   const [periodConfig, setPeriodConfig] = useState<PeriodConfig | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isFinalizing, setIsFinalizing] = useState(false);
+  const [isInitialValidationRunning, setIsInitialValidationRunning] = useState(false);
   
   const [viewMode, setViewMode] = useState<"list" | "routine">("list");
   const [isRoutineFullscreen, setIsRoutineFullscreen] = useState(false);
@@ -180,6 +188,20 @@ export function CurriculumPlanResults({
     return () => window.removeEventListener("keydown", handleEscape);
   }, [isRoutineFullscreen]);
 
+  useEffect(() => {
+    if (!isRoutineFullscreen) {
+      document.body.style.overflow = "";
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isRoutineFullscreen]);
+
   // --- Memoized Data ---
   const blockById = useMemo(() => new Map(blocks.map((block) => [block.id, block])), [blocks]);
 
@@ -223,15 +245,15 @@ export function CurriculumPlanResults({
     return typeof room === "string" ? room : room?._id ?? "";
   }
 
-  function resolveSubjectTitle(subjectId: string) {
+  const resolveSubjectTitle = useCallback((subjectId: string) => {
     const subject = subjects.find((s) => s._id === subjectId);
     return subject?.title || subjectId;
-  }
+  }, [subjects]);
 
-  function resolveInstructorName(instructorId: string) {
+  const resolveInstructorName = useCallback((instructorId: string) => {
     const instructor = instructors.find((i) => i._id === instructorId);
     return instructor ? resolveName(instructor.name) : instructorId;
-  }
+  }, [instructors]);
 
   function resolveTimeRange(startPeriod: number, periodCount: number) {
     if (sortedPeriods.length) {
@@ -265,6 +287,271 @@ export function CurriculumPlanResults({
     }
     return null;
   }, [localResult.results, localResult.createdOfferedSubjects]);
+
+  const buildResultSnapshot = useCallback(
+    (nextResults: CurriculumPlanResult[]): CurriculumPlanExecutionResult => {
+      const totalConflicts = nextResults.flatMap((item) => item.conflicts);
+      const successfulBlocks = nextResults.filter(
+        (item) => item.success && item.scheduleBlocks.length > 0,
+      ).length;
+
+      return {
+        ...localResult,
+        results: nextResults,
+        summary: {
+          totalBlocks: nextResults.length,
+          successfulBlocks,
+          failedBlocks: nextResults.length - successfulBlocks,
+          conflictsDetected: totalConflicts.length,
+          totalConflicts,
+        },
+      };
+    },
+    [localResult],
+  );
+
+  const mergeConflictLists = useCallback((...lists: Array<ConflictInfo[] | undefined>) => {
+    const merged = new Map<string, ConflictInfo>();
+
+    for (const list of lists) {
+      for (const conflict of list ?? []) {
+        merged.set(`${conflict.type}:${conflict.message}`, conflict);
+      }
+    }
+
+    return Array.from(merged.values());
+  }, []);
+
+  const buildLocalPlanningConflicts = useCallback(
+    (planResults: CurriculumPlanResult[]) => {
+      const conflictMap = new Map<string, ConflictInfo[]>();
+
+      const addConflict = (blockId: string, conflict: ConflictInfo) => {
+        const current = conflictMap.get(blockId) ?? [];
+        current.push(conflict);
+        conflictMap.set(blockId, current);
+      };
+
+      const hasPeriodOverlap = (
+        leftBlock: OfferedSubjectScheduleBlock,
+        rightBlock: OfferedSubjectScheduleBlock,
+      ) =>
+        leftBlock.startPeriod < rightBlock.startPeriod + rightBlock.periodCount &&
+        leftBlock.startPeriod + leftBlock.periodCount > rightBlock.startPeriod;
+
+      for (let leftIndex = 0; leftIndex < planResults.length; leftIndex += 1) {
+        const left = planResults[leftIndex];
+
+        for (let rightIndex = leftIndex + 1; rightIndex < planResults.length; rightIndex += 1) {
+          const right = planResults[rightIndex];
+
+          for (const leftSchedule of left.scheduleBlocks) {
+            const leftDay = normalizeDay(leftSchedule.day);
+            if (!leftDay) {
+              continue;
+            }
+
+            for (const rightSchedule of right.scheduleBlocks) {
+              const rightDay = normalizeDay(rightSchedule.day);
+              if (!rightDay || leftDay !== rightDay || !hasPeriodOverlap(leftSchedule, rightSchedule)) {
+                continue;
+              }
+
+              if (left.instructorId === right.instructorId) {
+                const instructorName = resolveInstructorName(left.instructorId);
+                const instructorConflict: ConflictInfo = {
+                  type: "INSTRUCTOR_CONFLICT",
+                  instructorId: left.instructorId,
+                  instructorName,
+                  conflictingBlocks: [
+                    {
+                      subjectId: right.subjectId,
+                      subjectTitle: resolveSubjectTitle(right.subjectId),
+                      day: rightDay,
+                      period: rightSchedule.startPeriod,
+                      room: resolveRoomLabel(rightSchedule.room),
+                    },
+                  ],
+                  severity: "HIGH",
+                  message: `${instructorName} is assigned to multiple planned classes on ${leftDay} during overlapping periods.`,
+                };
+
+                addConflict(left.blockId, instructorConflict);
+                addConflict(right.blockId, instructorConflict);
+              }
+
+              const leftRoomId = resolveRoomId(leftSchedule.room);
+              const rightRoomId = resolveRoomId(rightSchedule.room);
+
+              if (leftRoomId && leftRoomId === rightRoomId) {
+                const roomLabel = resolveRoomLabel(leftSchedule.room);
+                const roomConflict: ConflictInfo = {
+                  type: "ROOM_CONFLICT",
+                  roomId: leftRoomId,
+                  roomLabel,
+                  conflictingSchedules: [
+                    {
+                      classType: leftSchedule.classType,
+                      day: leftDay,
+                      periods: Array.from(
+                        { length: leftSchedule.periodCount },
+                        (_, offset) => leftSchedule.startPeriod + offset,
+                      ),
+                      instructor: resolveInstructorName(left.instructorId),
+                      subject: resolveSubjectTitle(left.subjectId),
+                    },
+                    {
+                      classType: rightSchedule.classType,
+                      day: rightDay,
+                      periods: Array.from(
+                        { length: rightSchedule.periodCount },
+                        (_, offset) => rightSchedule.startPeriod + offset,
+                      ),
+                      instructor: resolveInstructorName(right.instructorId),
+                      subject: resolveSubjectTitle(right.subjectId),
+                    },
+                  ],
+                  severity: "HIGH",
+                  message: `${roomLabel} is used by multiple planned classes on ${leftDay} during overlapping periods.`,
+                };
+
+                addConflict(left.blockId, roomConflict);
+                addConflict(right.blockId, roomConflict);
+              }
+            }
+          }
+        }
+      }
+
+      return conflictMap;
+    },
+    [normalizeDay, resolveInstructorName, resolveRoomLabel, resolveSubjectTitle],
+  );
+
+  const validateResultBeforeFinalize = useCallback(async (
+    planResult: CurriculumPlanExecutionResult = localResult,
+  ) => {
+    const previewConflictMap = new Map<string, ConflictInfo[]>();
+
+    for (const blockResult of planResult.results) {
+      if (!blockResult.scheduleBlocks.length) {
+        continue;
+      }
+
+      const maxCapacity = blockById.get(blockResult.blockId)?.maxCapacity ?? step1Data.maxCapacity;
+      const preview = await checkScheduleConflicts({
+        semesterRegistrationId: step1Data.semesterRegistrationId,
+        academicDepartmentId: step1Data.academicDepartmentId,
+        instructorId: blockResult.instructorId,
+        maxCapacity,
+        scheduleBlocks: blockResult.scheduleBlocks,
+        excludeOfferedSubjectId: isPreSave ? undefined : getSavedOfferedSubjectId(blockResult.blockId),
+      });
+
+      previewConflictMap.set(
+        blockResult.blockId,
+        (preview.conflicts ?? []) as unknown as ConflictInfo[],
+      );
+    }
+
+    const localConflictMap = buildLocalPlanningConflicts(planResult.results);
+    const nextResults = planResult.results.map((blockResult) => {
+      const nextConflicts = mergeConflictLists(
+        blockResult.conflicts,
+        previewConflictMap.get(blockResult.blockId),
+        localConflictMap.get(blockResult.blockId),
+      );
+
+      return {
+        ...blockResult,
+        conflicts: nextConflicts,
+        success: blockResult.scheduleBlocks.length > 0 && nextConflicts.length === 0,
+      };
+    });
+
+    return buildResultSnapshot(nextResults);
+  }, [
+    blockById,
+    buildLocalPlanningConflicts,
+    buildResultSnapshot,
+    getSavedOfferedSubjectId,
+    isPreSave,
+    localResult,
+    mergeConflictLists,
+    step1Data.academicDepartmentId,
+    step1Data.maxCapacity,
+    step1Data.semesterRegistrationId,
+  ]);
+
+  const hasBlockingIssues = useMemo(
+    () =>
+      localResult.summary.failedBlocks > 0 || localResult.summary.totalConflicts.length > 0,
+    [localResult.summary.failedBlocks, localResult.summary.totalConflicts.length],
+  );
+
+  useEffect(() => {
+    if (!isPreSave || result.results.length === 0) {
+      return;
+    }
+
+    let isMounted = true;
+
+    const validateInitialResult = async () => {
+      try {
+        setIsInitialValidationRunning(true);
+        const validated = await validateResultBeforeFinalize(result);
+        if (isMounted) {
+          setLocalResult(validated);
+        }
+      } catch {
+        // Keep the original result visible if validation is temporarily unavailable.
+      } finally {
+        if (isMounted) {
+          setIsInitialValidationRunning(false);
+        }
+      }
+    };
+
+    void validateInitialResult();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isPreSave, result, validateResultBeforeFinalize]);
+
+  const editedOfferedSubjectId = useMemo(
+    () => (editingBlockId ? getSavedOfferedSubjectId(editingBlockId) : null),
+    [editingBlockId, getSavedOfferedSubjectId],
+  );
+
+  const {
+    occupiedRoomSlots,
+    loading: roomOccupancyLoading,
+  } = useSemesterRoomOccupancy({
+    open: Boolean(editingBlockId),
+    semesterRegistrationId: step1Data.semesterRegistrationId,
+    excludeOfferedSubjectId: editedOfferedSubjectId ?? undefined,
+  });
+
+  const buildEditingOccupancySet = useCallback(
+    (excludeIndex: number) => {
+      const merged = new Set<string>(occupiedRoomSlots);
+      if (!editingSchedule) return merged;
+
+      editingSchedule.forEach((block, index) => {
+        if (index === excludeIndex) return;
+        const roomId = resolveRoomId(block.room);
+        if (!roomId || !block.day) return;
+        const periods = expandBlockPeriods(block);
+        periods.forEach((period) => {
+          merged.add(roomDayPeriodKey(roomId, block.day, period));
+        });
+      });
+
+      return merged;
+    },
+    [editingSchedule, occupiedRoomSlots],
+  );
 
   // --- History System ---
   const pushHistory = useCallback((nextResult: CurriculumPlanExecutionResult) => {
@@ -330,7 +617,7 @@ export function CurriculumPlanResults({
           scheduleBlocks: editingSchedule,
           excludeOfferedSubjectId,
         });
-        setEditConflicts((preview.conflicts ?? []) as ConflictInfo[]);
+        setEditConflicts((preview.conflicts ?? []) as unknown as ConflictInfo[]);
       } catch {
         // keep UI responsive even if preview fails
       } finally {
@@ -370,7 +657,7 @@ export function CurriculumPlanResults({
           excludeOfferedSubjectId,
         });
 
-        const nextConflicts = (preview.conflicts ?? []) as ConflictInfo[];
+        const nextConflicts = (preview.conflicts ?? []) as unknown as ConflictInfo[];
         setEditConflicts(nextConflicts);
 
         if (preview.hasConflict) {
@@ -387,15 +674,7 @@ export function CurriculumPlanResults({
             ? { ...item, scheduleBlocks: editingSchedule, conflicts: nextConflicts }
             : item,
         );
-
-        const nextResult: CurriculumPlanExecutionResult = {
-          ...localResult,
-          results: nextResults,
-          summary: {
-            ...localResult.summary,
-            totalConflicts: nextResults.flatMap((r) => r.conflicts),
-          },
-        };
+        const nextResult = buildResultSnapshot(nextResults);
 
         pushHistory(nextResult);
         handleCancelEdit();
@@ -433,7 +712,7 @@ export function CurriculumPlanResults({
         scheduleBlocks: editingSchedule,
         excludeOfferedSubjectId: offeredSubjectId,
       });
-      const nextConflicts = (preview.conflicts ?? []) as ConflictInfo[];
+      const nextConflicts = (preview.conflicts ?? []) as unknown as ConflictInfo[];
       setEditConflicts(nextConflicts);
 
       if (preview.hasConflict) {
@@ -464,15 +743,7 @@ export function CurriculumPlanResults({
           ? { ...item, scheduleBlocks: editingSchedule, conflicts: nextConflicts }
           : item
       );
-
-      const nextResult: CurriculumPlanExecutionResult = {
-        ...localResult,
-        results: nextResults,
-        summary: {
-          ...localResult.summary,
-          totalConflicts: nextResults.flatMap(r => r.conflicts),
-        }
-      };
+      const nextResult = buildResultSnapshot(nextResults);
 
       pushHistory(nextResult);
       handleCancelEdit();
@@ -481,6 +752,46 @@ export function CurriculumPlanResults({
       showToast({ variant: "error", title: "Update Failed", description: error instanceof Error ? error.message : "Error updating schedule." });
     } finally {
       setIsSaving(false);
+    }
+  }
+
+  async function handleFinalizeSave() {
+    if (!onFinalSave) {
+      return;
+    }
+
+    setIsFinalizing(true);
+    try {
+      const validatedResult = await validateResultBeforeFinalize();
+      setLocalResult(validatedResult);
+
+      const blockingIssues =
+        validatedResult.summary.failedBlocks > 0 ||
+        validatedResult.summary.totalConflicts.length > 0;
+
+      if (blockingIssues) {
+        showToast({
+          variant: "error",
+          title: "Conflict-free routine required",
+          description:
+            validatedResult.summary.totalConflicts[0]?.message ??
+            "Resolve all room and instructor conflicts before finalizing the plan.",
+        });
+        return;
+      }
+
+      await onFinalSave(validatedResult);
+    } catch (error) {
+      showToast({
+        variant: "error",
+        title: "Final validation failed",
+        description:
+          error instanceof Error
+            ? error.message
+            : "Unable to validate the final routine before saving.",
+      });
+    } finally {
+      setIsFinalizing(false);
     }
   }
 
@@ -548,22 +859,35 @@ export function CurriculumPlanResults({
 
           <div className="h-10 w-px bg-slate-200 mx-2 self-center" />
 
-          <button
-            onClick={onBackToOfferedSubjects}
+	          <button
+	            onClick={onBackToOfferedSubjects}
             className="flex h-12 items-center gap-2 px-6 rounded-2xl bg-white border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 transition shadow-sm"
           >
             <ArrowLeft className="h-4 w-4" />
             Back
           </button>
-          <button
-            onClick={() => onFinalSave?.(localResult)}
-            className="flex h-12 items-center gap-2 px-6 rounded-2xl bg-green-600 text-white font-bold hover:bg-green-700 transition shadow-md shadow-green-200"
-          >
-            <Save className="h-4 w-4" />
-            Finalize & Save
-          </button>
-        </div>
-      </motion.div>
+	          <button
+	            onClick={handleFinalizeSave}
+	            disabled={!onFinalSave || hasBlockingIssues || isFinalizing || isSaving || isInitialValidationRunning}
+	            className="flex h-12 items-center gap-2 px-6 rounded-2xl bg-green-600 text-white font-bold hover:bg-green-700 transition shadow-md shadow-green-200 disabled:cursor-not-allowed disabled:opacity-50"
+	          >
+	            {isFinalizing ? <RefreshCcw className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+	            Finalize & Save
+	          </button>
+	        </div>
+	      </motion.div>
+
+        {hasBlockingIssues ? (
+          <div className="rounded-3xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">
+            Final save is locked until every failed block and every detected room or instructor conflict is resolved.
+          </div>
+        ) : null}
+
+        {isInitialValidationRunning ? (
+          <div className="rounded-3xl border border-blue-200 bg-blue-50 px-5 py-4 text-sm text-blue-700">
+            Validating AI routine against room and instructor availability before final save.
+          </div>
+        ) : null}
 
       {/* Main Content Area */}
       <div className="w-full">
@@ -684,7 +1008,7 @@ export function CurriculumPlanResults({
                             >
                                   <motion.div
                                 onClick={() => handleEditStart(matchedBlock)}
-                                    className={`relative flex flex-col min-h-[132px] rounded-2xl p-4 border cursor-pointer transition-all hover:shadow-md
+                                    className={`relative flex flex-col min-h-33 rounded-2xl p-4 border cursor-pointer transition-all hover:shadow-md
                                   ${
                                     isTheory
                                       ? "bg-blue-50/40 border-blue-200 hover:border-blue-400"
@@ -858,74 +1182,126 @@ export function CurriculumPlanResults({
               </div>
 
               <div className="p-6 sm:p-8 space-y-6 max-h-[60vh] overflow-y-auto custom-scrollbar">
-                {editingSchedule.map((sb, idx) => (
-                  <div key={idx} className="bg-(--surface-muted)/40 rounded-3xl p-6 border border-(--line) space-y-6">
-                    <div className="grid grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black text-(--text-dim) uppercase tracking-widest ml-1">Day</label>
-                        <select 
-                          value={sb.day}
-                          onChange={(e) => {
-                            const next = [...editingSchedule];
-                            next[idx].day = e.target.value as OfferedSubjectDay;
-                            setEditingSchedule(next);
-                          }}
-                          className="w-full h-12 px-4 rounded-2xl bg-(--surface) border border-(--line) focus:border-(--accent) focus:ring-4 focus:ring-(--accent)/10 transition text-sm font-bold text-(--text)"
-                        >
-                          {OFFERED_SUBJECT_DAYS.map(d => <option key={d} value={d}>{d}</option>)}
-                        </select>
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black text-(--text-dim) uppercase tracking-widest ml-1">Room Assignment</label>
-                        <select 
-                          value={resolveRoomId(sb.room)}
-                          onChange={(e) => {
-                            const next = [...editingSchedule];
-                            next[idx].room = e.target.value;
-                            setEditingSchedule(next);
-                          }}
-                          className="w-full h-12 px-4 rounded-2xl bg-(--surface) border border-(--line) focus:border-(--accent) focus:ring-4 focus:ring-(--accent)/10 transition text-sm font-bold text-(--text)"
-                        >
-                          <option value="">Auto Select</option>
-                          {rooms.map(r => (
-                            <option key={r._id} value={r._id}>
-                              {r.roomName} {r.roomNumber} ({r.roomType})
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
+                {editingSchedule.map((sb, idx) => {
+                  const selectedPeriods = expandBlockPeriods(sb);
+                  const hasSlotSelection = Boolean(sb.day && selectedPeriods.length > 0);
+                  const localOccupiedSlots = buildEditingOccupancySet(idx);
+                  const selectedRoomId = resolveRoomId(sb.room);
+                  const currentRoomOccupied =
+                    hasSlotSelection &&
+                    Boolean(selectedRoomId) &&
+                    !isRoomFreeForDayPeriods(
+                      selectedRoomId,
+                      sb.day,
+                      selectedPeriods,
+                      localOccupiedSlots,
+                    );
 
-                    <div className="grid grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black text-(--text-dim) uppercase tracking-widest ml-1">Start Period</label>
-                        <input 
-                          type="number" min={1} max={8}
-                          value={sb.startPeriod}
-                          onChange={(e) => {
-                            const next = [...editingSchedule];
-                            next[idx].startPeriod = parseInt(e.target.value);
-                            setEditingSchedule(next);
-                          }}
-                          className="w-full h-12 px-4 rounded-2xl bg-(--surface) border border-(--line) focus:border-(--accent) focus:ring-4 focus:ring-(--accent)/10 transition text-sm font-bold text-(--text)"
-                        />
+                  return (
+                    <div key={idx} className="bg-(--surface-muted)/40 rounded-3xl p-6 border border-(--line) space-y-6">
+                      <div className="grid grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black text-(--text-dim) uppercase tracking-widest ml-1">Day</label>
+                          <select
+                            value={sb.day}
+                            onChange={(e) => {
+                              const next = [...editingSchedule];
+                              next[idx].day = e.target.value as OfferedSubjectDay;
+                              setEditingSchedule(next);
+                            }}
+                            className="w-full h-12 px-4 rounded-2xl bg-(--surface) border border-(--line) focus:border-(--accent) focus:ring-4 focus:ring-(--accent)/10 transition text-sm font-bold text-(--text)"
+                          >
+                            {OFFERED_SUBJECT_DAYS.map((d) => (
+                              <option key={d} value={d}>{d}</option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black text-(--text-dim) uppercase tracking-widest ml-1">Room Assignment</label>
+                          <select
+                            value={selectedRoomId}
+                            onChange={(e) => {
+                              const next = [...editingSchedule];
+                              next[idx].room = e.target.value;
+                              setEditingSchedule(next);
+                            }}
+                            className="w-full h-12 px-4 rounded-2xl bg-(--surface) border border-(--line) focus:border-(--accent) focus:ring-4 focus:ring-(--accent)/10 transition text-sm font-bold text-(--text)"
+                          >
+                            <option value="">Auto Select</option>
+                            {rooms.map((r) => {
+                              const roomOccupied =
+                                hasSlotSelection &&
+                                !isRoomFreeForDayPeriods(
+                                  r._id,
+                                  sb.day,
+                                  selectedPeriods,
+                                  localOccupiedSlots,
+                                );
+                              const isCurrentSelection = selectedRoomId === r._id;
+
+                              return (
+                                <option
+                                  key={r._id}
+                                  value={r._id}
+                                  disabled={roomOccupancyLoading ? false : roomOccupied && !isCurrentSelection}
+                                >
+                                  {r.roomName} {r.roomNumber} ({r.roomType})
+                                  {roomOccupancyLoading
+                                    ? " — checking..."
+                                    : roomOccupied
+                                    ? " — occupied"
+                                    : ""}
+                                </option>
+                              );
+                            })}
+                          </select>
+
+                          {roomOccupancyLoading && (
+                            <p className="text-[10px] text-slate-500">Checking room availability…</p>
+                          )}
+
+                          {currentRoomOccupied && (
+                            <p className="text-[10px] text-red-500">Selected room is occupied for this day and period selection.</p>
+                          )}
+                        </div>
                       </div>
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black text-(--text-dim) uppercase tracking-widest ml-1">Duration (Periods)</label>
-                        <input 
-                          type="number" min={1} max={4}
-                          value={sb.periodCount}
-                          onChange={(e) => {
-                            const next = [...editingSchedule];
-                            next[idx].periodCount = parseInt(e.target.value);
-                            setEditingSchedule(next);
-                          }}
-                          className="w-full h-12 px-4 rounded-2xl bg-(--surface) border border-(--line) focus:border-(--accent) focus:ring-4 focus:ring-(--accent)/10 transition text-sm font-bold text-(--text)"
-                        />
+
+                      <div className="grid grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black text-(--text-dim) uppercase tracking-widest ml-1">Start Period</label>
+                          <input
+                            type="number"
+                            min={1}
+                            max={8}
+                            value={sb.startPeriod}
+                            onChange={(e) => {
+                              const next = [...editingSchedule];
+                              next[idx].startPeriod = parseInt(e.target.value);
+                              setEditingSchedule(next);
+                            }}
+                            className="w-full h-12 px-4 rounded-2xl bg-(--surface) border border-(--line) focus:border-(--accent) focus:ring-4 focus:ring-(--accent)/10 transition text-sm font-bold text-(--text)"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black text-(--text-dim) uppercase tracking-widest ml-1">Duration (Periods)</label>
+                          <input
+                            type="number"
+                            min={1}
+                            max={4}
+                            value={sb.periodCount}
+                            onChange={(e) => {
+                              const next = [...editingSchedule];
+                              next[idx].periodCount = parseInt(e.target.value);
+                              setEditingSchedule(next);
+                            }}
+                            className="w-full h-12 px-4 rounded-2xl bg-(--surface) border border-(--line) focus:border-(--accent) focus:ring-4 focus:ring-(--accent)/10 transition text-sm font-bold text-(--text)"
+                          />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
 
                 {editConflicts.length > 0 && (
                   <div className="bg-red-500/10 rounded-3xl p-6 border border-red-500/20 flex gap-4">

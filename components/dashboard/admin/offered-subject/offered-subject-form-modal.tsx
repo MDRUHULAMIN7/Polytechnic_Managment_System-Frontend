@@ -39,7 +39,13 @@ import { showToast } from "@/utils/common/toast";
 import { generateMessageId } from "@/utils/common/generateId";
 import { Modal } from "./modal";
 import { useInstructorBusySlots } from "@/hooks/dashboard/admin/offered-subject/use-instructor-busy-slots";
+import { useSemesterRoomOccupancy } from "@/hooks/dashboard/admin/offered-subject/use-semester-room-occupancy";
 import { useOfferedSubjectOptions } from "@/hooks/dashboard/admin/offered-subject/use-offered-subject-options";
+import {
+  isRoomEligibleForClassType,
+  isRoomFreeForDayPeriods,
+  mergeOccupancyWithSiblingBlocks,
+} from "@/utils/dashboard/admin/offered-subject/semester-room-occupancy";
 
 function createBlockId(): string {
   return generateMessageId("block");
@@ -337,6 +343,16 @@ export function OfferedSubjectFormModal({
     semesterRegistrationId: form.semesterRegistration,
   });
 
+  const {
+    occupiedRoomSlots,
+    loading: roomOccupancyLoading,
+    error: roomOccupancyError,
+  } = useSemesterRoomOccupancy({
+    open,
+    semesterRegistrationId: form.semesterRegistration,
+    excludeOfferedSubjectId: offeredSubject?._id,
+  });
+
   const schedulablePeriods = useMemo(
     () => resolveSchedulablePeriods(activePeriodConfig),
     [activePeriodConfig],
@@ -423,7 +439,7 @@ export function OfferedSubjectFormModal({
       getActivePeriodConfig(),
       getRooms({
         page: 1,
-        limit: 50,
+        limit: 400,
         sort: "roomName",
         isActive: "true",
       }),
@@ -1226,6 +1242,61 @@ export function OfferedSubjectFormModal({
                   schedulablePeriods,
                 );
                 const selectedRoom = roomsById.get(block.room);
+                const maxCapacityNum = Number(form.maxCapacity);
+                const passesCapacity = (r: Room) =>
+                  !Number.isFinite(maxCapacityNum) ||
+                  maxCapacityNum <= 0 ||
+                  r.capacity >= maxCapacityNum;
+
+                const combinedSlots = mergeOccupancyWithSiblingBlocks(
+                  occupiedRoomSlots,
+                  form.scheduleBlocks,
+                  block.id,
+                );
+                const periodNos = selectedPeriods.map((p) => p.periodNo);
+                const hasSlotSelection = Boolean(
+                  block.day && periodNos.length > 0,
+                );
+
+                const eligibleRooms = rooms
+                  .filter(passesCapacity)
+                  .filter((r) => isRoomEligibleForClassType(r, block.classType))
+                  .filter((r) =>
+                    !hasSlotSelection
+                      ? true
+                      : isRoomFreeForDayPeriods(
+                          r._id,
+                          block.day,
+                          periodNos,
+                          combinedSlots,
+                        ),
+                  );
+
+                const eligibleIds = new Set(
+                  eligibleRooms.map((room) => room._id),
+                );
+                const roomSelectList: Room[] = [...eligibleRooms];
+                if (
+                  block.room &&
+                  selectedRoom &&
+                  !eligibleIds.has(block.room) &&
+                  passesCapacity(selectedRoom) &&
+                  isRoomEligibleForClassType(selectedRoom, block.classType)
+                ) {
+                  roomSelectList.unshift(selectedRoom);
+                }
+
+                const currentRoomConflictsSlot =
+                  hasSlotSelection &&
+                  block.room &&
+                  isObjectId(block.room) &&
+                  !isRoomFreeForDayPeriods(
+                    block.room,
+                    block.day,
+                    periodNos,
+                    combinedSlots,
+                  );
+
                 const maxCount = resolveMaxContiguousCount(
                   schedulablePeriods,
                   block.startPeriod,
@@ -1315,6 +1386,11 @@ export function OfferedSubjectFormModal({
                       <div>
                         <label className="text-xs font-semibold uppercase tracking-[0.16em] text-(--text-dim)">
                           Room
+                          {roomOccupancyLoading ? (
+                            <span className="ml-2 font-normal text-(--text-dim)">
+                              (loading availability…)
+                            </span>
+                          ) : null}
                         </label>
                         <select
                           value={block.room}
@@ -1328,12 +1404,37 @@ export function OfferedSubjectFormModal({
                           className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-(--surface) px-3 text-sm text-(--text) disabled:opacity-70"
                         >
                           <option value="">Select room</option>
-                          {rooms.map((room) => (
+                          {roomSelectList.map((room) => (
                             <option key={room._id} value={room._id}>
                               {resolveRoomLabel(room)}
                             </option>
                           ))}
                         </select>
+                        {!hasSlotSelection ? (
+                          <p className="mt-1 text-[11px] text-(--text-dim)">
+                            Choose day and periods first; the list then shows
+                            only rooms free in this semester for that slot
+                            (same rule as the admin room timetable).
+                          </p>
+                        ) : eligibleRooms.length === 0 ? (
+                          <p className="mt-1 text-[11px] text-amber-300">
+                            No room is free for this class type, capacity, and
+                            time slot in this semester. Change day, periods, or
+                            capacity.
+                          </p>
+                        ) : null}
+                        {roomOccupancyError ? (
+                          <p className="mt-1 text-[11px] text-red-300">
+                            {roomOccupancyError}
+                          </p>
+                        ) : null}
+                        {currentRoomConflictsSlot ? (
+                          <p className="mt-1 text-[11px] text-amber-300">
+                            This room is already booked for this day and period
+                            range in this semester (or in another block here).
+                            Pick another room or time.
+                          </p>
+                        ) : null}
                       </div>
 
                       <div>

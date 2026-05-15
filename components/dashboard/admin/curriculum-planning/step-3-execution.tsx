@@ -6,19 +6,17 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { AlertCircle, CheckCircle, XCircle, Clock, ArrowLeft, RefreshCcw, Save, LayoutGrid, Info, Edit2, X, Check } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AlertCircle, RefreshCcw } from "lucide-react";
+import { motion } from "framer-motion";
 import type {
   CurriculumPlanExecutionResult,
-  CurriculumPlanResult,
   CurriculumPlanningBlock,
   CurriculumPlanningStep1Data,
-  ConflictInfo,
 } from "@/lib/type/dashboard/admin/curriculum-planning";
-import { executeCurriculumPlanningAPI, savePlannedOfferedSubjects, checkScheduleConflicts, loadRooms } from "@/lib/api/dashboard/admin/curriculum-planning";
-import { OFFERED_SUBJECT_DAYS } from "@/lib/type/dashboard/admin/offered-subject/constants";
-import type { OfferedSubjectDay, OfferedSubjectScheduleBlock } from "@/lib/type/dashboard/admin/offered-subject";
-import type { Room } from "@/lib/type/dashboard/admin/room";
+import {
+  executeCurriculumPlanningAPI,
+  savePlannedOfferedSubjects,
+} from "@/lib/api/dashboard/admin/curriculum-planning";
 import { showToast } from "@/utils/common/toast";
 import { CurriculumPlanResults } from "./curriculum-plan-results";
 
@@ -70,6 +68,20 @@ export function CurriculumPlanningStep3({
   }, [executePlanning]);
 
   async function handleSaveResults(finalResult: CurriculumPlanExecutionResult) {
+    if (
+      finalResult.summary.failedBlocks > 0 ||
+      finalResult.summary.totalConflicts.length > 0
+    ) {
+      showToast({
+        variant: "error",
+        title: "Conflict-free result required",
+        description:
+          finalResult.summary.totalConflicts[0]?.message ??
+          "Resolve all failed blocks and conflicts before saving the plan.",
+      });
+      return;
+    }
+
     try {
       setSaving(true);
       setError(null);
@@ -150,7 +162,7 @@ export function CurriculumPlanningStep3({
           <button
             onClick={executePlanning}
             disabled={executing}
-            className="flex-[2] h-14 rounded-2xl bg-blue-600 text-white font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-200 disabled:opacity-50 flex items-center justify-center gap-2"
+            className="flex-2 h-14 rounded-2xl bg-blue-600 text-white font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-200 disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {executing ? (
               <>

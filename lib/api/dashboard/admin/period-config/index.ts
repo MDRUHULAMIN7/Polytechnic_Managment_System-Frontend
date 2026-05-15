@@ -61,6 +61,12 @@ export async function getActivePeriodConfig(): Promise<PeriodConfig> {
     "Failed to load active period configuration.",
   );
 
+  console.log("[API] getActivePeriodConfig response", {
+    url: `${API_BASE_URL}/period-configs/active`,
+    status: response.status,
+    payload,
+  });
+
   if (!response.ok || !payload.success || !payload.data) {
     throw new Error(payload.message || "Failed to load active period configuration.");
   }

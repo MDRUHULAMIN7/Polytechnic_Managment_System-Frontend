@@ -128,6 +128,20 @@ export default function CurriculumPlanningPage() {
             </div>
           </div>
 
+          <div className="rounded-3xl border border-(--line) bg-(--surface) p-4 sm:p-5">
+            <p className="text-sm font-semibold text-(--text)">Manual realtime workspace</p>
+            <p className="mt-2 text-sm text-(--text-dim)">
+              Plan day × period on a grid with draggable panels for room and instructor
+              availability. Conflicts use the same preview API as offered subjects.
+            </p>
+            <Link
+              href="/dashboard/admin/curriculum-planning/workspace"
+              className="focus-ring mt-4 inline-flex h-11 items-center justify-center rounded-xl border border-(--accent) bg-(--accent)/10 px-4 text-sm font-semibold text-(--accent) transition hover:bg-(--accent)/20"
+            >
+              Open manual workspace
+            </Link>
+          </div>
+
           <div className="rounded-3xl border border-(--line) bg-(--surface) p-3 sm:p-5">
             <div className="mb-4 flex items-center gap-2 px-2 text-sm font-semibold text-(--text)">
               <Wand2 className="h-4 w-4 text-(--accent)" />

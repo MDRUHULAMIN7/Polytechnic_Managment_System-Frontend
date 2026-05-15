@@ -38,11 +38,48 @@ export async function getOfferedSubjects(
     "Failed to load offered subjects."
   );
 
+  console.log("[API] getOfferedSubjects response", {
+    url: `${API_BASE_URL}/offered-subject?${query.toString()}`,
+    status: response.status,
+    payload,
+  });
+
   if (!response.ok || !payload.success || !payload.data) {
     throw new Error(payload.message || "Failed to load offered subjects.");
   }
 
   return payload.data;
+}
+
+/** Minimal offered-subject rows for room/instructor occupancy (manual workspace). */
+export async function getSemesterOccupancySnapshot(
+  semesterRegistrationId: string,
+): Promise<OfferedSubject[]> {
+  ensureApiBaseUrl();
+
+  const qs = new URLSearchParams({
+    semesterRegistration: semesterRegistrationId,
+  });
+  const response = await fetch(
+    `${API_BASE_URL}/offered-subject/occupancy-snapshot?${qs.toString()}`,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        ...authHeadersFromCookie(),
+      },
+      credentials: "include",
+    },
+  );
+
+  const payload = await parseJsonResponse<
+    ApiResponse<{ result: OfferedSubject[] }>
+  >(response, "Failed to load semester occupancy.");
+
+  if (!response.ok || !payload.success || !payload.data) {
+    throw new Error(payload.message || "Failed to load semester occupancy.");
+  }
+
+  return payload.data.result ?? [];
 }
 
 export async function getOfferedSubject(id: string): Promise<OfferedSubject> {

@@ -11,6 +11,7 @@ import type {
   CurriculumPlanExecutionResult,
   CurriculumPlanResult,
 } from "@/lib/type/dashboard/admin/curriculum-planning";
+import type { SchedulePreviewResult } from "@/lib/type/dashboard/admin/manual-curriculum-workspace";
 import type {
   OfferedSubject,
   OfferedSubjectDay,
@@ -20,7 +21,7 @@ import type {
 } from "@/lib/type/dashboard/admin/offered-subject";
 import type { Subject } from "@/lib/type/dashboard/admin/subject";
 import type { Room } from "@/lib/type/dashboard/admin/room";
-import { API_BASE_URL } from "@/lib/api/dashboard/api"; // Import API_BASE_URL
+import { API_BASE_URL, authHeadersFromCookie } from "@/lib/api/dashboard/api"; // Import API_BASE_URL
 
 interface BackendSuggestedBlock {
   classType: OfferedSubjectClassType;
@@ -315,14 +316,7 @@ export async function checkScheduleConflicts(
     scheduleBlocks: OfferedSubjectScheduleBlock[];
     excludeOfferedSubjectId?: string | null;
   },
-): Promise<{
-  hasConflict: boolean;
-  conflicts: ConflictInfo[];
-  scheduleBlocks: OfferedSubjectScheduleBlock[];
-  days: string[];
-  startTime: string;
-  endTime: string;
-}> {
+): Promise<SchedulePreviewResult> {
   try {
     const response = await fetch(
       `${API_BASE_URL}/offered-subject/preview-conflicts`,
@@ -330,7 +324,9 @@ export async function checkScheduleConflicts(
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...authHeadersFromCookie(),
         },
+        credentials: "include",
         body: JSON.stringify({
           semesterRegistration: payload.semesterRegistrationId,
           academicDepartment: payload.academicDepartmentId,
