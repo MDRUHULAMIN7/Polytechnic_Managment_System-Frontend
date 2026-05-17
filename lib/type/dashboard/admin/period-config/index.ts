@@ -11,6 +11,7 @@ export type PeriodConfigItem = {
 export type PeriodConfig = {
   _id: string;
   label: string;
+  shift: "MORNING" | "DAY";
   effectiveFrom: string;
   isActive: boolean;
   periods: PeriodConfigItem[];
@@ -44,10 +45,12 @@ export type PeriodConfigListParams = {
   limit?: number;
   sort?: PeriodConfigSortOption;
   isActive?: string;
+  shift?: string;
 };
 
 export type PeriodConfigInput = {
   label: string;
+  shift: "MORNING" | "DAY";
   effectiveFrom: string;
   isActive?: boolean;
   periods: PeriodConfigItem[];

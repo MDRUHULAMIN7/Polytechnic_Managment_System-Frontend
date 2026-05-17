@@ -10,9 +10,11 @@ export type PeriodConfigFiltersProps = {
   search: string;
   sort: PeriodConfigSortOption;
   isActive: string;
+  shift: string;
   onSearchChange: (value: string) => void;
   onSortChange: (value: PeriodConfigSortOption) => void;
   onActiveChange: (value: string) => void;
+  onShiftChange: (value: string) => void;
 };
 
 export type PeriodConfigPageProps = {
@@ -23,6 +25,7 @@ export type PeriodConfigPageProps = {
   limit: number;
   sort: PeriodConfigSortOption;
   isActive: string;
+  shift: string;
   canManage: boolean;
   error?: string | null;
 };
@@ -33,12 +36,14 @@ export type PeriodConfigServerProps = {
   limit: number;
   sort: PeriodConfigSortOption;
   isActive: string;
+  shift: string;
 };
 
 export type PeriodConfigFormMode = "create" | "edit";
 
 export type PeriodConfigFormState = {
   label: string;
+  shift: "MORNING" | "DAY";
   effectiveFrom: string;
   isActive: boolean;
   periods: Array<{

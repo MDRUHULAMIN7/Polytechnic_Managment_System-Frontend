@@ -46,14 +46,14 @@ export function Modal({
       {open ? (
         <>
           <motion.div
-            className="fixed inset-0 z-40 h-[100svh] bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-40 h-svh bg-black/60 backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
           />
           <motion.div
-            className="fixed inset-0 z-50 flex h-[100svh] items-center justify-center px-4 py-6"
+            className="fixed inset-0 z-50 flex h-svh items-center justify-center px-4 py-6"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 12 }}

@@ -20,8 +20,12 @@ export const manualWorkspaceKeys = {
   /** Full offered-subject rows for one instructor (same source as Admin → Instructors → Availability). */
   instructorWeekOfferings: (instructorId: string) =>
     [...manualWorkspaceKeys.root, "instructor-week-offerings", instructorId] as const,
-  activePeriodConfig: () =>
-    [...manualWorkspaceKeys.root, "active-period-config"] as const,
+  activePeriodConfig: (semesterRegistrationId?: string) =>
+    [
+      ...manualWorkspaceKeys.root,
+      "active-period-config",
+      semesterRegistrationId || "ALL",
+    ] as const,
   rooms: () => [...manualWorkspaceKeys.root, "rooms"] as const,
   schedulePreview: (args: {
     semesterRegistrationId: string;

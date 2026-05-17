@@ -44,6 +44,7 @@ function calculateDuration(startTime: string, endTime: string) {
 function createEmptyState(): PeriodConfigFormState {
   return {
     label: "",
+    shift: "DAY",
     effectiveFrom: "",
     isActive: true,
     periods: [
@@ -83,6 +84,7 @@ export function PeriodConfigFormModal({
 
     setForm({
       label: periodConfig.label ?? "",
+      shift: periodConfig.shift ?? "DAY",
       effectiveFrom: periodConfig.effectiveFrom
         ? periodConfig.effectiveFrom.slice(0, 10)
         : "",
@@ -160,6 +162,7 @@ export function PeriodConfigFormModal({
 
       const payload: PeriodConfigInput = {
         label,
+        shift: form.shift,
         effectiveFrom: form.effectiveFrom,
         isActive: form.isActive,
         periods: form.periods.map((row, index) => {
@@ -230,7 +233,7 @@ export function PeriodConfigFormModal({
       description="Define the active class periods used for schedule blocks and room planning."
     >
       <form onSubmit={handleSubmit} className="space-y-5">
-        <div className="grid gap-4 md:grid-cols-[1.6fr_1fr]">
+        <div className="grid gap-4 md:grid-cols-[1fr_1fr_1fr]">
           <div>
             <label className="text-xs font-semibold uppercase tracking-[0.18em] text-(--text-dim)">
               Label
@@ -240,9 +243,28 @@ export function PeriodConfigFormModal({
               onChange={(event) =>
                 setForm((current) => ({ ...current, label: event.target.value }))
               }
-              placeholder="Regular Day Schedule"
+              placeholder="Regular Schedule"
               className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-transparent px-3 text-sm"
             />
+          </div>
+
+          <div>
+            <label className="text-xs font-semibold uppercase tracking-[0.18em] text-(--text-dim)">
+              Shift
+            </label>
+            <select
+              value={form.shift}
+              onChange={(event) =>
+                setForm((current) => ({
+                  ...current,
+                  shift: event.target.value as "MORNING" | "DAY",
+                }))
+              }
+              className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-transparent px-3 text-sm"
+            >
+              <option value="DAY">Day Shift</option>
+              <option value="MORNING">Morning Shift</option>
+            </select>
           </div>
 
           <div>

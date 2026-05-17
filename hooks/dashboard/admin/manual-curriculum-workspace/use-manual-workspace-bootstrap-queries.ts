@@ -2,7 +2,7 @@
 
 import { useQueries } from "@tanstack/react-query";
 import { loadStep1SupportData, loadStep2SupportData } from "@/lib/api/dashboard/admin/curriculum-planning";
-import { getOfferedSubjects, getSemesterOccupancySnapshot } from "@/lib/api/dashboard/admin/offered-subject";
+import { getSemesterOccupancySnapshot } from "@/lib/api/dashboard/admin/offered-subject";
 import { getActivePeriodConfig } from "@/lib/api/dashboard/admin/period-config";
 import { getRooms } from "@/lib/api/dashboard/admin/room";
 import { manualWorkspaceKeys } from "@/lib/api/dashboard/admin/manual-workspace-query-keys";
@@ -19,8 +19,8 @@ export function useManualWorkspaceBootstrapQueries(
         staleTime: 60_000,
       },
       {
-        queryKey: manualWorkspaceKeys.activePeriodConfig(),
-        queryFn: getActivePeriodConfig,
+        queryKey: manualWorkspaceKeys.activePeriodConfig(params?.semesterRegistrationId),
+        queryFn: () => getActivePeriodConfig(undefined, params?.semesterRegistrationId),
         staleTime: 60_000,
       },
       {

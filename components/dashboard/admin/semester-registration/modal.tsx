@@ -46,23 +46,24 @@ export function Modal({
       {open ? (
         <>
           <motion.div
-            className="fixed inset-0 z-40 h-[100svh] bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-40 h-svh bg-black/60 backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
           />
           <motion.div
-            className="fixed inset-0 z-50 flex h-[100svh] items-center justify-center px-4 py-6"
+            className="fixed inset-0 z-50 flex h-svh items-center justify-center px-4 py-6"
+
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 12 }}
           >
             <section
-              className="w-full max-w-3xl rounded-2xl border border-(--line) bg-(--surface) shadow-[0_24px_48px_rgba(15,23,42,0.2)]"
+              className="flex max-h-full w-full max-w-3xl flex-col rounded-2xl border border-(--line) bg-(--surface) shadow-[0_24px_48px_rgba(15,23,42,0.2)]"
               onClick={(event) => event.stopPropagation()}
             >
-              <div className="flex items-start justify-between border-b border-(--line) px-6 py-4">
+              <div className="flex shrink-0 items-start justify-between border-b border-(--line) px-6 py-4">
                 <div>
                   <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
                   {description ? (
@@ -78,7 +79,7 @@ export function Modal({
                   <X size={16} />
                 </button>
               </div>
-              <div className="max-h-[70svh] overflow-y-auto px-6 py-5">
+              <div className="overflow-y-auto px-6 py-5">
                 {children}
               </div>
             </section>

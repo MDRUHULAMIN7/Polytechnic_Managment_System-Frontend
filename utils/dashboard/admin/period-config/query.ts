@@ -18,6 +18,9 @@ export function buildPeriodConfigQuery(params: PeriodConfigListParams) {
   if (params.isActive) {
     searchParams.set("isActive", params.isActive);
   }
+  if (params.shift) {
+    searchParams.set("shift", params.shift);
+  }
 
   return searchParams;
 }

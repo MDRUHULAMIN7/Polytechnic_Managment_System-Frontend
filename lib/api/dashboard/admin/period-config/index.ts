@@ -46,9 +46,22 @@ export async function getPeriodConfigs(
   };
 }
 
-export async function getActivePeriodConfig(): Promise<PeriodConfig> {
+export async function getActivePeriodConfig(
+  shift?: string,
+  semesterRegistrationId?: string,
+): Promise<PeriodConfig> {
   ensureApiBaseUrl();
-  const response = await fetch(`${API_BASE_URL}/period-configs/active`, {
+  const searchParams = new URLSearchParams();
+  if (shift) searchParams.set("shift", shift);
+  if (semesterRegistrationId)
+    searchParams.set("semesterRegistrationId", semesterRegistrationId);
+
+  const queryString = searchParams.toString();
+  const url = queryString
+    ? `${API_BASE_URL}/period-configs/active?${queryString}`
+    : `${API_BASE_URL}/period-configs/active`;
+
+  const response = await fetch(url, {
     headers: {
       "Content-Type": "application/json",
       ...authHeadersFromCookie(),
@@ -62,7 +75,7 @@ export async function getActivePeriodConfig(): Promise<PeriodConfig> {
   );
 
   console.log("[API] getActivePeriodConfig response", {
-    url: `${API_BASE_URL}/period-configs/active`,
+    url,
     status: response.status,
     payload,
   });

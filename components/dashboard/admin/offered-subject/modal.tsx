@@ -60,10 +60,10 @@ export function Modal({
             exit={{ opacity: 0, y: 12 }}
           >
             <section
-              className={`w-full ${maxWidth} rounded-2xl border border-(--line) bg-(--surface) shadow-[0_24px_48px_rgba(15,23,42,0.2)]`}
+              className={`flex max-h-full w-full ${maxWidth} flex-col rounded-2xl border border-(--line) bg-(--surface) shadow-[0_24px_48px_rgba(15,23,42,0.2)]`}
               onClick={(event) => event.stopPropagation()}
             >
-              <div className="flex items-start justify-between border-b border-(--line) px-6 py-4">
+              <div className="flex shrink-0 items-start justify-between border-b border-(--line) px-6 py-4">
                 <div>
                   <h2 className="text-lg font-semibold tracking-tight">
                     {title}
@@ -83,7 +83,7 @@ export function Modal({
                   <X size={16} />
                 </button>
               </div>
-              <div className="max-h-[70svh] overflow-y-auto px-6 py-5">
+              <div className="overflow-y-auto px-6 py-5">
                 {children}
               </div>
             </section>

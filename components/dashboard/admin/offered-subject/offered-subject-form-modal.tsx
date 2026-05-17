@@ -431,12 +431,17 @@ export function OfferedSubjectFormModal({
       return;
     }
 
+    const selectedRegistration = semesterRegistrations.find(
+      (reg) => reg._id === form.semesterRegistration,
+    );
+    const shift = selectedRegistration?.shift;
+
     let active = true;
     setSupportLoading(true);
     setSupportError(null);
 
     Promise.allSettled([
-      getActivePeriodConfig(),
+      getActivePeriodConfig(shift),
       getRooms({
         page: 1,
         limit: 400,
@@ -485,7 +490,7 @@ export function OfferedSubjectFormModal({
     return () => {
       active = false;
     };
-  }, [open]);
+  }, [open, form.semesterRegistration, semesterRegistrations]);
 
   function updateField<T extends keyof OfferedSubjectFormState>(
     key: T,

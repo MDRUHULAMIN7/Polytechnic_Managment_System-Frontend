@@ -30,6 +30,7 @@ export default async function PeriodConfigsPage({ searchParams }: PageProps) {
   const limit = parseNumberParam(readParam(resolvedSearchParams, "limit"), 10);
   const sort = parseSortParam(readParam(resolvedSearchParams, "sort"));
   const isActive = readParam(resolvedSearchParams, "isActive");
+  const shift = readParam(resolvedSearchParams, "shift");
 
   return (
     <Suspense fallback={<TableSkeleton />}>
@@ -39,6 +40,7 @@ export default async function PeriodConfigsPage({ searchParams }: PageProps) {
         limit={limit}
         sort={sort}
         isActive={isActive}
+        shift={shift}
       />
     </Suspense>
   );

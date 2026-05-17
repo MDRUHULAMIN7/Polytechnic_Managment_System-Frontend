@@ -13,6 +13,7 @@ export async function PeriodConfigPageServer({
   limit,
   sort,
   isActive,
+  shift,
 }: PeriodConfigServerProps) {
   const fallbackMeta: PaginationMeta = {
     page,
@@ -32,6 +33,7 @@ export async function PeriodConfigPageServer({
       limit,
       sort,
       isActive: isActive || undefined,
+      shift: shift || undefined,
     });
 
     items = result.result ?? [];
@@ -55,6 +57,7 @@ export async function PeriodConfigPageServer({
       limit={limit}
       sort={sort}
       isActive={isActive}
+      shift={shift}
       canManage={canManage}
       error={error}
     />

@@ -6,7 +6,10 @@ import type {
   PeriodConfig,
   PeriodConfigSortOption,
 } from "@/lib/type/dashboard/admin/period-config";
-import type { PeriodConfigPageProps } from "@/lib/type/dashboard/admin/period-config/ui";
+import type {
+  PeriodConfigFiltersProps,
+  PeriodConfigPageProps,
+} from "@/lib/type/dashboard/admin/period-config/ui";
 import { DashboardErrorBanner } from "@/components/dashboard/shared/dashboard-error-banner";
 import { DashboardPageHeader } from "@/components/dashboard/shared/dashboard-page-header";
 import { showToast } from "@/utils/common/toast";
@@ -48,29 +51,39 @@ function PeriodConfigFilters({
   search,
   sort,
   isActive,
+  shift,
   onSearchChange,
   onSortChange,
   onActiveChange,
-}: {
-  search: string;
-  sort: PeriodConfigSortOption;
-  isActive: string;
-  onSearchChange: (value: string) => void;
-  onSortChange: (value: PeriodConfigSortOption) => void;
-  onActiveChange: (value: string) => void;
-}) {
+  onShiftChange,
+}: PeriodConfigFiltersProps) {
   return (
     <div className="flex flex-col gap-3 rounded-2xl border border-(--line) bg-(--surface) p-4 lg:flex-row lg:items-end lg:justify-between">
-      <div className="w-full lg:max-w-sm">
+      <div className="w-full lg:max-w-xs">
         <label className="text-xs font-semibold uppercase tracking-[0.18em] text-(--text-dim)">
           Search
         </label>
         <input
           value={search}
           onChange={(event) => onSearchChange(event.target.value)}
-          placeholder="Search by configuration label"
+          placeholder="Search by label"
           className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-(--surface) px-3 text-sm"
         />
+      </div>
+
+      <div className="w-full lg:max-w-xs">
+        <label className="text-xs font-semibold uppercase tracking-[0.18em] text-(--text-dim)">
+          Shift
+        </label>
+        <select
+          value={shift}
+          onChange={(event) => onShiftChange(event.target.value)}
+          className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-(--surface) px-3 text-sm text-(--text)"
+        >
+          <option value="">All shifts</option>
+          <option value="MORNING">Morning</option>
+          <option value="DAY">Day</option>
+        </select>
       </div>
 
       <div className="w-full lg:max-w-xs">
@@ -131,6 +144,7 @@ function PeriodConfigTable({
           <thead className="border-b border-(--line) text-xs uppercase tracking-[0.16em] text-(--text-dim)">
             <tr>
               <th className="px-5 py-4 font-semibold">Label</th>
+              <th className="px-5 py-4 font-semibold">Shift</th>
               <th className="px-5 py-4 font-semibold">Effective From</th>
               <th className="px-5 py-4 font-semibold">Periods</th>
               <th className="px-5 py-4 font-semibold">Status</th>
@@ -146,6 +160,9 @@ function PeriodConfigTable({
                   >
                     <td className="px-5 py-4">
                       <div className="h-4 w-40 animate-pulse rounded bg-(--surface-muted)" />
+                    </td>
+                    <td className="px-5 py-4">
+                      <div className="h-4 w-20 animate-pulse rounded bg-(--surface-muted)" />
                     </td>
                     <td className="px-5 py-4">
                       <div className="h-4 w-28 animate-pulse rounded bg-(--surface-muted)" />
@@ -165,7 +182,7 @@ function PeriodConfigTable({
 
             {!loading && items.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-5 py-8 text-center text-(--text-dim)">
+                <td colSpan={6} className="px-5 py-8 text-center text-(--text-dim)">
                   {error
                     ? "Failed to load period configurations."
                     : "No period configurations found."}
@@ -181,6 +198,9 @@ function PeriodConfigTable({
                     <p className="mt-1 text-xs text-(--text-dim)">
                       {item.periods?.length ?? 0} period rows
                     </p>
+                  </td>
+                  <td className="px-5 py-4 capitalize text-(--text-dim)">
+                    {item.shift?.toLowerCase() || "Day"}
                   </td>
                   <td className="px-5 py-4 text-(--text-dim)">
                     {formatEffectiveDate(item.effectiveFrom)}
@@ -293,6 +313,7 @@ export function PeriodConfigPage({
   limit,
   sort,
   isActive,
+  shift,
   canManage,
   error,
 }: PeriodConfigPageProps) {
@@ -302,6 +323,7 @@ export function PeriodConfigPage({
   const [isPending, startTransition] = useTransition();
   const [searchInput, setSearchInput] = useState(searchTerm);
   const [statusFilter, setStatusFilter] = useState(isActive);
+  const [shiftFilter, setShiftFilter] = useState(shift);
   const [createOpen, setCreateOpen] = useState(false);
   const [editItem, setEditItem] = useState<PeriodConfig | null>(null);
   const debouncedSearch = useDebouncedValue(searchInput, 400);
@@ -314,12 +336,17 @@ export function PeriodConfigPage({
     setStatusFilter(isActive);
   }, [isActive]);
 
+  useEffect(() => {
+    setShiftFilter(shift);
+  }, [shift]);
+
   function updateParams(next: {
     searchTerm?: string | null;
     page?: number | null;
     limit?: number | null;
     sort?: PeriodConfigSortOption | null;
     isActive?: string | null;
+    shift?: string | null;
   }) {
     updateListSearchParams({
       pathname,
@@ -332,6 +359,7 @@ export function PeriodConfigPage({
         ["limit", next.limit],
         ["sort", next.sort],
         ["isActive", next.isActive],
+        ["shift", next.shift],
       ],
       defaults: { page: 1, limit: 10, sort: "-effectiveFrom" },
     });
@@ -381,11 +409,16 @@ export function PeriodConfigPage({
         search={searchInput}
         sort={sort}
         isActive={statusFilter}
+        shift={shiftFilter}
         onSearchChange={setSearchInput}
         onSortChange={(value) => updateParams({ sort: value, page: 1 })}
         onActiveChange={(value) => {
           setStatusFilter(value);
           updateParams({ isActive: value || null, page: 1 });
+        }}
+        onShiftChange={(value) => {
+          setShiftFilter(value);
+          updateParams({ shift: value || null, page: 1 });
         }}
       />
 

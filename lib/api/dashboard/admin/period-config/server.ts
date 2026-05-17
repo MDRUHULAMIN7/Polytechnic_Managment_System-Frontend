@@ -61,10 +61,23 @@ export async function getPeriodConfigsServer(
   };
 }
 
-export async function getActivePeriodConfigServer(): Promise<PeriodConfig> {
+export async function getActivePeriodConfigServer(
+  shift?: string,
+  semesterRegistrationId?: string,
+): Promise<PeriodConfig> {
   ensureApiBaseUrl();
   const token = await readAccessToken();
-  const response = await fetch(`${API_BASE_URL}/period-configs/active`, {
+  const searchParams = new URLSearchParams();
+  if (shift) searchParams.set("shift", shift);
+  if (semesterRegistrationId)
+    searchParams.set("semesterRegistrationId", semesterRegistrationId);
+
+  const queryString = searchParams.toString();
+  const url = queryString
+    ? `${API_BASE_URL}/period-configs/active?${queryString}`
+    : `${API_BASE_URL}/period-configs/active`;
+
+  const response = await fetch(url, {
     headers: {
       "Content-Type": "application/json",
       ...authHeaders(token),
