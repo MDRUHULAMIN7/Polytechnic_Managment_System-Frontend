@@ -1,15 +1,15 @@
 "use client";
 
-import type { Instructor } from "@/lib/type/dashboard/admin/instructor";
 import type { OfferedSubject } from "@/lib/type/dashboard/admin/offered-subject";
+import type { Subject } from "@/lib/type/dashboard/admin/subject";
 import type { ManualWorkspaceDraftBlock } from "@/lib/type/dashboard/admin/manual-curriculum-workspace";
 import type { PeriodConfigItem } from "@/lib/type/dashboard/admin/period-config";
 import type { Room } from "@/lib/type/dashboard/admin/room";
-import { resolveInstructorDisplayName } from "@/utils/dashboard/admin/instructor/resolve-display-name";
 import { InstructorAvailabilityTable } from "@/components/dashboard/admin/instructor/instructor-availability-table";
+import { ConflictsPanel } from "./conflicts-panel";
+import type { SchedulePreviewConflict } from "@/lib/type/dashboard/admin/manual-curriculum-workspace";
 
 export function InstructorsAvailabilityPanel({
-  instructors,
   instructorWeekOfferings,
   instructorWeekLoading,
   instructorWeekError,
@@ -17,9 +17,12 @@ export function InstructorsAvailabilityPanel({
   draftBlocks,
   schedulablePeriods,
   rooms,
+  subjects,
   draftSubjectTitle,
+  instructorLabel,
+  conflicts = [],
+  conflictsLoading = false,
 }: {
-  instructors: Instructor[];
   instructorWeekOfferings: OfferedSubject[];
   instructorWeekLoading: boolean;
   instructorWeekError: string | null;
@@ -27,17 +30,15 @@ export function InstructorsAvailabilityPanel({
   draftBlocks: ManualWorkspaceDraftBlock[];
   schedulablePeriods: PeriodConfigItem[];
   rooms: Room[];
+  subjects: Subject[];
   draftSubjectTitle: string;
+  instructorLabel: string;
+  conflicts?: SchedulePreviewConflict[];
+  conflictsLoading?: boolean;
 }) {
-  const instructorLabel = draftInstructorId
-    ? (() => {
-        const i = instructors.find((x) => x._id === draftInstructorId);
-        return i ? resolveInstructorDisplayName(i.name) : "Selected instructor";
-      })()
-    : null;
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-4">
       {instructorLabel ? (
         <p className="rounded-lg border border-(--line) bg-(--surface-muted)/50 px-2 py-1.5 text-[11px] text-(--text)">
           <span className="text-(--text-dim)">Toolbar instructor · </span>
@@ -49,18 +50,30 @@ export function InstructorsAvailabilityPanel({
         </p>
       )}
       {draftInstructorId ? (
-        <div className="max-h-[min(480px,70vh)] overflow-auto">
+        <div className="overflow-auto">
           <InstructorAvailabilityTable
             schedulablePeriods={schedulablePeriods}
             loading={instructorWeekLoading}
             error={instructorWeekError}
             offeredSubjects={instructorWeekOfferings}
+            instructorId={draftInstructorId}
             draftBlocks={draftBlocks}
             rooms={rooms}
+            subjects={subjects}
             draftSubjectTitle={draftSubjectTitle}
+            showLegend={false}
           />
         </div>
       ) : null}
+
+      {conflicts.length > 0 && (
+        <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-4">
+          <h4 className="mb-2 text-[10px] font-bold uppercase tracking-wider text-red-400/80">
+            Instructor Conflicts
+          </h4>
+          <ConflictsPanel conflicts={conflicts} isLoading={conflictsLoading} />
+        </div>
+      )}
     </div>
   );
 }

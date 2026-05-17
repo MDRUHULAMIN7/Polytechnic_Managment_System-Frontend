@@ -1,10 +1,11 @@
 "use client";
 
-import { CheckCircle2, CircleDashed, LockKeyhole, MapPinned, BookOpen, UserRound } from "lucide-react";
+import { CheckCircle2, CircleDashed, LockKeyhole, MapPinned, BookOpen, UserRound, Plus } from "lucide-react";
 import { useMemo } from "react";
 import type { Instructor } from "@/lib/type/dashboard/admin/instructor";
 import type { Room } from "@/lib/type/dashboard/admin/room";
 import type { Subject } from "@/lib/type/dashboard/admin/subject";
+import type { ManualPlanningSubject } from "@/lib/type/dashboard/admin/manual-curriculum-workspace";
 import { resolveInstructorDisplayName } from "@/utils/dashboard/admin/instructor/resolve-display-name";
 import { formatRoomOptionLabel } from "@/utils/dashboard/admin/room/format-room-label";
 
@@ -34,6 +35,8 @@ export function ManualWorkspaceToolbar({
   onSave,
   saving,
   saveDisabledReason,
+  onAddPlannedSubject,
+  plannedSubjects,
 }: {
   subjects: Subject[];
   instructors: Instructor[];
@@ -48,6 +51,8 @@ export function ManualWorkspaceToolbar({
   onSave: () => void;
   saving: boolean;
   saveDisabledReason: string | null;
+  onAddPlannedSubject: (item: ManualPlanningSubject) => void;
+  plannedSubjects: ManualPlanningSubject[];
 }) {
   const selectedSubject = useMemo(
     () => subjects.find((subject) => subject._id === subjectId),
@@ -61,6 +66,12 @@ export function ManualWorkspaceToolbar({
     () => rooms.find((room) => room._id === roomId),
     [roomId, rooms],
   );
+
+  const isAlreadyPlanned = useMemo(() => {
+    return plannedSubjects.some(
+      (p) => p.subjectId === subjectId && p.instructorId === instructorId
+    );
+  }, [plannedSubjects, subjectId, instructorId]);
 
   const steps = [
     {
@@ -127,7 +138,7 @@ export function ManualWorkspaceToolbar({
       </div>
 
       <div className="flex flex-wrap items-end gap-4">
-        <div className="min-w-[200px] flex-1">
+        <div className="min-w-50 flex-1">
           <label className="text-[10px] font-semibold uppercase text-(--text-dim)">
             Subject
           </label>
@@ -153,7 +164,7 @@ export function ManualWorkspaceToolbar({
           </p>
         </div>
 
-        <div className="min-w-[200px] flex-1">
+        <div className="min-w-50 flex-1">
           <label className="text-[10px] font-semibold uppercase text-(--text-dim)">
             Instructor
           </label>
@@ -177,7 +188,7 @@ export function ManualWorkspaceToolbar({
           </p>
         </div>
 
-        <div className="min-w-[200px] flex-1">
+        <div className="min-w-50 flex-1">
           <label className="text-[10px] font-semibold uppercase text-(--text-dim)">
             Room
           </label>
@@ -211,14 +222,26 @@ export function ManualWorkspaceToolbar({
         </div>
 
         <div className="ml-auto flex flex-col items-end gap-1">
-          <button
-            type="button"
-            onClick={onSave}
-            disabled={Boolean(saveDisabledReason) || saving}
-            className="rounded-xl bg-(--accent) px-5 py-2.5 text-sm font-semibold text-(--accent-ink) disabled:opacity-50"
-          >
-            {saving ? "Saving..." : "Save offered subject"}
-          </button>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => onAddPlannedSubject({ subjectId, instructorId })}
+              disabled={!subjectId || !instructorId || isAlreadyPlanned}
+              className="flex items-center gap-1.5 rounded-xl border border-(--accent)/30 bg-(--accent)/5 px-4 py-2.5 text-sm font-semibold text-(--accent) transition-colors hover:bg-(--accent)/10 disabled:opacity-30"
+            >
+              <Plus className="h-4 w-4" />
+              {isAlreadyPlanned ? "Added to Session" : "Add to Session"}
+            </button>
+
+            <button
+              type="button"
+              onClick={onSave}
+              disabled={Boolean(saveDisabledReason) || saving}
+              className="rounded-xl bg-(--accent) px-5 py-2.5 text-sm font-semibold text-(--accent-ink) disabled:opacity-50"
+            >
+              {saving ? "Saving..." : "Save all planned subjects"}
+            </button>
+          </div>
           {saveDisabledReason ? (
             <p className="max-w-xs text-right text-[11px] text-amber-300">
               {saveDisabledReason}

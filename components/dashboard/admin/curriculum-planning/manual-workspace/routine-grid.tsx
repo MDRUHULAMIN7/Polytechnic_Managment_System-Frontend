@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useMemo } from "react";
+import { Fragment } from "react";
 import type {
   ManualWorkspaceDraftBlock,
   SchedulePreviewConflict,
@@ -8,21 +8,32 @@ import type {
 import type { PeriodConfigItem } from "@/lib/type/dashboard/admin/period-config";
 import type { OfferedSubjectDay } from "@/lib/type/dashboard/admin/offered-subject";
 import { OFFERED_SUBJECT_DAYS } from "@/lib/type/dashboard/admin/offered-subject/constants";
+import type { Room } from "@/lib/type/dashboard/admin/room";
+import type { Subject } from "@/lib/type/dashboard/admin/subject";
+import type { Instructor } from "@/lib/type/dashboard/admin/instructor";
+import {
+  type OccupancyInfo,
+} from "@/utils/dashboard/admin/manual-curriculum-workspace/occupancy";
 import { findBlocksCoveringCell } from "@/utils/dashboard/admin/manual-curriculum-workspace/draft-routine";
 import { RoutineCell } from "./routine-cell";
 
 export function RoutineGrid({
   schedulablePeriods,
   draftBlocks,
-  conflicts,
   onEmptyCell,
   onRemoveBlock,
   roomId,
   instructorId,
-  roomOccupancySlots,
-  instructorWeekOccupancy,
+  roomOccupancyMap,
+  instructorWeekOccupancyMap,
   roomConflictReady,
   lockMessage,
+  subjectTitle,
+  instructorLabel,
+  rooms,
+  subjects,
+  instructors,
+  conflictingBlockIds,
 }: {
   schedulablePeriods: PeriodConfigItem[];
   draftBlocks: ManualWorkspaceDraftBlock[];
@@ -31,33 +42,33 @@ export function RoutineGrid({
   onRemoveBlock: (id: string) => void;
   roomId: string;
   instructorId: string;
-  roomOccupancySlots: Set<string>;
-  instructorWeekOccupancy: Set<string>;
+  roomOccupancyMap: Map<string, OccupancyInfo>;
+  instructorWeekOccupancyMap: Map<string, OccupancyInfo>;
   roomConflictReady: boolean;
   lockMessage?: string | null;
+  subjectTitle: string;
+  instructorLabel: string;
+  rooms: Room[];
+  subjects: Subject[];
+  instructors: Instructor[];
+  conflictingBlockIds: Set<string>;
 }) {
-  const conflictingBlockIds = useMemo(() => {
-    const ids = new Set<string>();
-    for (const c of conflicts) {
-      const block = draftBlocks[c.blockIndex];
-      if (block) ids.add(block.id);
-    }
-    return ids;
-  }, [conflicts, draftBlocks]);
-
   const days = OFFERED_SUBJECT_DAYS;
 
   return (
     <div className="overflow-x-auto rounded-2xl border border-(--line) bg-(--surface) p-3">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-(--line) bg-(--surface-muted)/30 px-3 py-2 text-[11px]">
         <div className="text-(--text-dim)">
-          The grid filters progressively. Instructor selection blocks instructor-busy periods first, then room selection adds room-busy blocking.
+          {instructorLabel
+            ? `Filtering by ${instructorLabel}. Instructor-busy slots are blocked.`
+            : "Select an instructor to filter busy periods."}
+          {roomId ? " Room-busy blocking is also active." : ""}
         </div>
         {lockMessage ? (
           <div className="font-medium text-amber-300">{lockMessage}</div>
         ) : (
           <div className="font-medium text-emerald-300">
-            Ready to add only conflict-free blocks.
+            Ready to add {subjectTitle || "block"} only where conflict-free.
           </div>
         )}
       </div>
@@ -101,9 +112,12 @@ export function RoutineGrid({
                     onRemoveBlock={onRemoveBlock}
                     roomId={roomId}
                     instructorId={instructorId}
-                    roomOccupancySlots={roomOccupancySlots}
-                    instructorWeekOccupancy={instructorWeekOccupancy}
+                    roomOccupancyMap={roomOccupancyMap}
+                    instructorWeekOccupancyMap={instructorWeekOccupancyMap}
                     roomConflictReady={roomConflictReady}
+                    rooms={rooms}
+                    subjects={subjects}
+                    instructors={instructors}
                   />
                 </div>
               );

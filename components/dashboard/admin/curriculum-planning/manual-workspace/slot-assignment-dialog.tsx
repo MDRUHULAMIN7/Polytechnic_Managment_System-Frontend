@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { ManualWorkspaceDraftBlock } from "@/lib/type/dashboard/admin/manual-curriculum-workspace";
+import type { Subject } from "@/lib/type/dashboard/admin/subject";
 import type { OfferedSubject, OfferedSubjectClassType, OfferedSubjectDay } from "@/lib/type/dashboard/admin/offered-subject";
 import { OFFERED_SUBJECT_CLASS_TYPES } from "@/lib/type/dashboard/admin/offered-subject/constants";
 import type { PeriodConfigItem } from "@/lib/type/dashboard/admin/period-config";
@@ -33,6 +34,9 @@ type SlotAssignmentFormProps = {
   editingBlock: ManualWorkspaceDraftBlock | null;
   allowedPeriodNos: Set<number>;
   roomId: string; // Passed from toolbar
+  subjectId: string; // Passed from toolbar
+  subject: Subject | null;
+  instructorId: string; // Passed from toolbar
   onClose: () => void;
   onSave: (block: Omit<ManualWorkspaceDraftBlock, "id">) => void;
 };
@@ -49,6 +53,9 @@ function SlotAssignmentForm({
   editingBlock,
   allowedPeriodNos,
   roomId,
+  subjectId,
+  subject,
+  instructorId,
   onClose,
   onSave,
 }: SlotAssignmentFormProps) {
@@ -57,13 +64,23 @@ function SlotAssignmentForm({
   const [classType, setClassType] = useState<OfferedSubjectClassType>(
     editingBlock?.classType ?? "theory",
   );
-  const [periodCount, setPeriodCount] = useState(editingBlock?.periodCount ?? 1);
+  const [periodCount, setPeriodCount] = useState(editingBlock?.periodCount ?? (classType === "practical" ? 3 : 1));
 
   const selectedRoom = useMemo(() => rooms.find((r) => r._id === roomId), [rooms, roomId]);
 
   const maxContiguous = useMemo(() => {
     return resolveMaxContiguousFromStart(schedulablePeriods, startPeriod);
   }, [schedulablePeriods, startPeriod]);
+
+  // Sync periodCount when classType changes
+  const handleClassTypeChange = (newType: OfferedSubjectClassType) => {
+    setClassType(newType);
+    if (newType === "practical") {
+      setPeriodCount(3);
+    } else if (newType === "theory") {
+      setPeriodCount(1);
+    }
+  };
 
   const periodNumbers = useMemo(() => {
     return expandBlockPeriods({
@@ -100,15 +117,57 @@ function SlotAssignmentForm({
     if (!day) return null;
     const candidate = { day: day as OfferedSubjectDay, startPeriod, periodCount };
 
-    // 1. Check against current draft blocks (instructor overlap)
+    // --- New Safety Checks & Validation Logic ---
+    
+    // 1. No multiple classes of same subject in a day
+    const sameSubjectOnSameDay = draftBlocks.some(
+      (b) =>
+        (!editingBlock || b.id !== editingBlock.id) &&
+        b.subjectId === subjectId &&
+        b.day === day
+    );
+    if (sameSubjectOnSameDay) {
+      return "একদিনে একই সাবজেক্টের একাধিক ক্লাস বরাদ্দ করা যাবে না।";
+    }
+
+    // 2. Class count limits based on credits and periods per week
+    if (subject) {
+      const relevantBlocks = draftBlocks.filter(
+        (b) => b.subjectId === subjectId && (!editingBlock || b.id !== editingBlock.id)
+      );
+      
+      const currentTheoryCount = relevantBlocks.filter(b => b.classType === "theory").length;
+      const currentPracticalCount = relevantBlocks.filter(b => b.classType === "practical").length;
+      
+      if (classType === "theory") {
+        const requiredTheory = subject.theoryPeriodsPerWeek ?? 0;
+        if (currentTheoryCount >= requiredTheory) {
+          return `থিওরি ক্লাসের সংখ্যা প্রাক-নির্ধারিত পিরিয়ড (${requiredTheory}) এর বেশি হতে পারবে না।`;
+        }
+      } else if (classType === "practical") {
+        const requiredPracticalPeriods = subject.practicalPeriodsPerWeek ?? 0;
+        const expectedPracticalClasses = Math.floor(requiredPracticalPeriods / 3);
+        if (currentPracticalCount >= expectedPracticalClasses) {
+          return `প্র্যাকটিক্যাল ক্লাসের সংখ্যা অনুপাত অনুযায়ী (${expectedPracticalClasses}) এর বেশি হতে পারবে না।`;
+        }
+      }
+
+      const totalClasses = currentTheoryCount + currentPracticalCount + 1; // +1 for the current candidate
+      if (totalClasses > subject.credits) {
+        return `মোট ক্লাস সংখ্যা সাবজেক্ট ক্রেডিটের (${subject.credits}) বেশি হতে পারবে না।`;
+      }
+    }
+
+    // 3. Check against current draft blocks (instructor overlap)
     const draftOverlap = draftBlocks.some(
       (b) =>
         (!editingBlock || b.id !== editingBlock.id) &&
+        b.instructorId === instructorId &&
         blocksShareSlot(candidate, b),
     );
     if (draftOverlap) return "Instructor already has a block in the current draft during these periods.";
 
-    // 2. Check against existing semester offerings
+    // 4. Check against existing semester offerings
     for (const offering of instructorWeekOfferings) {
       if (!offering.scheduleBlocks) continue;
       for (const block of offering.scheduleBlocks) {
@@ -127,7 +186,7 @@ function SlotAssignmentForm({
     }
 
     return null;
-  }, [day, startPeriod, periodCount, periodNumbers, draftBlocks, editingBlock, instructorWeekOfferings]);
+  }, [day, startPeriod, periodCount, periodNumbers, draftBlocks, editingBlock, instructorWeekOfferings, subjectId, instructorId, subject, classType]);
 
   const roomConflict = useMemo(() => {
     if (!roomId || !day) return null;
@@ -154,14 +213,18 @@ function SlotAssignmentForm({
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    // Explicitly re-check conflicts to be 100% sure
-    if (!roomId || roomConflict || instructorConflict || !isCurrentRoomEligible) {
-      if (roomConflict) {
+    // Explicitly re-check conflicts and required fields to be 100% sure
+    if (!roomId || !subjectId || !instructorId || roomConflict || instructorConflict || !isCurrentRoomEligible) {
+      if (!subjectId) {
+        showToast({ variant: "error", title: "Subject Required", description: "Please select a subject in the toolbar first." });
+      } else if (!instructorId) {
+        showToast({ variant: "error", title: "Instructor Required", description: "Please select an instructor in the toolbar first." });
+      } else if (!roomId) {
+        showToast({ variant: "error", title: "Room Required", description: "Please select a room in the toolbar first." });
+      } else if (roomConflict) {
         showToast({ variant: "error", title: "Room Conflict", description: roomConflict });
       } else if (instructorConflict) {
         showToast({ variant: "error", title: "Instructor Conflict", description: instructorConflict });
-      } else if (!roomId) {
-        showToast({ variant: "error", title: "Room Required", description: "Please select a room in the toolbar." });
       } else {
         showToast({
           variant: "error",
@@ -180,12 +243,14 @@ function SlotAssignmentForm({
       room: roomId,
       startPeriod,
       periodCount,
+      subjectId,
+      instructorId,
     });
     onClose();
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
+    <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/50 p-4">
       <div className="w-full max-w-md rounded-2xl border border-(--line) bg-(--surface) p-5 shadow-2xl">
         <h3 className="text-lg font-semibold text-(--text)">Assign slot</h3>
         <p className="mt-1 text-xs text-(--text-dim)">
@@ -197,7 +262,7 @@ function SlotAssignmentForm({
             <label className="text-xs font-semibold text-(--text-dim)">Class type</label>
             <select
               value={classType}
-              onChange={(ev) => setClassType(ev.target.value as OfferedSubjectClassType)}
+              onChange={(ev) => handleClassTypeChange(ev.target.value as OfferedSubjectClassType)}
               className="mt-1 w-full rounded-lg border border-(--line) bg-(--surface-alt) px-3 py-2 text-sm"
             >
               {OFFERED_SUBJECT_CLASS_TYPES.map((t) => (
@@ -212,7 +277,8 @@ function SlotAssignmentForm({
             <select
               value={periodCount}
               onChange={(ev) => setPeriodCount(Number(ev.target.value))}
-              className="mt-1 w-full rounded-lg border border-(--line) bg-(--surface-alt) px-3 py-2 text-sm"
+              disabled={classType === "practical" || classType === "theory"}
+              className="mt-1 w-full rounded-lg border border-(--line) bg-(--surface-alt) px-3 py-2 text-sm disabled:opacity-70"
             >
               {Array.from({ length: maxContiguous }, (_, i) => i + 1).map((n) => (
                 <option key={n} value={n}>
@@ -220,6 +286,16 @@ function SlotAssignmentForm({
                 </option>
               ))}
             </select>
+            {classType === "practical" && (
+              <p className="mt-1 text-[10px] text-(--text-dim)">
+                প্র্যাকটিক্যাল ক্লাসের জন্য ৩টি পিরিয়ড বাধ্যতামূলক।
+              </p>
+            )}
+            {classType === "theory" && (
+              <p className="mt-1 text-[10px] text-(--text-dim)">
+                থিওরি ক্লাসের জন্য ১টি পিরিয়ড বরাদ্দ করা হয়েছে।
+              </p>
+            )}
           </div>
           <div>
             <label className="text-xs font-semibold text-(--text-dim)">Room</label>
@@ -314,6 +390,9 @@ export function SlotAssignmentDialog({
   editingBlock,
   allowedPeriodNos,
   roomId,
+  subjectId,
+  subject,
+  instructorId,
   onClose,
   onSave,
 }: {
@@ -329,6 +408,9 @@ export function SlotAssignmentDialog({
   editingBlock: ManualWorkspaceDraftBlock | null;
   allowedPeriodNos: Set<number>;
   roomId: string;
+  subjectId: string;
+  subject: Subject | null;
+  instructorId: string;
   onClose: () => void;
   onSave: (block: Omit<ManualWorkspaceDraftBlock, "id">) => void;
 }) {
@@ -348,6 +430,9 @@ export function SlotAssignmentDialog({
       editingBlock={editingBlock}
       allowedPeriodNos={allowedPeriodNos}
       roomId={roomId}
+      subjectId={subjectId}
+      subject={subject}
+      instructorId={instructorId}
       onClose={onClose}
       onSave={onSave}
     />

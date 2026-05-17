@@ -12,15 +12,19 @@ import { CurriculumPlanningStep1 } from "@/components/dashboard/admin/curriculum
 import { RoutineGrid } from "@/components/dashboard/admin/curriculum-planning/manual-workspace/routine-grid";
 import { SlotAssignmentDialog } from "@/components/dashboard/admin/curriculum-planning/manual-workspace/slot-assignment-dialog";
 import { ManualWorkspaceToolbar } from "@/components/dashboard/admin/curriculum-planning/manual-workspace/manual-workspace-toolbar";
+import { ManualPlanningTracker } from "@/components/dashboard/admin/curriculum-planning/manual-workspace/manual-planning-tracker";
 import { ConflictsPanel } from "@/components/dashboard/admin/curriculum-planning/manual-workspace/panels/conflicts-panel";
 import { RoomsAvailabilityPanel } from "@/components/dashboard/admin/curriculum-planning/manual-workspace/panels/rooms-availability-panel";
 import { InstructorsAvailabilityPanel } from "@/components/dashboard/admin/curriculum-planning/manual-workspace/panels/instructors-availability-panel";
 import { loadStep1SupportData } from "@/lib/api/dashboard/admin/curriculum-planning";
+import type { ManualWorkspaceDraftBlock } from "@/lib/type/dashboard/admin/manual-curriculum-workspace";
 import type { CurriculumPlanningStep1Data } from "@/lib/type/dashboard/admin/curriculum-planning";
 import type { OfferedSubjectDay } from "@/lib/type/dashboard/admin/offered-subject";
 import {
-  buildInstructorPeriodOccupancySet,
-  buildSemesterRoomOccupancySet,
+  buildInstructorPeriodOccupancyMap,
+  buildSemesterRoomOccupancyMap,
+  mergeInstructorOccupancyMapWithDraft,
+  mergeRoomOccupancyMapWithDraft,
   roomDayPeriodKey,
 } from "@/utils/dashboard/admin/manual-curriculum-workspace/occupancy";
 import { buildAvailabilityPanelSubtitle } from "@/utils/dashboard/admin/manual-curriculum-workspace/availability-caption";
@@ -97,7 +101,6 @@ function WorkspaceSetupGate() {
 }
 
 function ManualCurriculumWorkspaceInner() {
-  const router = useRouter();
   const { params, isComplete } = useManualWorkspaceRouteParams();
   const queries = useManualWorkspaceBootstrapQueries(params);
   const [qStep1Support, qPeriod, qRoomsList, qStep2, qOfferings] = queries;
@@ -140,8 +143,18 @@ function ManualCurriculumWorkspaceInner() {
     [qOfferings.data],
   );
 
-  const draftApi = useDraftRoutine(params?.maxCapacity ?? 40);
-  const { draft, reset, setSubjectId, setInstructorId, setRoomId, addBlock, removeBlock } = draftApi;
+  const {
+    draft,
+    setSubjectId,
+    setInstructorId,
+    setRoomId,
+    addBlock,
+    removeBlock,
+    removeBlocks,
+    addPlannedSubject,
+    removePlannedSubject,
+    reset,
+  } = useDraftRoutine(params?.maxCapacity ?? 40);
 
   const roomAvailability = useRoomAvailabilityData(Boolean(isComplete && params && draft.roomId));
   const roomAvailabilityError = roomAvailability.error;
@@ -153,8 +166,8 @@ function ManualCurriculumWorkspaceInner() {
     return offerings;
   }, [roomAvailability.offeredSubjects, offerings]);
 
-  const roomOccupancySlots = useMemo(
-    () => buildSemesterRoomOccupancySet(roomOccupancyOfferings, { allowedPeriodNos }),
+  const roomOccupancyMap = useMemo(
+    () => buildSemesterRoomOccupancyMap(roomOccupancyOfferings, { allowedPeriodNos }),
     [roomOccupancyOfferings, allowedPeriodNos],
   );
 
@@ -188,22 +201,54 @@ function ManualCurriculumWorkspaceInner() {
         ? "Failed to load instructor offerings."
         : null;
 
-  const instructorWeekOccupancy = useMemo(
-    () => buildInstructorPeriodOccupancySet(instructorWeekOfferings, { allowedPeriodNos }),
+  const instructorWeekOccupancyMap = useMemo(
+    () => buildInstructorPeriodOccupancyMap(instructorWeekOfferings, { allowedPeriodNos }),
     [instructorWeekOfferings, allowedPeriodNos],
   );
 
-  const draftSubjectTitle = useMemo(() => {
+  const selectedSubject = useMemo(() => {
     const list = step2?.subjects ?? [];
-    const s = list.find((x) => x._id === draft.subjectId);
-    return s?.title?.trim() ?? "";
+    return list.find((x) => x._id === draft.subjectId);
   }, [step2?.subjects, draft.subjectId]);
+
+  const draftSubjectTitle = useMemo(() => {
+    return selectedSubject?.title?.trim() ?? "";
+  }, [selectedSubject]);
 
   const draftInstructorLabel = useMemo(() => {
     const list = step2?.instructors ?? [];
     const i = list.find((x) => x._id === draft.instructorId);
     return i ? resolveInstructorDisplayName(i.name) : "";
   }, [step2?.instructors, draft.instructorId]);
+
+  // Global roomOccupancyMap should include current draft blocks
+  const liveRoomOccupancyMap = useMemo(() => {
+    return mergeRoomOccupancyMapWithDraft(roomOccupancyMap, draft.blocks, {
+      allowedPeriodNos,
+      draftSubjectTitle,
+      draftInstructorLabel,
+    });
+  }, [roomOccupancyMap, draft.blocks, allowedPeriodNos, draftSubjectTitle, draftInstructorLabel]);
+
+  const liveInstructorOccupancyMap = useMemo(() => {
+    return mergeInstructorOccupancyMapWithDraft(
+      instructorWeekOccupancyMap,
+      draft.instructorId,
+      draft.blocks,
+      {
+        allowedPeriodNos,
+        draftSubjectTitle,
+        draftInstructorLabel,
+      },
+    );
+  }, [
+    instructorWeekOccupancyMap,
+    draft.instructorId,
+    draft.blocks,
+    allowedPeriodNos,
+    draftSubjectTitle,
+    draftInstructorLabel,
+  ]);
 
   const offeringsError = qOfferings.isError
     ? qOfferings.error instanceof Error
@@ -225,6 +270,53 @@ function ManualCurriculumWorkspaceInner() {
 
   const preview = useSchedulePreviewQuery(params, draft);
 
+  const roomConflicts = useMemo(() => {
+    return (preview.data?.conflicts ?? []).filter(
+      (c) => c.type === "ROOM_CONFLICT" || c.type === "ROOM_CAPACITY",
+    );
+  }, [preview.data?.conflicts]);
+
+  const instructorConflicts = useMemo(() => {
+    return (preview.data?.conflicts ?? []).filter((c) => c.type === "INSTRUCTOR_CONFLICT");
+  }, [preview.data?.conflicts]);
+
+  const otherConflicts = useMemo(() => {
+    return (preview.data?.conflicts ?? []).filter(
+      (c) =>
+        c.type !== "ROOM_CONFLICT" &&
+        c.type !== "ROOM_CAPACITY" &&
+        c.type !== "INSTRUCTOR_CONFLICT",
+    );
+  }, [preview.data?.conflicts]);
+
+  const conflictingBlockIds = useMemo(() => {
+    const ids = new Set<string>();
+    // 1. Preview conflicts (server-side, specific to current instructor)
+    for (const c of preview.data?.conflicts ?? []) {
+      const block = draft.blocks[c.blockIndex];
+      if (block) ids.add(block.id);
+    }
+
+    // 2. Global validation for ALL blocks in draft (client-side)
+    for (const b of draft.blocks) {
+      // Check room conflict against baseline DB (roomOccupancyMap)
+      const isRoomBusyInDB = Array.from({ length: b.periodCount }).some((_, i) =>
+        roomOccupancyMap.has(roomDayPeriodKey(b.room, b.day, b.startPeriod + i)),
+      );
+      if (isRoomBusyInDB) ids.add(b.id);
+
+      // Check for internal draft conflicts (overlapping rooms or instructors in draft)
+      const isInternalConflict = draft.blocks.some(
+        (other) =>
+          other.id !== b.id &&
+          blocksShareSlot(b, other) &&
+          (other.room === b.room || other.instructorId === b.instructorId),
+      );
+      if (isInternalConflict) ids.add(b.id);
+    }
+    return ids;
+  }, [preview.data?.conflicts, draft.blocks, roomOccupancyMap]);
+
   const [slotDialog, setSlotDialog] = useState<{
     day: OfferedSubjectDay;
     startPeriod: number;
@@ -237,26 +329,75 @@ function ManualCurriculumWorkspaceInner() {
   )?.error;
 
   const saveDisabledReason = useMemo(() => {
-    if (!params) return "Missing planning context.";
-    if (!draft.subjectId) return "Select a subject.";
-    if (!draft.instructorId) return "Select an instructor.";
-    if (!draft.roomId) return "Select a room to unlock conflict-free slot placement.";
-    if (roomAvailability.loading) return "Loading room availability for the selected room.";
-    if (roomAvailabilityError) return "Room availability could not be verified.";
-    if (!draft.blocks.length) return "Add at least one schedule block from the grid.";
-    if (preview.isFetching) return "Waiting for conflict preview…";
-    if (preview.data?.hasConflict) return "Resolve server-reported conflicts before saving.";
+    if (!params) return "প্ল্যানিং কনটেক্সট খুঁজে পাওয়া যায়নি।";
+    if (draft.blocks.length === 0) return "গবেষণাপত্রে অন্তত একটি শিডিউল ব্লক যোগ করুন।";
+
+    // Group blocks by subject and instructor to validate each set
+    const groups = new Map<string, ManualWorkspaceDraftBlock[]>();
+    for (const b of draft.blocks) {
+      const key = `${b.subjectId}:${b.instructorId}`;
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key)!.push(b);
+    }
+
+    for (const [key, blocks] of groups.entries()) {
+      const [subjectId] = key.split(":");
+      const subject = step2?.subjects.find((s) => s._id === subjectId);
+      if (!subject) continue;
+
+      const theoryCount = blocks.filter((b) => b.classType === "theory").length;
+      const practicalCount = blocks.filter((b) => b.classType === "practical").length;
+
+      // 1. Weekly Theory Classes Confirmation
+      const requiredTheory = subject.theoryPeriodsPerWeek ?? 0;
+      if (theoryCount > requiredTheory) {
+        return `${subject.title}: থিওরি ক্লাসের সংখ্যা পিরিয়ড (${requiredTheory}) এর বেশি হতে পারবে না। বর্তমানে: ${theoryCount}`;
+      }
+      if (theoryCount < requiredTheory) {
+        return `${subject.title}: থিওরি ক্লাসের সংখ্যা পিরিয়ড (${requiredTheory}) এর কম হতে পারবে না। বর্তমানে: ${theoryCount}`;
+      }
+
+      // 2. Practical Class Calculation Logic
+      const requiredPracticalPeriods = subject.practicalPeriodsPerWeek ?? 0;
+      const expectedPracticalClasses = Math.floor(requiredPracticalPeriods / 3);
+      if (practicalCount > expectedPracticalClasses) {
+        return `${subject.title}: প্র্যাকটিক্যাল ক্লাসের সংখ্যা অনুপাত অনুযায়ী (${expectedPracticalClasses}) এর বেশি হতে পারবে না। বর্তমানে: ${practicalCount}`;
+      }
+      if (practicalCount < expectedPracticalClasses) {
+        return `${subject.title}: প্র্যাকটিক্যাল ক্লাসের সংখ্যা অনুপাত অনুযায়ী (${expectedPracticalClasses}) এর কম হতে পারবে না। বর্তমানে: ${practicalCount}`;
+      }
+
+      // 3. Total Classes vs Credits
+      const totalClasses = theoryCount + practicalCount;
+      if (totalClasses > subject.credits) {
+        return `${subject.title}: মোট ক্লাস সংখ্যা ক্রেডিটের (${subject.credits}) বেশি হতে পারবে না। বর্তমানে: ${totalClasses}`;
+      }
+      if (totalClasses < subject.credits) {
+        return `${subject.title}: মোট ক্লাস সংখ্যা ক্রেডিটের (${subject.credits}) এর কম হতে পারবে না। বর্তমানে: ${totalClasses}`;
+      }
+
+      // 4. No multiple classes of same subject in a day
+      const daysWithClasses = new Set<string>();
+      for (const b of blocks) {
+        if (daysWithClasses.has(b.day)) {
+          return `${subject.title}: একদিনে একই সাবজেক্টের একাধিক ক্লাস বরাদ্দ করা যাবে না (${b.day})`;
+        }
+        daysWithClasses.add(b.day);
+      }
+    }
+
+    if (preview.isFetching) return "কনফ্লিক্ট চেক করা হচ্ছে, অনুগ্রহ করে অপেক্ষা করুন...";
+    if (preview.data?.hasConflict || conflictingBlockIds.size > 0) {
+      return "সব কনফ্লিক্ট (লাল ব্লকগুলো) সমাধান করে পুনরায় চেষ্টা করুন।";
+    }
     return null;
   }, [
     params,
-    draft.subjectId,
-    draft.instructorId,
-    draft.roomId,
-    roomAvailability.loading,
-    roomAvailabilityError,
-    draft.blocks.length,
+    draft.blocks,
+    step2?.subjects,
     preview.isFetching,
     preview.data?.hasConflict,
+    conflictingBlockIds.size,
   ]);
 
   const gridLockMessage = useMemo(() => {
@@ -274,7 +415,11 @@ function ManualCurriculumWorkspaceInner() {
 
   const handleSave = useCallback(() => {
     if (!params) {
-      showToast({ variant: "error", title: "Missing context", description: "Planning context is missing." });
+      showToast({
+        variant: "error",
+        title: "Missing context",
+        description: "Planning context is missing.",
+      });
       return;
     }
 
@@ -287,79 +432,60 @@ function ManualCurriculumWorkspaceInner() {
       return;
     }
 
-    // Final atomic conflict check before server action
+    // Group blocks by subject and instructor to create multiple offered subjects
+    const groups = new Map<string, ManualWorkspaceDraftBlock[]>();
     for (const b of draft.blocks) {
-      for (const sibling of draft.blocks) {
-        if (sibling.id === b.id) continue;
-        if (blocksShareSlot(b, sibling)) {
-          showToast({
-            variant: "error",
-            title: "Atomic conflict detected",
-            description: `Draft blocks overlap on ${b.day}. Resolve the overlap before saving.`,
-          });
-          return;
-        }
-        if (sibling.room === b.room && blocksShareSlot(b, sibling)) {
-          showToast({
-            variant: "error",
-            title: "Atomic room conflict detected",
-            description: `Room conflict found for ${b.day}. Save aborted.`,
-          });
-          return;
-        }
-      }
+      const key = `${b.subjectId}:${b.instructorId}`;
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key)!.push(b);
+    }
 
-      // Check room conflict
-      const isRoomBusy = Array.from({ length: b.periodCount }).some((_, i) =>
-        roomOccupancySlots.has(roomDayPeriodKey(b.room, b.day, b.startPeriod + i))
-      );
-      if (isRoomBusy) {
-        showToast({
-          variant: "error",
-          title: "Atomic conflict detected",
-          description: `Room conflict found for block on ${b.day}. Save aborted.`,
-        });
-        return;
-      }
-
-      // Check instructor conflict against existing semester offerings
-      for (const offering of instructorWeekOfferings) {
-        if (!offering.scheduleBlocks) continue;
-        for (const existingBlock of offering.scheduleBlocks) {
-          if (blocksShareSlot(b, existingBlock)) {
-            showToast({
-              variant: "error",
-              title: "Atomic conflict detected",
-              description: `Instructor conflict found with "${
-                typeof offering.subject === "string" ? "another subject" : offering.subject.title
-              }" on ${b.day}. Save aborted.`,
-            });
-            return;
-          }
-        }
-      }
+    if (groups.size === 0) {
+      showToast({
+        variant: "error",
+        title: "No blocks found",
+        description: "গবেষণাপত্রে কোনো শিডিউল ব্লক পাওয়া যায়নি।",
+      });
+      return;
     }
 
     startTransition(async () => {
       try {
-        await createOfferedSubjectAction({
-          semesterRegistration: params.semesterRegistrationId,
-          academicInstructor: params.academicInstructorId,
-          academicDepartment: params.academicDepartmentId,
-          subject: draft.subjectId,
-          instructor: draft.instructorId,
-          maxCapacity: draft.maxCapacity,
-          scheduleBlocks: draft.blocks.map((b) => ({
-            classType: b.classType,
-            day: b.day,
-            room: b.room,
-            startPeriod: b.startPeriod,
-            periodCount: b.periodCount,
-          })),
+        let successCount = 0;
+        const savedBlockIds: string[] = [];
+
+        for (const [key, blocks] of groups.entries()) {
+          const [subjectId, instructorId] = key.split(":");
+
+          await createOfferedSubjectAction({
+            semesterRegistration: params.semesterRegistrationId,
+            academicInstructor: params.academicInstructorId,
+            academicDepartment: params.academicDepartmentId,
+            subject: subjectId,
+            instructor: instructorId,
+            maxCapacity: draft.maxCapacity,
+            scheduleBlocks: blocks.map((b) => ({
+              classType: b.classType,
+              day: b.day,
+              room: b.room,
+              startPeriod: b.startPeriod,
+              periodCount: b.periodCount,
+            })),
+          });
+
+          successCount++;
+          savedBlockIds.push(...blocks.map((b) => b.id));
+        }
+
+        showToast({
+          variant: "success",
+          title: "Save successful",
+          description: `সফলভাবে ${successCount} টি সাবজেক্ট অফার করা হয়েছে।`,
         });
-        showToast({ variant: "success", title: "Offered subject created" });
+
+        // Remove all successfully saved blocks from the draft
+        removeBlocks(savedBlockIds);
         preview.invalidateScheduleData();
-        router.push("/dashboard/admin/offered-subjects");
       } catch (e) {
         showToast({
           variant: "error",
@@ -368,7 +494,7 @@ function ManualCurriculumWorkspaceInner() {
         });
       }
     });
-  }, [params, draft, saveDisabledReason, preview, router, roomOccupancySlots, instructorWeekOfferings]);
+  }, [params, draft, saveDisabledReason, preview, removeBlocks]);
 
   if (!isComplete) {
     return (
@@ -435,21 +561,43 @@ function ManualCurriculumWorkspaceInner() {
             onSave={handleSave}
             saving={pending}
             saveDisabledReason={saveDisabledReason}
+            onAddPlannedSubject={addPlannedSubject}
+            plannedSubjects={draft.plannedSubjects}
           />
 
-            <RoutineGrid
-              schedulablePeriods={schedulablePeriods}
-              draftBlocks={draft.blocks}
-              conflicts={preview.data?.conflicts ?? []}
-              onEmptyCell={(day, startPeriod) => setSlotDialog({ day, startPeriod })}
+          <ManualPlanningTracker
+            subjects={step2?.subjects ?? []}
+            instructors={step2?.instructors ?? []}
+            plannedSubjects={draft.plannedSubjects}
+            draftBlocks={draft.blocks}
+            onRemovePlannedSubject={removePlannedSubject}
+            onSelectSubject={(sId, iId) => {
+              setSubjectId(sId);
+              setInstructorId(iId);
+            }}
+            activeSubjectId={draft.subjectId}
+            activeInstructorId={draft.instructorId}
+          />
+
+          <RoutineGrid
+            schedulablePeriods={schedulablePeriods}
+            draftBlocks={draft.blocks}
+            conflicts={preview.data?.conflicts ?? []}
+            onEmptyCell={(day, startPeriod) => setSlotDialog({ day, startPeriod })}
             onRemoveBlock={removeBlock}
-              roomId={draft.roomId}
-              instructorId={draft.instructorId}
-              roomOccupancySlots={roomOccupancySlots}
-              instructorWeekOccupancy={instructorWeekOccupancy}
-              roomConflictReady={roomConflictReady}
-              lockMessage={gridLockMessage}
-            />
+            roomId={draft.roomId}
+            instructorId={draft.instructorId}
+            roomOccupancyMap={liveRoomOccupancyMap}
+            instructorWeekOccupancyMap={liveInstructorOccupancyMap}
+            roomConflictReady={roomConflictReady}
+            lockMessage={gridLockMessage}
+            subjectTitle={draftSubjectTitle}
+            instructorLabel={draftInstructorLabel}
+            rooms={rooms}
+            subjects={step2?.subjects ?? []}
+            instructors={step2?.instructors ?? []}
+            conflictingBlockIds={conflictingBlockIds}
+          />
 
           <div className="grid grid-cols-1 gap-6">
             <StaticPanel title="Room availability" subtitle={availabilityPanelSubtitle}>
@@ -463,12 +611,15 @@ function ManualCurriculumWorkspaceInner() {
                 draftSubjectTitle={draftSubjectTitle}
                 draftInstructorLabel={draftInstructorLabel}
                 allowedPeriodNos={allowedPeriodNos}
+                subjects={step2?.subjects ?? []}
+                instructors={step2?.instructors ?? []}
+                conflicts={roomConflicts}
+                conflictsLoading={preview.isFetching}
               />
             </StaticPanel>
 
             <StaticPanel title="Instructor availability" subtitle={availabilityPanelSubtitle}>
               <InstructorsAvailabilityPanel
-                instructors={step2?.instructors ?? []}
                 instructorWeekOfferings={instructorWeekOfferings}
                 instructorWeekLoading={instructorWeekOfferingsQuery.isPending}
                 instructorWeekError={instructorWeekError}
@@ -476,60 +627,71 @@ function ManualCurriculumWorkspaceInner() {
                 draftBlocks={draft.blocks}
                 schedulablePeriods={schedulablePeriods}
                 rooms={rooms}
+                subjects={step2?.subjects ?? []}
                 draftSubjectTitle={draftSubjectTitle}
+                instructorLabel={draftInstructorLabel}
+                conflicts={instructorConflicts}
+                conflictsLoading={preview.isFetching}
               />
             </StaticPanel>
 
-            <StaticPanel title="Server conflicts (preview)">
-              <ConflictsPanel conflicts={preview.data?.conflicts ?? []} isLoading={preview.isFetching} />
+            <StaticPanel title="Other conflicts (preview)">
+              <ConflictsPanel
+                conflicts={otherConflicts}
+                isLoading={preview.isFetching}
+              />
             </StaticPanel>
           </div>
 
-	          <SlotAssignmentDialog
+          <SlotAssignmentDialog
             open={Boolean(slotDialog)}
             day={slotDialog?.day ?? null}
             startPeriod={slotDialog?.startPeriod ?? null}
             schedulablePeriods={schedulablePeriods}
             maxCapacity={draft.maxCapacity}
             rooms={rooms}
-            semesterRoomSlots={roomOccupancySlots}
+            semesterRoomSlots={new Set(liveRoomOccupancyMap.keys())}
             draftBlocks={draft.blocks}
             instructorWeekOfferings={instructorWeekOfferings}
             editingBlock={null}
             allowedPeriodNos={allowedPeriodNos}
             roomId={draft.roomId}
+            subjectId={draft.subjectId}
+            subject={selectedSubject ?? null}
+            instructorId={draft.instructorId}
             onClose={() => setSlotDialog(null)}
-	            onSave={(block) => {
-	              const draftInstructorOverlap = draft.blocks.some((existingBlock) =>
-	                blocksShareSlot(block, existingBlock),
-	              );
-	              if (draftInstructorOverlap) {
-	                showToast({
-	                  variant: "error",
-	                  title: "Instructor overlap",
-	                  description: "This draft block overlaps another selected block.",
-	                });
-	                return;
-	              }
+            onSave={(block) => {
+              // The block coming from dialog already has subjectId and instructorId
+              const draftInstructorOverlap = draft.blocks.some((existingBlock) =>
+                blocksShareSlot(block, existingBlock),
+              );
+              if (draftInstructorOverlap) {
+                showToast({
+                  variant: "error",
+                  title: "Instructor overlap",
+                  description: "This draft block overlaps another selected block.",
+                });
+                return;
+              }
 
-	              const draftRoomOverlap = draft.blocks.some(
-	                (existingBlock) =>
-	                  existingBlock.room === block.room &&
-	                  blocksShareSlot(block, existingBlock),
-	              );
-	              if (draftRoomOverlap) {
-	                showToast({
-	                  variant: "error",
-	                  title: "Room occupancy conflict",
-	                  description: "This room is already used by another draft block in the same slot.",
-	                });
-	                return;
-	              }
+              const draftRoomOverlap = draft.blocks.some(
+                (existingBlock) =>
+                  existingBlock.room === block.room &&
+                  blocksShareSlot(block, existingBlock),
+              );
+              if (draftRoomOverlap) {
+                showToast({
+                  variant: "error",
+                  title: "Room occupancy conflict",
+                  description: "This room is already used by another draft block in the same slot.",
+                });
+                return;
+              }
 
-	              // Final safety check before adding to draft
-	              const isRoomBusy = Array.from({ length: block.periodCount }).some((_, i) =>
-	                roomOccupancySlots.has(roomDayPeriodKey(block.room, block.day, block.startPeriod + i))
-	              );
+              // Final safety check before adding to draft
+              const isRoomBusy = Array.from({ length: block.periodCount }).some((_, i) =>
+                liveRoomOccupancyMap.has(roomDayPeriodKey(block.room, block.day, block.startPeriod + i))
+              );
               if (isRoomBusy) {
                 showToast({
                   variant: "error",

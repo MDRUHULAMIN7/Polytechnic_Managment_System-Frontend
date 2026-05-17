@@ -24,11 +24,18 @@ export type SchedulePreviewResult = {
 
 export type ManualWorkspaceDraftBlock = {
   id: string;
+  subjectId: string;
+  instructorId: string;
   classType: OfferedSubjectClassType;
   day: OfferedSubjectDay;
   room: string;
   startPeriod: number;
   periodCount: number;
+};
+
+export type ManualPlanningSubject = {
+  subjectId: string;
+  instructorId: string;
 };
 
 export type ManualWorkspaceDraft = {
@@ -38,6 +45,7 @@ export type ManualWorkspaceDraft = {
   /** Mirrors step-1 max capacity; editable in toolbar if needed later. */
   maxCapacity: number;
   blocks: ManualWorkspaceDraftBlock[];
+  plannedSubjects: ManualPlanningSubject[];
 };
 
 export type ManualWorkspaceRouteParams = CurriculumPlanningStep1Data;

@@ -4,11 +4,14 @@ import { useMemo } from "react";
 import type { OfferedSubject } from "@/lib/type/dashboard/admin/offered-subject";
 import { OFFERED_SUBJECT_DAYS } from "@/lib/type/dashboard/admin/offered-subject/constants";
 import type { PeriodConfigItem } from "@/lib/type/dashboard/admin/period-config";
+import type { Subject } from "@/lib/type/dashboard/admin/subject";
+import type { Instructor } from "@/lib/type/dashboard/admin/instructor";
 import type { ManualWorkspaceDraftBlock } from "@/lib/type/dashboard/admin/manual-curriculum-workspace";
 import {
   expandBlockPeriods,
   scheduleBlockRoomId,
 } from "@/utils/dashboard/admin/offered-subject/semester-room-occupancy";
+import { resolveInstructorDisplayName } from "@/utils/dashboard/admin/instructor/resolve-display-name";
 
 function normalizeOfferedSubjectDay(rawDay: unknown): string | null {
   if (typeof rawDay !== "string") return null;
@@ -46,15 +49,29 @@ function toLabel(value: unknown, fallback: string) {
   return fallback;
 }
 
-function resolveSubjectTitle(item: OfferedSubject) {
+function resolveSubjectTitle(item: OfferedSubject, subjects?: Subject[]) {
   if (typeof item.subject === "string") {
+    if (subjects?.length) {
+      const s = subjects.find((x) => x._id === item.subject);
+      if (s) return s.title.trim();
+    }
     return item.subject;
   }
   return toLabel(item.subject?.title, "Unnamed Subject");
 }
 
-function resolveInstructorName(item: OfferedSubject) {
+function resolveInstructorName(item: OfferedSubject, instructors?: Instructor[]) {
   if (typeof item.instructor === "string") {
+    if (instructors?.length) {
+      const i = instructors.find((x) => x._id === item.instructor);
+      if (i) {
+        const name = i.name;
+        const parts = [name.firstName, name.middleName, name.lastName]
+          .map((part) => (typeof part === "string" ? part.trim() : ""))
+          .filter(Boolean);
+        if (parts.length) return parts.join(" ");
+      }
+    }
     return item.instructor;
   }
   const name = item.instructor?.name;
@@ -79,6 +96,8 @@ export function buildRoomWeekOccupancyMap(
   roomId: string,
   options?: {
     draftBlocks?: ManualWorkspaceDraftBlock[];
+    subjects?: Subject[];
+    instructors?: Instructor[];
     draftSubjectTitle?: string;
     draftInstructorLabel?: string;
     allowedPeriodNos?: Set<number>;
@@ -95,8 +114,8 @@ export function buildRoomWeekOccupancyMap(
   }
 
   for (const offeredSubject of offeredSubjects) {
-    const subject = resolveSubjectTitle(offeredSubject);
-    const instructor = resolveInstructorName(offeredSubject);
+    const subject = resolveSubjectTitle(offeredSubject, options?.subjects);
+    const instructor = resolveInstructorName(offeredSubject, options?.instructors);
     for (const block of offeredSubject.scheduleBlocks ?? []) {
       const bid = scheduleBlockRoomId(block.room);
       if (!bid || bid !== roomId) continue;
@@ -117,10 +136,13 @@ export function buildRoomWeekOccupancyMap(
   }
 
   if (options?.draftBlocks?.length) {
-    const subj = options.draftSubjectTitle?.trim() || "New offering (draft)";
-    const inst = options.draftInstructorLabel?.trim() || "Draft instructor";
     for (const b of options.draftBlocks) {
       if (b.room !== roomId) continue;
+
+      const subject = options.subjects?.find((s) => s._id === b.subjectId)?.title || options.draftSubjectTitle || "New offering (draft)";
+      const instructor = options.instructors?.find((i) => i._id === b.instructorId);
+      const instructorLabel = instructor ? resolveInstructorDisplayName(instructor.name) : options.draftInstructorLabel || "Draft instructor";
+
       const dayRaw = b.day;
       const dayClean = typeof dayRaw === "string" ? dayRaw.trim() : String(dayRaw ?? "").trim();
       const day = normalizeOfferedSubjectDay(dayClean) || dayClean;
@@ -131,8 +153,8 @@ export function buildRoomWeekOccupancyMap(
       for (let period = start; period < start + count; period += 1) {
         if (allowed && allowed.size > 0 && !allowed.has(period)) continue;
         addEntry(`${day}-${period}`, {
-          subject: subj,
-          instructor: inst,
+          subject,
+          instructor: instructorLabel,
           classType: b.classType,
           isDraft: true,
         });
@@ -150,6 +172,8 @@ export type RoomAvailabilityTableProps = {
   offeredSubjects: OfferedSubject[];
   roomId: string;
   draftBlocks?: ManualWorkspaceDraftBlock[];
+  subjects?: Subject[];
+  instructors?: Instructor[];
   draftSubjectTitle?: string;
   draftInstructorLabel?: string;
   allowedPeriodNos?: Set<number>;
@@ -167,6 +191,8 @@ export function RoomAvailabilityTable({
   offeredSubjects,
   roomId,
   draftBlocks,
+  subjects,
+  instructors,
   draftSubjectTitle,
   draftInstructorLabel,
   allowedPeriodNos,
@@ -176,11 +202,22 @@ export function RoomAvailabilityTable({
     () =>
       buildRoomWeekOccupancyMap(offeredSubjects, roomId, {
         draftBlocks,
+        subjects,
+        instructors,
         draftSubjectTitle,
         draftInstructorLabel,
         allowedPeriodNos,
       }),
-    [offeredSubjects, roomId, draftBlocks, draftSubjectTitle, draftInstructorLabel, allowedPeriodNos],
+    [
+      offeredSubjects,
+      roomId,
+      draftBlocks,
+      subjects,
+      instructors,
+      draftSubjectTitle,
+      draftInstructorLabel,
+      allowedPeriodNos,
+    ],
   );
 
   if (!roomId) {

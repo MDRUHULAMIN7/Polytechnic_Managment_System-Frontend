@@ -5,10 +5,15 @@ import type { OfferedSubject, OfferedSubjectScheduleBlock } from "@/lib/type/das
 import { OFFERED_SUBJECT_DAYS } from "@/lib/type/dashboard/admin/offered-subject/constants";
 import type { PeriodConfigItem } from "@/lib/type/dashboard/admin/period-config";
 import type { Room } from "@/lib/type/dashboard/admin/room";
+import type { Subject } from "@/lib/type/dashboard/admin/subject";
 import type { ManualWorkspaceDraftBlock } from "@/lib/type/dashboard/admin/manual-curriculum-workspace";
 
-function resolveSubjectTitle(item: OfferedSubject) {
+function resolveSubjectTitle(item: OfferedSubject, subjects?: Subject[]) {
   if (typeof item.subject === "string") {
+    if (subjects?.length) {
+      const s = subjects.find((x) => x._id === item.subject);
+      if (s) return s.title.trim();
+    }
     return item.subject;
   }
   return item.subject?.title?.trim() || "Subject";
@@ -30,8 +35,10 @@ function resolveDraftRoomLabel(roomId: string, rooms?: Room[]) {
 function buildWeekOccupancyMap(
   offeredSubjects: OfferedSubject[],
   options?: {
+    instructorId?: string;
     draftBlocks?: ManualWorkspaceDraftBlock[];
     rooms?: Room[];
+    subjects?: Subject[];
     draftSubjectTitle?: string;
   },
 ): Map<string, { subject: string; room: string; classType: string }> {
@@ -39,7 +46,7 @@ function buildWeekOccupancyMap(
 
   offeredSubjects.forEach((offeredSubject) => {
     offeredSubject.scheduleBlocks?.forEach((block) => {
-      const subject = resolveSubjectTitle(offeredSubject);
+      const subject = resolveSubjectTitle(offeredSubject, options?.subjects);
       const room = resolveRoomLabel(block.room);
       const start = Number(block.startPeriod);
       const count = Number(block.periodCount);
@@ -54,16 +61,19 @@ function buildWeekOccupancyMap(
     });
   });
 
-  if (options?.draftBlocks?.length) {
-    const title = options.draftSubjectTitle?.trim() || "New offering (draft)";
+  if (options?.draftBlocks?.length && options.instructorId) {
     for (const b of options.draftBlocks) {
+      if (b.instructorId !== options.instructorId) continue;
+
+      const subject = options.subjects?.find((s) => s._id === b.subjectId)?.title || options.draftSubjectTitle || "New offering (draft)";
       const room = resolveDraftRoomLabel(b.room, options.rooms);
+
       const start = Number(b.startPeriod);
       const count = Number(b.periodCount);
       if (!Number.isFinite(start) || !Number.isFinite(count) || count <= 0) continue;
       for (let period = start; period < start + count; period += 1) {
         map.set(`${b.day}-${period}`, {
-          subject: title,
+          subject,
           room,
           classType: b.classType,
         });
@@ -80,8 +90,10 @@ export type InstructorAvailabilityTableProps = {
   error: string | null;
   offeredSubjects: OfferedSubject[];
   /** Manual workspace: overlay draft blocks on top of DB offerings for the same grid. */
+  instructorId?: string;
   draftBlocks?: ManualWorkspaceDraftBlock[];
   rooms?: Room[];
+  subjects?: Subject[];
   draftSubjectTitle?: string;
   /** When false, hide legend (e.g. nested in toolbar). */
   showLegend?: boolean;
@@ -96,19 +108,23 @@ export function InstructorAvailabilityTable({
   loading,
   error,
   offeredSubjects,
+  instructorId,
   draftBlocks,
   rooms,
+  subjects,
   draftSubjectTitle,
   showLegend = true,
 }: InstructorAvailabilityTableProps) {
   const occupancy = useMemo(
     () =>
       buildWeekOccupancyMap(offeredSubjects, {
+        instructorId,
         draftBlocks,
         rooms,
+        subjects,
         draftSubjectTitle,
       }),
-    [offeredSubjects, draftBlocks, rooms, draftSubjectTitle],
+    [offeredSubjects, instructorId, draftBlocks, rooms, subjects, draftSubjectTitle],
   );
 
   if (loading) {
