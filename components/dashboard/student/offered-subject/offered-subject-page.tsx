@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -114,7 +114,8 @@ export function OfferedSubjectPage({
         basePath="/dashboard/student/offered-subjects"
         showEdit={false}
         showDelete={false}
-        actionsLabel="View"
+        actionsLabel="Actions"
+        viewLabel="Details"
       />
 
       <OfferedSubjectPagination

@@ -37,6 +37,7 @@ export type OfferedSubject = {
   subject: Subject | string;
   instructor: Instructor | string;
   maxCapacity: number;
+  totalCapacity: number;
   days: OfferedSubjectDay[];
   startTime: string;
   endTime: string;

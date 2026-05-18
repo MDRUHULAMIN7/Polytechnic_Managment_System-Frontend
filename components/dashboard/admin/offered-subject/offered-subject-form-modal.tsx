@@ -38,6 +38,9 @@ import {
 import { showToast } from "@/utils/common/toast";
 import { generateMessageId } from "@/utils/common/generateId";
 import { Modal } from "./modal";
+import { BasicInfoSection } from "./form/basic-info-section";
+import { SupportSection } from "./form/support-section";
+import { ScheduleBlocksSection } from "./form/schedule-blocks-section";
 import { useInstructorBusySlots } from "@/hooks/dashboard/admin/offered-subject/use-instructor-busy-slots";
 import { useSemesterRoomOccupancy } from "@/hooks/dashboard/admin/offered-subject/use-semester-room-occupancy";
 import { useOfferedSubjectOptions } from "@/hooks/dashboard/admin/offered-subject/use-offered-subject-options";
@@ -821,738 +824,91 @@ export function OfferedSubjectFormModal({
         }
         maxWidth="max-w-5xl"
       >
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className="text-xs font-semibold uppercase tracking-[0.18em] text-(--text-dim)">
-                Academic Instructor
-              </label>
-              <input
-                type="search"
-                value={academicInstructorQuery}
-                onChange={(event) =>
-                  setAcademicInstructorQuery(event.target.value)
-                }
-                disabled={isEdit}
-                placeholder="Search academic instructor"
-                className="focus-ring mt-2 h-10 w-full rounded-xl border border-(--line) bg-(--surface) px-3 text-sm text-(--text) disabled:opacity-70"
-              />
-              <select
-                value={form.academicInstructor}
-                onChange={(event) =>
-                  updateField("academicInstructor", event.target.value)
-                }
-                disabled={isEdit}
-                className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-(--surface) px-3 text-sm text-(--text) disabled:opacity-70"
-              >
-                <option value="" className="bg-(--surface) text-(--text)">
-                  Select academic instructor
-                </option>
-                {academicInstructorOptions.map((item) => (
-                  <option
-                    key={item._id}
-                    value={item._id}
-                    className="bg-(--surface) text-(--text)"
-                  >
-                    {item.name}
-                  </option>
-                ))}
-              </select>
-              {academicInstructorLoading ? (
-                <p className="mt-2 text-xs text-(--text-dim)">
-                  Loading instructors...
-                </p>
-              ) : academicInstructorError ? (
-                <p className="mt-2 text-xs text-red-400">
-                  {academicInstructorError}
-                </p>
-              ) : (
-                <p className="mt-2 text-xs text-(--text-dim)">
-                  Showing up to 50 results. Type to search.
-                </p>
-              )}
-            </div>
+        <form onSubmit={handleSubmit} className="space-y-8">
+          <BasicInfoSection
+            form={form}
+            updateField={updateField}
+            isEdit={isEdit}
+            academicInstructorQuery={academicInstructorQuery}
+            setAcademicInstructorQuery={setAcademicInstructorQuery}
+            academicInstructorOptions={academicInstructorOptions}
+            academicInstructorLoading={academicInstructorLoading}
+            academicInstructorError={academicInstructorError}
+            departmentQuery={departmentQuery}
+            setDepartmentQuery={setDepartmentQuery}
+            departmentOptions={departmentOptions}
+            departmentLoading={departmentLoading}
+            departmentError={departmentError}
+            instructorQuery={instructorQuery}
+            setInstructorQuery={setInstructorQuery}
+            instructorOptions={instructorOptions}
+            instructorLoading={instructorLoading}
+            instructorError={instructorError}
+            semesterRegistrations={semesterRegistrations}
+            semesterLabel={semesterLabel}
+            offeredSummaryLoading={offeredSummaryLoading}
+            offeredSummaryError={offeredSummaryError}
+            offeredLabels={offeredLabels}
+            subjectQuery={subjectQuery}
+            setSubjectQuery={setSubjectQuery}
+            subjectOptions={subjectOptions}
+            subjectLoading={subjectLoading}
+            subjectError={subjectError}
+            renderRegistrationOption={renderRegistrationOption}
+          />
 
-            <div>
-              <label className="text-xs font-semibold uppercase tracking-[0.18em] text-(--text-dim)">
-                Academic Department
-              </label>
-              <input
-                type="search"
-                value={departmentQuery}
-                onChange={(event) => setDepartmentQuery(event.target.value)}
-                disabled={isEdit || !form.academicInstructor}
-                placeholder="Search department"
-                className="focus-ring mt-2 h-10 w-full rounded-xl border border-(--line) bg-(--surface) px-3 text-sm text-(--text) disabled:opacity-70"
-              />
-              <select
-                value={form.academicDepartment}
-                onChange={(event) =>
-                  updateField("academicDepartment", event.target.value)
-                }
-                disabled={isEdit || !form.academicInstructor}
-                className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-(--surface) px-3 text-sm text-(--text) disabled:opacity-70"
-              >
-                <option value="" className="bg-(--surface) text-(--text)">
-                  Select department
-                </option>
-                {departmentOptions.map((item) => (
-                  <option
-                    key={item._id}
-                    value={item._id}
-                    className="bg-(--surface) text-(--text)"
-                  >
-                    {item.name}
-                  </option>
-                ))}
-              </select>
-              {!form.academicInstructor ? (
-                <p className="mt-2 text-xs text-(--text-dim)">
-                  Select academic instructor to load departments.
-                </p>
-              ) : departmentLoading ? (
-                <p className="mt-2 text-xs text-(--text-dim)">
-                  Loading departments...
-                </p>
-              ) : departmentError ? (
-                <p className="mt-2 text-xs text-red-400">{departmentError}</p>
-              ) : (
-                <p className="mt-2 text-xs text-(--text-dim)">
-                  Showing up to 50 results. Type to search.
-                </p>
-              )}
-            </div>
+          <SupportSection
+            form={form}
+            supportLoading={supportLoading}
+            supportError={supportError}
+            activePeriodConfig={activePeriodConfig}
+            rooms={rooms}
+            schedulablePeriods={schedulablePeriods}
+            busyLoading={busyLoading}
+            busyError={busyError}
+            busySlots={busySlots}
+          />
 
-            <div>
-              <label className="text-xs font-semibold uppercase tracking-[0.18em] text-(--text-dim)">
-                Instructor
-              </label>
-              <input
-                type="search"
-                value={instructorQuery}
-                onChange={(event) => setInstructorQuery(event.target.value)}
-                disabled={isEdit || !form.academicInstructor}
-                placeholder="Search instructor"
-                className="focus-ring mt-2 h-10 w-full rounded-xl border border-(--line) bg-(--surface) px-3 text-sm text-(--text) disabled:opacity-70"
-              />
-              <select
-                value={form.instructor}
-                onChange={(event) =>
-                  updateField("instructor", event.target.value)
-                }
-                disabled={isEdit || !form.academicInstructor}
-                className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-(--surface) px-3 text-sm text-(--text) disabled:opacity-70"
-              >
-                <option value="" className="bg-(--surface) text-(--text)">
-                  Select instructor
-                </option>
-                {instructorOptions.map((item) => (
-                  <option
-                    key={item._id}
-                    value={item._id}
-                    className="bg-(--surface) text-(--text)"
-                  >
-                    {resolveName(item.name)} ({item.designation})
-                  </option>
-                ))}
-              </select>
-              {!form.academicInstructor ? (
-                <p className="mt-2 text-xs text-(--text-dim)">
-                  Select academic instructor to load instructors.
-                </p>
-              ) : instructorLoading ? (
-                <p className="mt-2 text-xs text-(--text-dim)">
-                  Loading instructors...
-                </p>
-              ) : instructorError ? (
-                <p className="mt-2 text-xs text-red-400">{instructorError}</p>
-              ) : (
-                <p className="mt-2 text-xs text-(--text-dim)">
-                  Showing up to 50 results. Type to search.
-                </p>
-              )}
-            </div>
+          <ScheduleBlocksSection
+            blocks={form.scheduleBlocks}
+            addBlock={addScheduleBlock}
+            removeBlock={removeScheduleBlock}
+            updateBlock={(id, field, value) => {
+              updateScheduleBlock(id, { [field]: value });
+            }}
+            rooms={rooms}
+            roomsById={roomsById}
+            schedulablePeriods={schedulablePeriods}
+            maxCapacity={Number(form.maxCapacity)}
+            isRoomEligibleForClassType={isRoomEligibleForClassType}
+            isRoomFreeForDayPeriods={isRoomFreeForDayPeriods}
+            mergeOccupancyWithSiblingBlocks={mergeOccupancyWithSiblingBlocks}
+            occupiedRoomSlots={occupiedRoomSlots}
+            resolveSelectedPeriods={resolveSelectedPeriods}
+            resolveMaxContiguousCount={resolveMaxContiguousCount}
+            isObjectId={isObjectId}
+          />
 
-            <div>
-              <label className="text-xs font-semibold uppercase tracking-[0.18em] text-(--text-dim)">
-                Semester Registration
-              </label>
-              <select
-                value={form.semesterRegistration}
-                onChange={(event) =>
-                  updateField("semesterRegistration", event.target.value)
-                }
-                disabled={isEdit}
-                className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-(--surface) px-3 text-sm text-(--text) disabled:opacity-70"
-              >
-                <option value="" className="bg-(--surface) text-(--text)">
-                  Select registration
-                </option>
-                {semesterRegistrations.map((registration) => (
-                  <option
-                    key={registration._id}
-                    value={registration._id}
-                    className="bg-(--surface) text-(--text)"
-                  >
-                    {renderRegistrationOption(registration)}
-                  </option>
-                ))}
-              </select>
-              <p className="mt-2 text-xs text-(--text-dim)">
-                Academic Semester:{" "}
-                <span className="font-medium">{semesterLabel}</span>
-              </p>
-              <div className="mt-2 text-xs">
-                {offeredSummaryLoading ? (
-                  <p className="text-(--text-dim)">
-                    Loading offered subjects...
-                  </p>
-                ) : offeredSummaryError ? (
-                  <p className="text-red-400">{offeredSummaryError}</p>
-                ) : offeredLabels.length > 0 ? (
-                  <p className="text-(--text-dim)">
-                    Offered subjects ({offeredLabels.length}):{" "}
-                    <span className="text-(--text)">
-                      {offeredLabels.join(", ")}
-                    </span>
-                  </p>
-                ) : (
-                  <p className="text-(--text-dim)">
-                    No subjects offered yet in this registration.
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div>
-              <label className="text-xs font-semibold uppercase tracking-[0.18em] text-(--text-dim)">
-                Subject
-              </label>
-              <input
-                type="search"
-                value={subjectQuery}
-                onChange={(event) => setSubjectQuery(event.target.value)}
-                disabled={isEdit}
-                placeholder="Search subject"
-                className="focus-ring mt-2 h-10 w-full rounded-xl border border-(--line) bg-(--surface) px-3 text-sm text-(--text) disabled:opacity-70"
-              />
-              <select
-                value={form.subject}
-                onChange={(event) => updateField("subject", event.target.value)}
-                disabled={isEdit}
-                className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-(--surface) px-3 text-sm text-(--text) disabled:opacity-70"
-              >
-                <option value="" className="bg-(--surface) text-(--text)">
-                  Select subject
-                </option>
-                {subjectOptions.map((item) => (
-                  <option
-                    key={item._id}
-                    value={item._id}
-                    className="bg-(--surface) text-(--text)"
-                  >
-                    {item.title}
-                  </option>
-                ))}
-              </select>
-              {subjectLoading ? (
-                <p className="mt-2 text-xs text-(--text-dim)">
-                  Loading subjects...
-                </p>
-              ) : subjectError ? (
-                <p className="mt-2 text-xs text-red-400">{subjectError}</p>
-              ) : (
-                <p className="mt-2 text-xs text-(--text-dim)">
-                  Showing up to 50 results. Type to search.
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="text-xs font-semibold uppercase tracking-[0.18em] text-(--text-dim)">
-                Max Capacity
-              </label>
-              <div className="mt-2 flex gap-2">
-                <input
-                  value={form.maxCapacity}
-                  onChange={(event) =>
-                    updateField("maxCapacity", event.target.value)
-                  }
-                  className="focus-ring h-11 flex-1 rounded-xl border border-(--line) bg-transparent px-3 text-sm"
-                  inputMode="numeric"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-xl border border-(--line) bg-(--surface) p-4 text-sm">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-(--text-dim)">
-                  Scheduling Support
-                </p>
-                <p className="mt-1 text-(--text-dim)">
-                  Offered subjects now use room-based schedule blocks from the
-                  active period configuration.
-                </p>
-              </div>
-              <div className="text-xs text-(--text-dim)">
-                <Link
-                  href="/dashboard/admin/period-configs"
-                  className="font-medium text-(--accent) underline-offset-4 hover:underline"
-                >
-                  Manage period configs
-                </Link>
-                {" | "}
-                <Link
-                  href="/dashboard/admin/rooms"
-                  className="font-medium text-(--accent) underline-offset-4 hover:underline"
-                >
-                  Manage rooms
-                </Link>
-              </div>
-            </div>
-
-            <div className="mt-3 flex flex-wrap items-center gap-3">
-              <Link
-                href="/dashboard/admin/curriculum-planning"
-                className="focus-ring inline-flex h-10 items-center justify-center rounded-xl border border-(--accent) px-4 text-sm font-semibold text-(--accent) transition hover:opacity-90"
-              >
-                Open AI Planner Page
-              </Link>
-              <p className="text-xs text-(--text-dim)">
-                Multi-subject AI curriculum planning now runs on its own dedicated page
-                so manual offering stays focused here.
-              </p>
-            </div>
-
-            {supportLoading ? (
-              <p className="mt-3 text-(--text-dim)">
-                Loading rooms and active periods...
-              </p>
-            ) : supportError ? (
-              <p className="mt-3 text-red-400">{supportError}</p>
-            ) : (
-              <div className="mt-3 space-y-3">
-                <div className="rounded-xl border border-(--line) bg-(--surface-muted) px-4 py-3">
-                  <p className="font-medium">
-                    Active Config: {activePeriodConfig?.label ?? "--"}
-                  </p>
-                  <p className="mt-1 text-xs text-(--text-dim)">
-                    Effective from{" "}
-                    {activePeriodConfig?.effectiveFrom
-                      ? activePeriodConfig.effectiveFrom.slice(0, 10)
-                      : "--"}{" "}
-                    | {rooms.length} active room{rooms.length === 1 ? "" : "s"}{" "}
-                    available
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap gap-2">
-                  {schedulablePeriods.length ? (
-                    schedulablePeriods.map((period) => (
-                      <span
-                        key={period.periodNo}
-                        className="rounded-full border border-(--line) bg-(--surface) px-3 py-1 text-xs text-(--text-dim)"
-                      >
-                        P{period.periodNo}: {period.startTime}-{period.endTime}
-                      </span>
-                    ))
-                  ) : (
-                    <span className="text-xs text-(--text-dim)">
-                      No teachable periods found in the active configuration.
-                    </span>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="rounded-xl border border-(--line) bg-(--surface) p-4 text-sm">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-(--text-dim)">
-              Instructor Availability
-            </p>
-            {!form.instructor || !form.semesterRegistration ? (
-              <p className="mt-2 text-(--text-dim)">
-                Select instructor and semester registration to see busy slots.
-              </p>
-            ) : busyLoading ? (
-              <p className="mt-2 text-(--text-dim)">Loading schedules...</p>
-            ) : busyError ? (
-              <p className="mt-2 text-red-400">{busyError}</p>
-            ) : busySlots.length === 0 ? (
-              <p className="mt-2 text-(--text-dim)">
-                No busy slots found for this instructor in the selected
-                registration.
-              </p>
-            ) : (
-              <div className="mt-2 space-y-2">
-                {busySlots.map((slot) => {
-                  const subjectTitle =
-                    typeof slot.subject === "string"
-                      ? slot.subject
-                      : slot.subject?.title;
-                  const daysLabel = slot.days?.length
-                    ? slot.days.join(", ")
-                    : "--";
-                  const timeLabel =
-                    slot.startTime && slot.endTime
-                      ? `${slot.startTime} - ${slot.endTime}`
-                      : "--";
-                  return (
-                    <div
-                      key={slot._id}
-                      className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-(--line) px-3 py-2"
-                    >
-                      <div className="flex-1">
-                        <p className="font-medium">
-                          {subjectTitle ?? "Assigned Subject"}
-                        </p>
-                        <p className="text-xs text-(--text-dim)">{daysLabel}</p>
-                      </div>
-                      <span className="text-xs font-semibold text-(--text)">
-                        {timeLabel}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-
-          <div className="space-y-3">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-(--text-dim)">
-                  Schedule Blocks
-                </p>
-                <p className="mt-1 text-sm text-(--text-dim)">
-                  Add separate blocks for theory, practical, or tutorial
-                  sessions with assigned rooms.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={addScheduleBlock}
-                className="focus-ring inline-flex h-10 items-center justify-center rounded-xl border border-(--line) px-4 text-sm font-semibold text-(--text) transition hover:bg-(--surface-muted)"
-              >
-                Add Block
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              {form.scheduleBlocks.map((block, index) => {
-                const selectedPeriods = resolveSelectedPeriods(
-                  block,
-                  schedulablePeriods,
-                );
-                const selectedRoom = roomsById.get(block.room);
-                const maxCapacityNum = Number(form.maxCapacity);
-                const passesCapacity = (r: Room) =>
-                  !Number.isFinite(maxCapacityNum) ||
-                  maxCapacityNum <= 0 ||
-                  r.capacity >= maxCapacityNum;
-
-                const combinedSlots = mergeOccupancyWithSiblingBlocks(
-                  occupiedRoomSlots,
-                  form.scheduleBlocks,
-                  block.id,
-                );
-                const periodNos = selectedPeriods.map((p) => p.periodNo);
-                const hasSlotSelection = Boolean(
-                  block.day && periodNos.length > 0,
-                );
-
-                const eligibleRooms = rooms
-                  .filter(passesCapacity)
-                  .filter((r) => isRoomEligibleForClassType(r, block.classType))
-                  .filter((r) =>
-                    !hasSlotSelection
-                      ? true
-                      : isRoomFreeForDayPeriods(
-                          r._id,
-                          block.day,
-                          periodNos,
-                          combinedSlots,
-                        ),
-                  );
-
-                const eligibleIds = new Set(
-                  eligibleRooms.map((room) => room._id),
-                );
-                const roomSelectList: Room[] = [...eligibleRooms];
-                if (
-                  block.room &&
-                  selectedRoom &&
-                  !eligibleIds.has(block.room) &&
-                  passesCapacity(selectedRoom) &&
-                  isRoomEligibleForClassType(selectedRoom, block.classType)
-                ) {
-                  roomSelectList.unshift(selectedRoom);
-                }
-
-                const currentRoomConflictsSlot =
-                  hasSlotSelection &&
-                  block.room &&
-                  isObjectId(block.room) &&
-                  !isRoomFreeForDayPeriods(
-                    block.room,
-                    block.day,
-                    periodNos,
-                    combinedSlots,
-                  );
-
-                const maxCount = resolveMaxContiguousCount(
-                  schedulablePeriods,
-                  block.startPeriod,
-                );
-                const periodCountOptions =
-                  maxCount > 0
-                    ? Array.from(
-                        { length: maxCount },
-                        (_, optionIndex) => optionIndex + 1,
-                      )
-                    : [1];
-
-                return (
-                  <div
-                    key={block.id}
-                    className="rounded-2xl border border-(--line) bg-(--surface) p-4"
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-3">
-                      <div>
-                        <p className="font-medium">Block {index + 1}</p>
-                        <p className="mt-1 text-xs text-(--text-dim)">
-                          {selectedPeriods.length
-                            ? `${selectedPeriods[0].startTime}-${selectedPeriods[selectedPeriods.length - 1].endTime} | Periods ${selectedPeriods
-                                .map((period) => period.periodNo)
-                                .join(", ")}`
-                            : "Select room and contiguous periods from the active config."}
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => removeScheduleBlock(block.id)}
-                        disabled={form.scheduleBlocks.length === 1}
-                        className="focus-ring inline-flex h-9 items-center justify-center rounded-lg border border-red-500/40 px-3 text-xs font-semibold text-red-300 transition hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        Remove
-                      </button>
-                    </div>
-
-                    <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_1fr_1.6fr_1fr_1fr]">
-                      <div>
-                        <label className="text-xs font-semibold uppercase tracking-[0.16em] text-(--text-dim)">
-                          Class Type
-                        </label>
-                        <select
-                          value={block.classType}
-                          onChange={(event) =>
-                            updateScheduleBlock(block.id, (current) => ({
-                              ...current,
-                              classType: event.target
-                                .value as OfferedSubjectClassType,
-                            }))
-                          }
-                          className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-(--surface) px-3 text-sm text-(--text)"
-                        >
-                          {OFFERED_SUBJECT_CLASS_TYPES.map((type) => (
-                            <option key={type} value={type}>
-                              {type}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="text-xs font-semibold uppercase tracking-[0.16em] text-(--text-dim)">
-                          Day
-                        </label>
-                        <select
-                          value={block.day}
-                          onChange={(event) =>
-                            updateScheduleBlock(block.id, (current) => ({
-                              ...current,
-                              day: event.target
-                                .value as OfferedSubjectEditableScheduleBlock["day"],
-                            }))
-                          }
-                          className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-(--surface) px-3 text-sm text-(--text)"
-                        >
-                          <option value="">Select day</option>
-                          {OFFERED_SUBJECT_DAYS.map((day) => (
-                            <option key={day} value={day}>
-                              {day}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="text-xs font-semibold uppercase tracking-[0.16em] text-(--text-dim)">
-                          Room
-                          {roomOccupancyLoading ? (
-                            <span className="ml-2 font-normal text-(--text-dim)">
-                              (loading availability…)
-                            </span>
-                          ) : null}
-                        </label>
-                        <select
-                          value={block.room}
-                          onChange={(event) =>
-                            updateScheduleBlock(block.id, (current) => ({
-                              ...current,
-                              room: event.target.value,
-                            }))
-                          }
-                          disabled={supportLoading || !rooms.length}
-                          className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-(--surface) px-3 text-sm text-(--text) disabled:opacity-70"
-                        >
-                          <option value="">Select room</option>
-                          {roomSelectList.map((room) => (
-                            <option key={room._id} value={room._id}>
-                              {resolveRoomLabel(room)}
-                            </option>
-                          ))}
-                        </select>
-                        {!hasSlotSelection ? (
-                          <p className="mt-1 text-[11px] text-(--text-dim)">
-                            Choose day and periods first; the list then shows
-                            only rooms free in this semester for that slot
-                            (same rule as the admin room timetable).
-                          </p>
-                        ) : eligibleRooms.length === 0 ? (
-                          <p className="mt-1 text-[11px] text-amber-300">
-                            No room is free for this class type, capacity, and
-                            time slot in this semester. Change day, periods, or
-                            capacity.
-                          </p>
-                        ) : null}
-                        {roomOccupancyError ? (
-                          <p className="mt-1 text-[11px] text-red-300">
-                            {roomOccupancyError}
-                          </p>
-                        ) : null}
-                        {currentRoomConflictsSlot ? (
-                          <p className="mt-1 text-[11px] text-amber-300">
-                            This room is already booked for this day and period
-                            range in this semester (or in another block here).
-                            Pick another room or time.
-                          </p>
-                        ) : null}
-                      </div>
-
-                      <div>
-                        <label className="text-xs font-semibold uppercase tracking-[0.16em] text-(--text-dim)">
-                          Start Period
-                        </label>
-                        <select
-                          value={block.startPeriod}
-                          onChange={(event) =>
-                            updateScheduleBlock(block.id, (current) => {
-                              const nextStartPeriod = event.target.value;
-                              const nextMaxCount = resolveMaxContiguousCount(
-                                schedulablePeriods,
-                                nextStartPeriod,
-                              );
-                              const currentCount = Number(current.periodCount);
-                              return {
-                                ...current,
-                                startPeriod: nextStartPeriod,
-                                periodCount:
-                                  currentCount > 0 &&
-                                  currentCount <= nextMaxCount
-                                    ? current.periodCount
-                                    : nextMaxCount > 0
-                                      ? "1"
-                                      : "",
-                              };
-                            })
-                          }
-                          disabled={!schedulablePeriods.length}
-                          className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-(--surface) px-3 text-sm text-(--text) disabled:opacity-70"
-                        >
-                          <option value="">Select period</option>
-                          {schedulablePeriods.map((period) => (
-                            <option
-                              key={period.periodNo}
-                              value={period.periodNo}
-                            >
-                              P{period.periodNo} ({period.startTime}-
-                              {period.endTime})
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="text-xs font-semibold uppercase tracking-[0.16em] text-(--text-dim)">
-                          Period Count
-                        </label>
-                        <select
-                          value={block.periodCount}
-                          onChange={(event) =>
-                            updateScheduleBlock(block.id, (current) => ({
-                              ...current,
-                              periodCount: event.target.value,
-                            }))
-                          }
-                          disabled={
-                            !block.startPeriod || !schedulablePeriods.length
-                          }
-                          className="focus-ring mt-2 h-11 w-full rounded-xl border border-(--line) bg-(--surface) px-3 text-sm text-(--text) disabled:opacity-70"
-                        >
-                          {!block.startPeriod ? (
-                            <option value="">Select start period first</option>
-                          ) : null}
-                          {periodCountOptions.map((count) => (
-                            <option key={count} value={count}>
-                              {count}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-
-                    <div className="mt-4 rounded-xl border border-(--line) bg-(--surface-muted) px-4 py-3 text-sm">
-                      <p className="font-medium">
-                        {selectedPeriods.length
-                          ? `${selectedPeriods[0].startTime} to ${selectedPeriods[selectedPeriods.length - 1].endTime}`
-                          : "Waiting for a valid contiguous period selection"}
-                      </p>
-                      <p className="mt-1 text-xs text-(--text-dim)">
-                        {selectedRoom
-                          ? `${selectedRoom.roomName} capacity ${selectedRoom.capacity}`
-                          : "Select a room to validate capacity."}
-                      </p>
-                      {selectedRoom &&
-                      form.maxCapacity &&
-                      Number(form.maxCapacity) > selectedRoom.capacity ? (
-                        <p className="mt-2 text-xs text-amber-300">
-                          Room capacity is below the current max capacity.
-                        </p>
-                      ) : null}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="flex items-center justify-end gap-2">
+          <div className="flex items-center justify-end gap-3 border-t border-(--line) pt-6">
             <button
               type="button"
               onClick={onClose}
-              className="focus-ring inline-flex h-10 items-center justify-center rounded-xl border border-(--line) px-4 text-sm font-semibold text-(--text-dim) transition hover:bg-(--surface-muted)"
+              className="focus-ring h-11 rounded-xl px-6 text-sm font-bold text-(--text-dim) transition hover:bg-(--surface-muted)"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="focus-ring inline-flex h-10 items-center justify-center rounded-xl bg-(--accent) px-4 text-sm font-semibold text-(--accent-ink) transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+              className="focus-ring h-11 rounded-xl bg-(--accent) px-8 text-sm font-bold text-(--accent-ink) shadow-lg shadow-(--accent)/20 transition hover:opacity-90 disabled:opacity-50"
             >
-              {submitting ? "Saving..." : isEdit ? "Update" : "Create"}
+              {submitting
+                ? isEdit
+                  ? "Updating..."
+                  : "Creating..."
+                : isEdit
+                  ? "Update Offered Subject"
+                  : "Create Offered Subject"}
             </button>
           </div>
         </form>

@@ -100,6 +100,25 @@ export type OfferedSubjectModalProps = {
   maxWidth?: string;
 };
 
+export type OfferedSubjectEditableScheduleBlock = {
+  id: string;
+  classType: OfferedSubjectClassType;
+  day: OfferedSubjectDay | "";
+  room: string;
+  startPeriod: string;
+  periodCount: string;
+};
+
+export type OfferedSubjectFormState = {
+  semesterRegistration: string;
+  academicInstructor: string;
+  academicDepartment: string;
+  subject: string;
+  instructor: string;
+  maxCapacity: string;
+  scheduleBlocks: OfferedSubjectEditableScheduleBlock[];
+};
+
 export type OfferedSubjectServerProps = {
   searchTerm: string;
   page: number;

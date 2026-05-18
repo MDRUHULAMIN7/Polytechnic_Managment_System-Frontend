@@ -9,14 +9,14 @@ button{
   --font-body: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-bengali: "Noto Sans Bengali", "Manrope", system-ui, sans-serif;
 
-  --bg: #f5f7fb;
+  --bg: #f8fafc;
   --surface: #ffffff;
-  --surface-muted: #eef2ff;
-  --line: #d8dfeb;
+  --surface-muted: #f1f5f9;
+  --line: #e2e8f0;
   --text: #0f172a;
-  --text-dim: #435069;
-  --accent: #4b7de9;
-  --accent-ink: #eff6ff;
+  --text-dim: #475569;
+  --accent: #2563eb;
+  --accent-ink: #ffffff;
   --sidebar-bg: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
   --sidebar-border: rgba(15, 23, 42, 0.08);
   --sidebar-top-glow: radial-gradient(

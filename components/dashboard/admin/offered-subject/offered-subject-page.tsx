@@ -218,8 +218,8 @@ export function OfferedSubjectPage({
           void handleEdit(item);
         }}
         onDelete={handleDelete}
-        actionsLabel="Marks"
-        viewLabel="View Marks"
+        actionsLabel="Actions"
+        viewLabel="Details"
       />
 
       <OfferedSubjectPagination
