@@ -8,8 +8,6 @@ import type {
   SubjectSortOption,
   SubjectType,
 } from "./index";
-import type { Instructor } from "@/lib/type/dashboard/admin/instructor";
-
 export type SubjectFiltersProps = {
   search: string;
   sort: SubjectSortOption;
@@ -62,12 +60,7 @@ export type SubjectFormModalProps = {
 export type SubjectAssignModalProps = {
   open: boolean;
   subject: Subject | null;
-  instructors: Instructor[];
-  assignedInstructors: Instructor[];
-  loading: boolean;
   onClose: () => void;
-  onAssign: (instructorIds: string[]) => Promise<void>;
-  onRemove: (instructorId: string) => Promise<void>;
 };
 
 export type SubjectDetailsContentProps = {

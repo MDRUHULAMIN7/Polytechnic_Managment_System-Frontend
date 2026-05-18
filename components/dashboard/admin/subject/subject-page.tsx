@@ -3,7 +3,6 @@
 import { useEffect, useState, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { SubjectSortOption } from "@/lib/type/dashboard/admin/subject";
-import type { Instructor } from "@/lib/type/dashboard/admin/instructor";
 import type { SubjectPageProps } from "@/lib/type/dashboard/admin/subject/ui";
 import { showToast } from "@/utils/common/toast";
 import { ConfirmDialog } from "@/components/common/confirm-dialog";
@@ -16,15 +15,7 @@ import { SubjectPagination } from "./subject-pagination";
 import { SubjectTable } from "./subject-table";
 import { SubjectFormModal } from "./subject-form-modal";
 import { SubjectAssignModal } from "./subject-assign-modal";
-import {
-  assignInstructorsAction,
-  deleteSubjectAction,
-  removeInstructorsAction,
-} from "@/actions/dashboard/admin/subject";
-import {
-  getInstructorsAction,
-  getSubjectInstructorsAction,
-} from "@/actions/dashboard/admin/subject";
+import { deleteSubjectAction } from "@/actions/dashboard/admin/subject";
 import type { Subject } from "@/lib/type/dashboard/admin/subject";
 
 export function SubjectPage({
@@ -44,9 +35,6 @@ export function SubjectPage({
   const [createOpen, setCreateOpen] = useState(false);
   const [editing, setEditing] = useState<Subject | null>(null);
   const [assigning, setAssigning] = useState<Subject | null>(null);
-  const [assignLoading, setAssignLoading] = useState(false);
-  const [allInstructors, setAllInstructors] = useState<Instructor[]>([]);
-  const [assignedInstructors, setAssignedInstructors] = useState<Instructor[]>([]);
   const [deleteItem, setDeleteItem] = useState<Subject | null>(null);
   const [deleteBusy, setDeleteBusy] = useState(false);
 
@@ -124,46 +112,6 @@ export function SubjectPage({
     }
   }
 
-  async function handleAssignOpen(subject: Subject) {
-    setAssigning(subject);
-    setAssignLoading(true);
-
-    try {
-      const [instructorsPayload, assignedPayload] = await Promise.all([
-        getInstructorsAction({ page: 1, limit: 50 }),
-        getSubjectInstructorsAction(subject._id),
-      ]);
-      setAllInstructors(instructorsPayload.result ?? []);
-      setAssignedInstructors(assignedPayload.instructors ?? []);
-    } catch (err) {
-      showToast({
-        variant: "error",
-        title: "Load failed",
-        description: err instanceof Error ? err.message : "Unable to load instructors.",
-      });
-    } finally {
-      setAssignLoading(false);
-    }
-  }
-
-  async function handleAssign(instructorIds: string[]) {
-    if (!assigning?._id) {
-      return;
-    }
-    await assignInstructorsAction(assigning._id, instructorIds);
-    const assignedPayload = await getSubjectInstructorsAction(assigning._id);
-    setAssignedInstructors(assignedPayload.instructors ?? []);
-  }
-
-  async function handleRemove(instructorId: string) {
-    if (!assigning?._id) {
-      return;
-    }
-    await removeInstructorsAction(assigning._id, [instructorId]);
-    const assignedPayload = await getSubjectInstructorsAction(assigning._id);
-    setAssignedInstructors(assignedPayload.instructors ?? []);
-  }
-
   function handleSaved() {
     startTransition(() => {
       router.refresh();
@@ -225,7 +173,7 @@ export function SubjectPage({
         loading={isPending}
         error={error}
         onEdit={(subject) => setEditing(subject)}
-        onAssign={handleAssignOpen}
+        onAssign={(subject) => setAssigning(subject)}
         onDelete={handleDelete}
       />
 
@@ -258,12 +206,7 @@ export function SubjectPage({
       <SubjectAssignModal
         open={!!assigning}
         subject={assigning}
-        instructors={allInstructors}
-        assignedInstructors={assignedInstructors}
-        loading={assignLoading}
         onClose={() => setAssigning(null)}
-        onAssign={handleAssign}
-        onRemove={handleRemove}
       />
 
       <ConfirmDialog

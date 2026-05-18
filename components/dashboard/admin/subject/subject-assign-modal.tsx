@@ -1,37 +1,58 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { SubjectAssignModalProps } from "@/lib/type/dashboard/admin/subject/ui";
 import { showToast } from "@/utils/common/toast";
 import { Modal } from "./modal";
+import {
+  assignInstructorsAction,
+  getInstructorsAction,
+  getSubjectInstructorsAction,
+  removeInstructorsAction,
+} from "@/actions/dashboard/admin/subject";
+import type { Instructor } from "@/lib/type/dashboard/admin/instructor";
 
 function resolveName(name?: { firstName?: string; middleName?: string; lastName?: string }) {
-  if (!name) {
-    return "--";
-  }
-
+  if (!name) return "--";
   return [name.firstName, name.middleName, name.lastName].filter(Boolean).join(" ");
 }
 
-export function SubjectAssignModal({
-  open,
-  subject,
-  instructors,
-  assignedInstructors,
-  loading,
-  onClose,
-  onAssign,
-  onRemove,
-}: SubjectAssignModalProps) {
+export function SubjectAssignModal({ open, subject, onClose }: SubjectAssignModalProps) {
   const [selected, setSelected] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [removingId, setRemovingId] = useState<string | null>(null);
+  const [allInstructors, setAllInstructors] = useState<Instructor[]>([]);
+  const [assignedInstructors, setAssignedInstructors] = useState<Instructor[]>([]);
+
+  const fetchInstructors = useCallback(async () => {
+    if (!subject?._id) return;
+
+    setLoading(true);
+    try {
+      const [instructorsPayload, assignedPayload] = await Promise.all([
+        getInstructorsAction({ page: 1, limit: 100 }),
+        getSubjectInstructorsAction(subject._id),
+      ]);
+      setAllInstructors(instructorsPayload.result ?? []);
+      setAssignedInstructors(assignedPayload.instructors ?? []);
+    } catch (err) {
+      showToast({
+        variant: "error",
+        title: "Load failed",
+        description: err instanceof Error ? err.message : "Unable to load instructors.",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [subject?._id]);
 
   useEffect(() => {
     if (open) {
       setSelected([]);
+      fetchInstructors();
     }
-  }, [open]);
+  }, [open, fetchInstructors]);
 
   const assignedIds = useMemo(
     () => new Set(assignedInstructors.map((item) => item._id)),
@@ -39,38 +60,23 @@ export function SubjectAssignModal({
   );
 
   const availableInstructors = useMemo(
-    () => instructors.filter((item) => !assignedIds.has(item._id)),
-    [instructors, assignedIds]
+    () => allInstructors.filter((item) => !assignedIds.has(item._id)),
+    [allInstructors, assignedIds]
   );
 
   async function handleAssign() {
-    if (!subject?._id) {
-      showToast({
-        variant: "error",
-        title: "Missing subject",
-        description: "Unable to assign instructors.",
-      });
-      return;
-    }
-
+    if (!subject?._id) return;
     if (selected.length === 0) {
-      showToast({
-        variant: "error",
-        title: "Select instructors",
-        description: "Please select at least one instructor.",
-      });
+      showToast({ variant: "error", title: "Select instructors", description: "Please select at least one instructor." });
       return;
     }
 
     setSubmitting(true);
     try {
-      await onAssign(selected);
-      showToast({
-        variant: "success",
-        title: "Assigned",
-        description: "Instructors assigned successfully.",
-      });
+      await assignInstructorsAction(subject._id, selected);
+      showToast({ variant: "success", title: "Assigned", description: "Instructors assigned successfully." });
       setSelected([]);
+      await fetchInstructors();
     } catch (error) {
       showToast({
         variant: "error",
@@ -83,23 +89,13 @@ export function SubjectAssignModal({
   }
 
   async function handleRemove(instructorId: string) {
-    if (!subject?._id) {
-      showToast({
-        variant: "error",
-        title: "Missing subject",
-        description: "Unable to remove instructor.",
-      });
-      return;
-    }
+    if (!subject?._id) return;
 
     setRemovingId(instructorId);
     try {
-      await onRemove(instructorId);
-      showToast({
-        variant: "success",
-        title: "Removed",
-        description: "Instructor removed successfully.",
-      });
+      await removeInstructorsAction(subject._id, [instructorId]);
+      showToast({ variant: "success", title: "Removed", description: "Instructor removed successfully." });
+      await fetchInstructors();
     } catch (error) {
       showToast({
         variant: "error",
@@ -164,7 +160,7 @@ export function SubjectAssignModal({
               </div>
               <button
                 type="button"
-                disabled={submitting}
+                disabled={submitting || selected.length === 0}
                 onClick={handleAssign}
                 className="focus-ring inline-flex h-10 items-center justify-center rounded-xl bg-(--accent) px-4 text-sm font-semibold text-(--accent-ink) transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
               >
@@ -208,3 +204,4 @@ export function SubjectAssignModal({
     </Modal>
   );
 }
+
